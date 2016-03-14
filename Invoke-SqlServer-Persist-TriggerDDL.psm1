@@ -348,6 +348,7 @@ function Invoke-SqlServer-Persist-TriggerDDL
 
             # Status user
             Write-Host "[*] No OS admin will be created, because the service account does not have local administrator privileges."
+            Break
         }else{
 
             # Create query
