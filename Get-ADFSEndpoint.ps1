@@ -1,4 +1,35 @@
-﻿function Get-ADFSEndpoint{
+﻿<#
+	    .SYNOPSIS
+	       This script can be used to enumerate information about federated domains from Microsoft's APIs.
+
+	    .DESCRIPTION
+	       This script can be used to identify potential authentication points for federated domains. Email addresses are sent to Microsoft's federation check API and the JSON response is parsed by the script. The data is then returned as a datatable. The email address doesn't have to be valid. Using "test" at your testing domain should get you the federation information.
+
+	    .EXAMPLE
+	       
+	       PS C:\> Get-ADFSEndpoint -email test@microsoft.com | ft -AutoSize
+
+			Email              Type      Domain        BrandName     AuthURL                                                                                                                             
+			-----              ----      ------        ---------     -------                                                                                                                             
+			test@microsoft.com Federated microsoft.com MICROSOFT.COM https://msft.sts.microsoft.com/adfs/ls/?username=test%40microsoft.com&wa=wsignin1.0&wtrealm=urn%3afederation%3aMicrosoftOnline&wctx=
+
+	       
+	    .EXAMPLE
+	       
+	       PS C:\> Get-Content "C:\Temp\emails.txt" | ForEach-Object {Get-ADFSEndpoint -email $_}  | ft -AutoSize
+
+	     .NOTES
+	       Author: Karl Fosaaen (@kfosaaen) - 2016, NetSPI
+	       	       
+	     .LINK
+	       https://blog.netspi.com/using-powershell-identify-federated-domains/
+		   http://www.economyofmechanism.com/office365-authbypass.html
+		   https://blogs.msdn.microsoft.com/besidethepoint/2012/10/17/request-adfs-security-token-with-powershell/
+		   https://msdn.microsoft.com/en-us/library/jj151815.aspx
+		   https://technet.microsoft.com/en-us/library/dn568015.aspx
+#>
+
+function Get-ADFSEndpoint{
 
     [CmdletBinding()]
     Param(
