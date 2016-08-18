@@ -94,8 +94,8 @@ function Get-ADFSEndpoint{
                 # Write out the sample
                 Write-Host "`nMake sure you use the correct Username and Domain parameters when you try to authenticate!`n`nAuthentication Command:`nInvoke-ADFSSecurityTokenRequest -ClientCredentialType UserName -ADFSBaseUri"$ADFSBaseUri" -AppliesTo "$AppliesTo" -UserName '"$username"' -Password 'Winter2016' -Domain '"$domain"' -OutputType Token -SAMLVersion 2 -IgnoreCertificateErrors"
                 # Check if Invoke-ADFSSecurityTokenRequest is loaded
-                if (Get-Command -Name Invoke-ADFSSecurityTokenRequest){}
-                else{Write-Host `n`n'*Requires the command imported from here - https://gallery.technet.microsoft.com/scriptcenter/Invoke-ADFSSecurityTokenReq-09e9c90c'}
+                try {Get-Command -Name Invoke-ADFSSecurityTokenRequest -ErrorAction Stop}
+                catch{Write-Host `n`n'*Requires the command imported from here - https://gallery.technet.microsoft.com/scriptcenter/Invoke-ADFSSecurityTokenReq-09e9c90c'}
             }
         }
         Else{
