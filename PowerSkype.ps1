@@ -98,6 +98,7 @@ Function Get-SkypeStatus{
     $TempTblUsers.Columns.Add("Full Name") | Out-Null
     $TempTblUsers.Columns.Add("Status") | Out-Null
     $TempTblUsers.Columns.Add("Out Of Office") | Out-Null
+    $TempTblUsers.Columns.Add("Endpoints") | Out-Null
 
     # Check if attempts is set
     if ($attempts.Length -eq 0){$attempts = 1}
@@ -122,7 +123,7 @@ Function Get-SkypeStatus{
         }
         catch
         {
-            Write-Host "`nFaild to lookup Contact"$email
+            Write-Host "`nFailed to lookup Contact"$email
             break
         }
 
@@ -133,8 +134,13 @@ Function Get-SkypeStatus{
         # Check contact availability
         if($contact.GetContactInformation('Availability') -gt '0')
         {
+            $numbers = ""
+            $phones = $contact.GetContactInformation('ContactEndpoints')
+            $phones | foreach {if ($_.Uri -like "tel:*") {if ($_.Type -eq "WorkPhone"){$numbers += "Work: "+$_.Uri+" "} elseif ($_.Type -eq "MobilePhone"){$numbers += "Mobile: "+$_.Uri+" "}}}
+            
+
             # Add user to the table
-            $TempTblUsers.Rows.Add([string]$email,[string]$contact.GetContactInformation('Title'),[string]$contact.GetContactInformation('DisplayName'),$contact.GetContactInformation('Activity'),[string]$contact.GetContactInformation('IsOutOfOffice')) | Out-Null
+            $TempTblUsers.Rows.Add([string]$email,[string]$contact.GetContactInformation('Title'),[string]$contact.GetContactInformation('DisplayName'),$contact.GetContactInformation('Activity'),[string]$contact.GetContactInformation('IsOutOfOffice'),$numbers) | Out-Null
 
         }
         # End the conversation
@@ -223,7 +229,7 @@ Function Invoke-SendSkypeMessage{
     }
     catch
     {
-        Write-Host "`nFaild to lookup Contact"$email
+        Write-Host "`nFailed to lookup Contact"$email
         break
     }
 
@@ -315,7 +321,7 @@ Function Invoke-SendGroupSkypeMessage{
             }
             catch
             {
-                Write-Host "`nFaild to lookup Contact"$email
+                Write-Host "`nFailed to lookup Contact"$email
             }            
         }
     }
@@ -335,7 +341,7 @@ Function Invoke-SendGroupSkypeMessage{
             }
             catch
             {
-                Write-Host "`nFaild to lookup Contact"$email
+                Write-Host "`nFailed to lookup Contact"$email
             }
             
         }        
