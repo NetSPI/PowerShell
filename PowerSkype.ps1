@@ -117,15 +117,18 @@ Function Get-SkypeStatus{
     for ($i=1; $i -le $attempts; $i++)
     {
         #Get a remote contact
-        try
-        {
-            $contact = $client.ContactManager.GetContactByUri($email)
+        if ($email.Length -gt 0){
+            try
+            {
+                $contact = $client.ContactManager.GetContactByUri($email)
+            }
+            catch
+            {
+                Write-Host "`nFailed to lookup Contact"$email
+                break
+            }
         }
-        catch
-        {
-            Write-Host "`nFailed to lookup Contact"$email
-            break
-        }
+        else{break}
 
         # Create a conversation
         $convo = $client.ConversationManager.AddConversation()
@@ -138,7 +141,6 @@ Function Get-SkypeStatus{
             $phones = $contact.GetContactInformation('ContactEndpoints')
             $phones | foreach {if ($_.Uri -like "tel:*") {if ($_.Type -eq "WorkPhone"){$numbers += "Work: "+$_.Uri+" "} elseif ($_.Type -eq "MobilePhone"){$numbers += "Mobile: "+$_.Uri+" "}}}
             
-
             # Add user to the table
             $TempTblUsers.Rows.Add([string]$email,[string]$contact.GetContactInformation('Title'),[string]$contact.GetContactInformation('DisplayName'),$contact.GetContactInformation('Activity'),[string]$contact.GetContactInformation('IsOutOfOffice'),$numbers) | Out-Null
 
