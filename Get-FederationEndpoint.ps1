@@ -3,25 +3,25 @@
 	       This script can be used to enumerate information about federated domains from Microsoft's APIs.
 
 	    .DESCRIPTION
-	       This script can be used to identify potential authentication points for federated domains. Email addresses are sent to Microsoft's federation check API and the JSON response is parsed by the script. The data is then returned as a datatable. The email address doesn't have to be valid. Using "test" at your testing domain should get you the federation information.
+	       This script can be used to identify potential authentication points for federated domains. A "test" email address is sent to Microsoft's federation check API and the JSON response is parsed by the script. The data is then returned as a datatable.
 
 	    .EXAMPLE
 	       
-	       PS C:\> Get-ADFSEndpoint -email test@microsoft.com | ft -AutoSize
+	       PS C:\> Get-FederationEndpoint -domain microsoft.com | ft -AutoSize
 
-			Email              Type      Domain        BrandName     AuthURL                                                                                                                             
-			-----              ----      ------        ---------     -------                                                                                                                             
-			test@microsoft.com Federated microsoft.com MICROSOFT.COM https://msft.sts.microsoft.com/adfs/ls/?username=test%40microsoft.com&wa=wsignin1.0&wtrealm=urn%3afederation%3aMicrosoftOnline&wctx=
+	       Domain        Type      BrandName AuthURL                                                                                                                             
+	       ------        ----      --------- -------                                                                                                                             
+	       microsoft.com Federated Microsoft https://msft.sts.microsoft.com/adfs/ls/?username=test%40microsoft.com&wa=wsignin1.0&wtrealm=urn%3afederation%3aMicrosoftOnline&wctx=
 
 	       
 	    .EXAMPLE
 	       
-	       PS C:\> Get-Content "C:\Temp\emails.txt" | ForEach-Object {Get-ADFSEndpoint -email $_}  | ft -AutoSize
+	       PS C:\> Get-Content "C:\Temp\domains.txt" | ForEach-Object {Get-FederationEndpoint -domain $_}  | ft -AutoSize
 
-	     .NOTES
+	    .NOTES
 	       Author: Karl Fosaaen (@kfosaaen) - 2016, NetSPI
 	       	       
-	     .LINK
+	    .LINK
 	       https://blog.netspi.com/using-powershell-identify-federated-domains/
 		   http://www.economyofmechanism.com/office365-authbypass.html
 		   https://blogs.msdn.microsoft.com/besidethepoint/2012/10/17/request-adfs-security-token-with-powershell/
@@ -29,27 +29,29 @@
 		   https://technet.microsoft.com/en-us/library/dn568015.aspx
 #>
 
-function Get-ADFSEndpoint{
+function Get-FederationEndpoint{
 
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory=$true,
-        HelpMessage="Email address to get the ADFS endpoint for.")]
-        [string]$email,
+        HelpMessage="Domain name to get the ADFS endpoint for.")]
+        [string]$domain,
         
         [Parameter(Mandatory=$false,
         HelpMessage="Flag for authentication command output.")]
         [switch]$cmd
     )
 
+    # "Test" Email
+    $email = "test@"+$domain
+
     # Microsoft URL to get the JSON response from
     $url = "https://login.microsoftonline.com/common/userrealm/?user="+$email+"&api-version=2.1&checkForMicrosoftAccount=true";
 
     # Create data table to house results
     $EmailTestResults = new-object system.data.datatable
-    $EmailTestResults.columns.add("Email") | Out-Null
-    $EmailTestResults.columns.add("Type") | Out-Null
     $EmailTestResults.columns.add("Domain") | Out-Null
+    $EmailTestResults.columns.add("Type") | Out-Null
     $EmailTestResults.columns.add("BrandName") | Out-Null
     $EmailTestResults.columns.add("AuthURL") | Out-Null
    
@@ -60,13 +62,11 @@ function Get-ADFSEndpoint{
 
         # Handle the Response
         $NameSpaceType = $JSON[0].NameSpaceType
-        
-
 
         if ($NameSpaceType -eq "Managed"){
             
             #Add data to the table
-            $EmailTestResults.Rows.Add($email, "Managed", $JSON[0].DomainName, $JSON[0].FederationBrandName, "NA") | Out-Null
+            $EmailTestResults.Rows.Add($JSON[0].DomainName, "Managed", $JSON[0].FederationBrandName, "NA") | Out-Null
 
             if ($cmd){
 
@@ -87,7 +87,7 @@ function Get-ADFSEndpoint{
 
             
             #Add data to the table
-            $EmailTestResults.Rows.Add($email, "Federated", $JSON[0].DomainName, $JSON[0].FederationBrandName, $JSON[0].AuthURL) | Out-Null
+            $EmailTestResults.Rows.Add($JSON[0].DomainName, "Federated", $JSON[0].FederationBrandName, $JSON[0].AuthURL) | Out-Null
 
             if ($cmd){
 
@@ -101,7 +101,7 @@ function Get-ADFSEndpoint{
         Else{
             
             # If the domain has no federation information available from Microsoft
-            $EmailTestResults.Rows.Add($email, "NA", "NA", "NA", "NA") | Out-Null
+            $EmailTestResults.Rows.Add("NA", "NA", "NA", "NA") | Out-Null
         }
     }
     catch{
