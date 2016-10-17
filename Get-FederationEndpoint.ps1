@@ -74,7 +74,7 @@ function Get-FederationEndpoint{
                 Write-Host "`nDomain is managed by Microsoft, try guessing creds this way:`n`n`t`$msolcred = get-credential`n`tconnect-msolservice -credential `$msolcred"
                 # Check if AzureAD module is installed
                 if (Get-Module -Name MsOnline){}
-                else{Write-Host '`n`n *Requires AzureAD PowerShell module to be installed and loaded - https://msdn.microsoft.com/en-us/library/jj151815.aspx'}
+                else{Write-Host "`n`t*Requires AzureAD PowerShell module to be installed and loaded - https://msdn.microsoft.com/en-us/library/jj151815.aspx"}
             }
         }
         ElseIf ($NameSpaceType -eq "Federated"){
