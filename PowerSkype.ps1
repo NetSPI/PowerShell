@@ -121,7 +121,7 @@ Function Get-SkypeStatus{
         if ($email.Length -gt 0){
             try
             {
-                $contact = $client.ContactManager.GetContactByUri($email)
+                $contact = $client.ContactManager.GetContactByUri($email)                
             }
             catch
             {
@@ -229,7 +229,9 @@ Function Invoke-SkypeLogin{
     .SYNOPSIS
         Attempts a login as a Skype user.
     .PARAMETER email
-        The email address to login as.   
+        The email address to login as. 
+    .PARAMETER username
+        The username to login as.   
 	.PARAMETER password
         The password to use.
 	.PARAMETER url
@@ -247,7 +249,7 @@ Function Invoke-SkypeLogin{
 
         [Parameter(Mandatory=$false,
         HelpMessage="Username to login as.")]
-        [string]$user,
+        [string]$username,
 
         [Parameter(Mandatory=$true,
         HelpMessage="Password to use.")]
@@ -271,7 +273,8 @@ Function Invoke-SkypeLogin{
 
     if($url -like '*lync.com*'){Write-Host 'Microsoft Managed Skype for Business instance - HTTP NTLM Auth currently not supported' -ForegroundColor Red; break}
 
-    if($user.Length -eq 0){$user = $email.Split("@")[0]}
+    if($username.Length -eq 0){$username = $email.Split("@")[0]}
+
 
     
     #Test URL - https://webdirca1.online.lync.com/WebTicket/WebTicketService.svc/Auth
@@ -286,14 +289,14 @@ Function Invoke-SkypeLogin{
     #Useful info on the autodiscover protocol - http://www.lyncexch.co.uk/lyncdiscover-and-auto-discovery-deeper-dive/
 
     $req = [system.Net.WebRequest]::Create($url)
-    $req.Credentials = new-object System.Net.NetworkCredential($user, $password, $domain)
+    $req.Credentials = new-object System.Net.NetworkCredential($username, $password, $domain)
     try {
         $res = $req.GetResponse()
         } catch [System.Net.WebException] {
         $res = $_.Exception.Response
         }
-    if ([int]$res.StatusCode -eq '403'){Write-Host 'Authentication Successful: '$user' - '$password -ForegroundColor Green}
-    else{Write-Host 'Authentication Failure: '$user' - '$password -ForegroundColor Red}
+    if ([int]$res.StatusCode -eq '403'){Write-Host 'Authentication Successful: '$username' - '$password -ForegroundColor Green}
+    else{Write-Host 'Authentication Failure: '$username' - '$password -ForegroundColor Red}
 
     #$webpage = $webclient.DownloadString($url)
       
@@ -567,4 +570,58 @@ Function Get-SkypeFederation{
     # Add domain to table
     $TempTblDomain.Rows.Add([string]$domain,[string]$ms,[string]$sipTrue,[string]$siptlsTrue,[string]$sipFedTrue) | Out-Null
     return $TempTblDomain   
+}
+
+
+function Get-SkypeContacts{
+
+<#
+    .SYNOPSIS
+        Gets a list of contacts from the current user.
+	.PARAMETER group
+        The specific group to list. (Default is to list all contacts)
+    .EXAMPLE
+        PS C:\> Get-SkypeContacts | ft -AutoSize
+        Email             Title              Full Name     Status    Out Of Office  Endpoints                                                                                   
+        -----             -----              ---------     ------    -------------  ---------                                                                                   
+        test@example.com  Person of Interest J Doe         Offline   False          Work: tel:911
+		
+#>
+
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$false,
+        HelpMessage="The contact group to list.")]
+        [string]$group
+    )
+
+    # Connect to the local Skype process
+    try
+    {
+        $client = [Microsoft.Lync.Model.LyncClient]::GetClient()
+    }
+    catch
+    {
+        Write-Host "`nYou need to have Skype open and signed in first"
+        break
+    }
+
+    if ($group.length -ne 0){
+            $groups = $client.ContactManager.Groups
+            foreach ($g in $groups){
+                if ($g.Name -eq $group) {
+                    foreach ($contact in $g){
+                        foreach ($email in $contact.GetContactInformation('email')){Get-SkypeStatus $email}
+                    }
+                }
+            }
+    }
+    else{
+        $groups = $client.ContactManager.Groups
+        foreach ($g in $groups){ 
+            foreach ($contact in $g){
+                foreach ($email in $contact.GetContactInformation('email')){Get-SkypeStatus $email}
+            }
+        }
+    }
 }
