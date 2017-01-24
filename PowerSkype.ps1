@@ -191,7 +191,7 @@ Function Get-SkypeLoginURL{
     try{($dialin = (Resolve-DnsName $dialinDomain -ErrorAction Stop -Verbose:$false | select Name | Select-Object -First 1))|Out-Null}catch{}
 
 
-    if($disco.length -eq 0){Write-Verbose -Message "lyncdiscover record not found"}
+    if($disco.length -eq 0){Write-Verbose -Message "Lyncdiscover record not found"}
     else{
         $lyncURL = "https://lyncdiscover."+$domain
         $webclient = new-object System.Net.WebClient
@@ -204,18 +204,18 @@ Function Get-SkypeLoginURL{
         catch {Write-Verbose -Message "The AutoDiscover URL doesn't appear to work"}
     }
     
-    if($dialin.length -eq 0){Write-Verbose -Message "dialin record not found"}
+    if($dialin.length -eq 0){Write-Verbose -Message "Dialin record not found"}
     else{Write-Verbose -Message ("Dialin Authentication Endpoint Identified - https://dialin."+$domain+"/abs/"); return "https://dialin."+$domain+"/abs/"}
     
 
     #################STILL NEEDS SOME WORK#################
-    if($meet.length -eq 0){Write-Verbose -Message "meet record not found"}
+    if($meet.length -eq 0){Write-Verbose -Message "Meet record not found"}
     # Still Needs an auth endpoint here
     else{Write-Verbose -Message "Meet Authentication Endpoint Identified"; return "https://meet."+$domain+""}
 
-    if($access.length -eq 0){Write-Verbose -Message "access record not found"}
+    if($access.length -eq 0){Write-Verbose -Message "Access record not found"}
     # Still Needs an auth endpoint here
-    else{Write-Verbose -Message "Dialin Authentication Endpoint Identified"; return "https://access."+$domain+""}
+    else{Write-Verbose -Message "Access Authentication Endpoint Identified"; return "https://access."+$domain+""}
             
     Write-Host "`nThe domain does not appear to support any external Skype/Lync authentication endpoints" -ForegroundColor Red; break
 
