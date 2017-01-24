@@ -295,8 +295,8 @@ Function Invoke-SkypeLogin{
         } catch [System.Net.WebException] {
         $res = $_.Exception.Response
         }
-    if ([int]$res.StatusCode -eq '403'){Write-Host 'Authentication Successful: '$username' - '$password -ForegroundColor Green}
-    else{Write-Host 'Authentication Failure: '$username' - '$password -ForegroundColor Red}
+    if ([int]$res.StatusCode -eq '403'){Write-Host 'Authentication Successful: '$domain\$username' - '$password -ForegroundColor Green}
+    else{Write-Host 'Authentication Failure: '$domain\$username' - '$password -ForegroundColor Red}
 
     #$webpage = $webclient.DownloadString($url)
       
