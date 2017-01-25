@@ -26,9 +26,9 @@
 			test39@test.com      Password123 
 
 	     .NOTES
-	       Author: Ryan Gandrud (@siegenapster), NetSPI - 2017
-		   Author: Karl Fosaaen (@kfosaaen), NetSPI - 2016
-           Contributors: Scott Sutherland (@_nullbind)
+	     Author: Ryan Gandrud (@siegenapster), NetSPI - 2017
+	     Author: Karl Fosaaen (@kfosaaen), NetSPI - 2016
+	     Contributors: Scott Sutherland (@_nullbind)
 	       	       
 	     .LINK
 	       https://blog.netspi.com/using-powershell-identify-federated-domains/
@@ -78,8 +78,6 @@ function Get-FederationEndpoint{
 
             if ($cmd){
 
-                # Sample command
-                # Write-Host "`nDomain is managed by Microsoft, try guessing creds this way:`n`n`t`$msolcred = get-credential`n`tconnect-msolservice -credential `$msolcred"
                 # Check if AzureAD module is installed
                 if (Get-Module -Name MsOnline){}
                 else{Write-Host "`n`t*Requires AzureAD PowerShell module to be installed and loaded - https://msdn.microsoft.com/en-us/library/jj151815.aspx"}
