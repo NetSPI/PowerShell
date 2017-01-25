@@ -2,10 +2,10 @@
 
 <#
 	    .SYNOPSIS
-	       This script can be used to attempt user logins against federated/managed domains using Microsoft's APIs.
+	       This script can be used to attempt user logins against federated/managed domains over the internet.
 
 	    .DESCRIPTION
-	       This script can be used to attempt authentication against authentication points for federated domains. Credentials are sent to Microsoft using the connect-msolservice PowerShell module. Successful usernames/passwords are then returned as a datatable.
+	       This script can be used to attempt authentication against federated/managed domains. Credentials are sent to Microsoft using the connect-msolservice PowerShell module. Successful usernames/passwords are then returned as a datatable.
 
 	    .EXAMPLE
 	       
@@ -45,7 +45,7 @@ function Get-FederationEndpoint{
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory=$true,
-        HelpMessage="Domain name to get the ADFS endpoint for.")]
+        HelpMessage="Domain name to get the authentication endpoint for.")]
         [string]$domain
         
     )
@@ -114,7 +114,7 @@ function Invoke-ExternalDomainBruteforce{
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory=$false,
-        HelpMessage="Email address to test password against ADFS endpoint.")]
+        HelpMessage="Email address to test password against.")]
         [string]$email,
 
         [Parameter(Mandatory=$true,
@@ -136,6 +136,7 @@ function Invoke-ExternalDomainBruteforce{
 	elseif($email) {
 		$Users = $email
 	}
+    else{Write-Host "Please provide an email address or a list of users."; break}
 	
     # Create data table to house results
     $EmailTestResults = new-object system.data.datatable
@@ -146,7 +147,8 @@ function Invoke-ExternalDomainBruteforce{
 	# Get-FederationEndpoint for type of domain
     $info = Get-FederationEndpoint -domain $domain
 	
-	
+    Write-Verbose "The domain type is $($info[1])"     
+
     if ($info[1] -eq "Managed" ) {
 
 		$Users | ForEach-Object {
