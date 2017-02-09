@@ -180,7 +180,8 @@ function Invoke-ExternalDomainBruteforce{
 			}
 		}
 		
-		Write-Host "`nWARNING: You still have an active session as "$LastSuccessAuth"`nAny actions against a Managed domain will take place as this user. You have been warned.`nTo close this session, please exit from your PowerShell session." -ForegroundColor Red
+		if($LastSuccessAuth){
+		Write-Host "`nWARNING: You still have an active session as "$LastSuccessAuth"`nAny actions against a Managed domain will take place as this user. You have been warned.`nTo close this session, please exit from your PowerShell session." -ForegroundColor Red}
     }
 	
     ElseIf($info[1] -eq "Federated") {
