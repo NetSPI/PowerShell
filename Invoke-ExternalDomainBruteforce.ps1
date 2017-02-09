@@ -215,6 +215,10 @@ function Invoke-ExternalDomainBruteforce{
 		}
 	}
 
+	ElseIf($info[1] -eq "NA"){
+		Write-Host "The domain you are targeting is neither Managed or Federated."
+	}
+	
     Else{
         Write-Host "`nSomething has gone horribly wrong!`nIs your domain name correct?"
     }
