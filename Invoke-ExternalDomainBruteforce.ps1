@@ -210,14 +210,14 @@ function Invoke-ExternalDomainBruteforce{
                 	$ErrorActionPreference = "Stop";
                 	Invoke-ADFSSecurityTokenRequest -ClientCredentialType UserName -ADFSBaseUri "$ADFSBaseUri" -AppliesTo "$AppliesTo" -UserName "$user" -Password $password -Domain '$info[0]' -OutputType Token -SAMLVersion 2 -IgnoreCertificateErrors | Out-Null
                 	$EmailTestResults.Rows.Add($user, $domain, $password) | Out-Null
-                	Write-Host 'Authentication Successful: '$info[0]\$user' - '$password -ForegroundColor Green
+                	Write-Host 'Authentication Successful: '$user' - '$password -ForegroundColor Green
             	}
             	catch{
 			# Blog writing mods
-			# if($user -match 'test'){Write-Host 'Authentication Successful: '$info[0]\$user' - '$password -ForegroundColor Green;$EmailTestResults.Rows.Add($user, $domain, $password) | Out-Null}
-                	#else{Write-Host 'Authentication Failure: '$info[0]\$user' - '$password -ForegroundColor Red}
+			# if($user -match 'test'){Write-Host 'Authentication Successful: '$user' - '$password -ForegroundColor Green;$EmailTestResults.Rows.Add($user, $domain, $password) | Out-Null}
+                	#else{Write-Host 'Authentication Failure: '$user' - '$password -ForegroundColor Red}
 				
-			Write-Host 'Authentication Failure: '$info[0]\$user' - '$password -ForegroundColor Red
+			Write-Host 'Authentication Failure: '$user' - '$password -ForegroundColor Red
             	}
 			
 			
