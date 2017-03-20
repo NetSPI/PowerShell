@@ -39,10 +39,10 @@
 	       	       
 	     .LINK
 	       https://blog.netspi.com/using-powershell-identify-federated-domains/
-		   http://www.economyofmechanism.com/office365-authbypass.html
-		   https://blogs.msdn.microsoft.com/besidethepoint/2012/10/17/request-adfs-security-token-with-powershell/
-		   https://msdn.microsoft.com/en-us/library/jj151815.aspx
-		   https://technet.microsoft.com/en-us/library/dn568015.aspx
+	       http://www.economyofmechanism.com/office365-authbypass.html
+	       https://blogs.msdn.microsoft.com/besidethepoint/2012/10/17/request-adfs-security-token-with-powershell/
+	       https://msdn.microsoft.com/en-us/library/jj151815.aspx
+	       https://technet.microsoft.com/en-us/library/dn568015.aspx
 #>
 
 #Pulled from Karl Fosaaen's script at
