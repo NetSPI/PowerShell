@@ -167,8 +167,10 @@ function Invoke-ExternalDomainBruteforce{
     	
     Write-Verbose "The domain type is $($type)"     
 
-    if ($type -match "Managed" ) {
-
+    if ($type -match "Managed" -or $type -match "NA") {
+		if ($type -match "NA"){
+			Write-Host "Domain is neither Managed or Federated. Defaulting to using Managed authentication."
+		}
 		$Users | ForEach-Object {
 		    	
 			try{
@@ -240,10 +242,6 @@ function Invoke-ExternalDomainBruteforce{
 			
 		}
 		Write-Host "`nAuthentication URL: "$info[3] -ForegroundColor Green
-	}
-
-	ElseIf($type -eq "NA"){
-		Write-Host "The domain you are targeting is neither Managed or Federated."
 	}
 	
     Else{
