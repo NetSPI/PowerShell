@@ -8,6 +8,7 @@
 	    .EXAMPLE
 	       
 	       PS C:\> Get-FederationEndpoint -domain microsoft.com | ft -AutoSize
+	       PS C:\> Get-FederationEndpoint -email test@microsoft.com | ft -AutoSize
 
 	       Domain        Type      BrandName AuthURL                                                                                                                             
 	       ------        ----      --------- -------                                                                                                                             
@@ -31,19 +32,23 @@
 
 function Get-FederationEndpoint{
 
-    [CmdletBinding()]
+    [CmdletBinding( DefaultParameterSetName="Domain" )]
     Param(
-        [Parameter(Mandatory=$true,
+        [Parameter(Mandatory=$true, ParameterSetName="Domain", 
         HelpMessage="Domain name to get the ADFS endpoint for.")]
         [string]$domain,
-        
+
+        [Parameter(Mandatory=$true,ParameterSetName="Email",
+        HelpMessage="Email address to get the ADFS endpoint fot.")]
+        [string]$email,
+
         [Parameter(Mandatory=$false,
         HelpMessage="Flag for authentication command output.")]
         [switch]$cmd
     )
 
     # "Test" Email
-    $email = "test@"+$domain
+    if (-NOT $email) { $email = "test@"+$domain }
 
     # Microsoft URL to get the JSON response from
     $url = "https://login.microsoftonline.com/common/userrealm/?user="+$email+"&api-version=2.1&checkForMicrosoftAccount=true";
