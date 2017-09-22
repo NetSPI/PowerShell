@@ -625,3 +625,112 @@ function Get-SkypeContacts{
         }
     }
 }
+
+function Get-EnumSkype{
+
+<#
+    .SYNOPSIS
+        Enumerate Skype users.
+    .EXAMPLE
+        PS C:\> Get-EnumSkype
+        test@example.com
+        test1@example.com
+        test2@example.com
+#>
+
+    try
+    {
+        $client = [Microsoft.Lync.Model.LyncClient]::GetClient();
+    }
+    catch
+    {
+        Write-Host "`nYou need to have Skype open and signed in first"
+        break
+    }
+
+
+    # Create search terms containing all printable ASCII characters without duplicate
+    # uppercase letters because searches are case insensitive.
+    $characters = @()
+    33..64 + 91..126 | foreach-object{$characters += [char]$_}
+    $search_terms = @()
+    foreach ($char1 in $characters)
+    {
+        # Add single characters to the search term list because some single character
+        # searchs return results.
+        $search_terms += $char1
+
+        # Addd two-character to the search term list.
+        foreach ($char2 in $characters)
+        {
+            $search_terms += $char1 + $char2
+        }
+    }
+
+    # Open output text and log files as streams which provides the fastest mechanism to
+    # write data to files.
+    $current_dir = Get-Location
+    $file_txt = Join-Path -Path $current_dir -ChildPath "\Get-EnumSkype.txt"
+    $file_log = Join-Path -Path $current_dir -ChildPath "\Get-EnumSkype.log"
+    $stream_txt = [System.IO.StreamWriter]::new( $file_txt )
+    $stream_log = [System.IO.StreamWriter]::new( $file_log )
+    $stream_log.WriteLine("search_term`temails_found`temails_added`temails_total")
+
+    # Perform searches and collect emails.  For each search term, perform the search
+    # then write new emails to the text file and stdout, and write search statistics
+    # to the log file.
+    $objAverage = New-Object System.Object
+    $ht_emails_total = @{}
+    foreach($search_term in $search_terms)
+    {
+        $search = $client.ContactManager.BeginSearch($search_term, $null, $objAverage)
+        $result = $client.ContactManager.EndSearch($search)
+        $ht_emails_found = @{}
+        $ht_emails_added = @{}
+
+        # Add search hits to $ht_emails_found.
+        foreach($record in $result)
+        {
+            $item = $record.Contacts.Uri
+            foreach($email in $item)
+            {
+                if ($email -like 'sip:*')
+                {
+                    $email = $email -replace "sip:", ""
+                    if (-not $ht_emails_found.contains($email))
+                    {
+                        $ht_emails_found.add($email, '1')
+                    }
+                }
+            }
+        }
+
+        # Add emails not currently in $ht_emails_total to $ht_emails_added.
+        foreach ($email in $ht_emails_found.keys)
+        {
+            if (-not $ht_emails_total.contains($email))
+            {
+                $ht_emails_added.add($email, '1')
+            }
+        }
+        # Add new emails to $ht_emails_total.
+        foreach ($email in $ht_emails_added.keys)
+        {
+            $ht_emails_total.add($email, '1')
+        }
+
+        # Collect counts for the log file.
+        $emails_found = $ht_emails_found.keys.count
+        $emails_added = $ht_emails_added.keys.count
+        $emails_total = $ht_emails_total.keys.count
+
+        # Write added emails to stdout and text file; write counts to log file.
+        $ht_emails_added.keys | Sort-Object | ForEach-Object{ Write-Host "$_" }
+        $ht_emails_added.keys | Sort-Object | ForEach-Object{ $stream_txt.WriteLine( $_ ) }
+        $stream_log.WriteLine("$search_term`t$emails_found`t$emails_added`t$emails_total")
+    }
+
+    # Close file streams.
+    $stream_txt.Close()
+    $stream_log.Close()
+}
