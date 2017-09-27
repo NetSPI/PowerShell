@@ -87,7 +87,6 @@ Function Get-SkypeStatus{
     # Bounds check the important inputs
     if(($email.Length -eq 0) -and ($inputFile.Length -eq 0))
     {
-        #Write-Host "Use -email or -inputFile and enter an email address..."
         Get-Help Get-SkypeStatus
         break
     }
@@ -125,7 +124,7 @@ Function Get-SkypeStatus{
             }
             catch
             {
-                Write-Host "`nFailed to lookup Contact"$email
+                Write-Verbose "Failed to find Contact $email"
                 break
             }
         }
@@ -133,11 +132,16 @@ Function Get-SkypeStatus{
 
         # Create a conversation
         $convo = $client.ConversationManager.AddConversation()
-        $convo.AddParticipant($contact) | Out-Null
+        if($contact)
+        {
+            $convo.AddParticipant($contact) | Out-Null
+        }
+        else{break}
 
         # Check contact availability
-        if($contact.GetContactInformation('Availability') -gt '0')
+        if(($contact.GetContactInformation('Availability') -gt '0') -or ([string]$contact.GetContactInformation('Title')))
         {
+            # Iterate through phone numbers
             $numbers = ""
             $phones = $contact.GetContactInformation('ContactEndpoints')
             $phones | foreach {if ($_.Uri -like "tel:*") {if ($_.Type -eq "WorkPhone"){$numbers += "Work: "+$_.Uri+" "} elseif ($_.Type -eq "MobilePhone"){$numbers += "Mobile: "+$_.Uri+" "}}}
@@ -190,6 +194,8 @@ Function Get-SkypeLoginURL{
     try{($meet = Resolve-DnsName $meetDomain -ErrorAction Stop -Verbose:$false | select Name | Select-Object -First 1)|Out-Null}catch{}
     try{($dialin = (Resolve-DnsName $dialinDomain -ErrorAction Stop -Verbose:$false | select Name | Select-Object -First 1))|Out-Null}catch{}
 
+
+    # Add in HTTP-NTLM auth prompt checks here
 
     if($disco.length -eq 0){Write-Verbose -Message "Lyncdiscover record not found"}
     else{
@@ -438,7 +444,7 @@ Function Invoke-SendGroupSkypeMessage{
     # Connect to the local Skype process
     try
     {
-        $client = [Microsoft.Lync.Model.LyncClient]::GetClient()
+        $client = [Microsoft.Lync.Model.LyncClient]::GetClient()        
     }
     catch
     {
@@ -500,8 +506,7 @@ Function Invoke-SendGroupSkypeMessage{
     $imModality = $convo.Modalities[1]
     # Send the message
     $imModality.BeginSendMessage($msg, $null, $imModality) | Out-Null
-    # Uncomment the next line to end the Convo to suppress the UI
-    # $convo.End() | Out-Null
+    $convo.End() | Out-Null
 
     Write-Host "Sent the following message to"$count "users:`n"$message
 }
@@ -624,4 +629,60 @@ function Get-SkypeContacts{
             }
         }
     }
+}
+
+function Get-SkypeDomainUsers{
+
+<#
+    .SYNOPSIS
+        Searches the users contacts for available contacts.
+
+    .EXAMPLE
+        PS C:\> Get-SkypeDomainUsers | ft -AutoSize
+        Email             Title              Full Name     Status    Out Of Office  Endpoints                                                                                   
+        -----             -----              ---------     ------    -------------  ---------                                                                                   
+        test@example.com  Person of Interest J Doe         Offline   False          Work: tel:911
+		
+#>
+
+    # Connect to the local Skype process
+    try
+    {
+        $client = [Microsoft.Lync.Model.LyncClient]::GetClient()
+    }
+    catch
+    {
+        Write-Host "`nYou need to have Skype open and signed in first"
+        break
+    }
+
+    # Helpful Link - https://msdn.microsoft.com/en-us/library/office/dn391639.aspx
+
+    # Does simple outlook contacts search
+    # Search a to z and filter
+    # This is inefficient, but functional right now
+
+    $letters = "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"
+    
+
+    # Create data table to house results
+    $TempTblUris = New-Object System.Data.DataTable 
+    $TempTblUris.Columns.Add("URI") | Out-Null
+
+    
+    foreach($letter in $letters){
+        $searcher = $client.ContactManager.BeginSearch($letter, $null, $null)
+        $end = $client.ContactManager.EndSearch($searcher)
+
+        $uris += ($end | ForEach-Object {$_.Contacts | ForEach-Object {$TempTblUris.Rows.Add([string]$_.Uri)}})
+
+    }
+
+    # Sort and unique the final table
+    $finalTable = $TempTblUris | sort-object -Property uri -Unique
+
+    # Take each URI and run Get-SkypeStatus on it
+    foreach ($uri in $finalTable){Get-SkypeStatus -email ([string]$uri.URI.split(":")[1])}
+        
+    
 }
