@@ -51,14 +51,18 @@ function Get-FederationEndpoint{
     # Create data table to house results
     $EmailTestResults = new-object system.data.datatable
     $EmailTestResults.columns.add("Domain") | Out-Null
+    $EmailTestResults.columns.add("InternalDomain") | Out-Null
     $EmailTestResults.columns.add("Type") | Out-Null
     $EmailTestResults.columns.add("BrandName") | Out-Null
     $EmailTestResults.columns.add("AuthURL") | Out-Null
    
     try{
-
-        # Make the request
-        $JSON = Invoke-RestMethod -Uri $url
+            # Make the request
+            $JSON = Invoke-RestMethod -Uri $url
+        }
+    catch{
+            Write-Host "`nThe Request out to Microsoft failed."
+        }
 
         # Handle the Response
         $NameSpaceType = $JSON[0].NameSpaceType
@@ -66,7 +70,7 @@ function Get-FederationEndpoint{
         if ($NameSpaceType -eq "Managed"){
             
             #Add data to the table
-            $EmailTestResults.Rows.Add($JSON[0].DomainName, "Managed", $JSON[0].FederationBrandName, "NA") | Out-Null
+            $EmailTestResults.Rows.Add($JSON[0].DomainName, "NA", "Managed", $JSON[0].FederationBrandName, "NA") | Out-Null
 
             if ($cmd){
 
@@ -85,9 +89,17 @@ function Get-FederationEndpoint{
             $ADFSBaseUri = [string]$JSON[0].AuthURL.Split("/")[0]+"//"+[string]$JSON[0].AuthURL.Split("/")[2]+"/"
             $AppliesTo = $ADFSBaseUri+"adfs/services/trust/13/usernamemixed"
 
+            try {
+                #Goes a step further to grab internal domain from ADFS server (if supported)
+                $domainRequest = Invoke-WebRequest -Uri $JSON[0].AuthURL
+                $domainRequest.RawContent -match "userNameValue = '(.*?)\\\\' \+ userName\." | Out-Null
+                $realDomain = $Matches[1]
+                }
+            catch{$realDomain = "NA"}
             
             #Add data to the table
-            $EmailTestResults.Rows.Add($JSON[0].DomainName, "Federated", $JSON[0].FederationBrandName, $JSON[0].AuthURL) | Out-Null
+            $EmailTestResults.Rows.Add($JSON[0].DomainName, $realDomain, "Federated", $JSON[0].FederationBrandName, $JSON[0].AuthURL) | Out-Null
+
 
             if ($cmd){
 
@@ -101,12 +113,8 @@ function Get-FederationEndpoint{
         Else{
             
             # If the domain has no federation information available from Microsoft
-            $EmailTestResults.Rows.Add("NA", "NA", "NA", "NA") | Out-Null
+            $EmailTestResults.Rows.Add("NA", "NA", "NA", "NA", "NA") | Out-Null
         }
-    }
-    catch{
-        Write-Host "`nThe Request out to Microsoft failed."
-    }
 
     Return $EmailTestResults
 }
