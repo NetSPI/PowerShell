@@ -54,6 +54,7 @@ function Get-FederationEndpoint{
     $EmailTestResults.columns.add("InternalDomain") | Out-Null
     $EmailTestResults.columns.add("Type") | Out-Null
     $EmailTestResults.columns.add("BrandName") | Out-Null
+    $EmailTestResults.columns.add("SSOEndpoints") | Out-Null
     $EmailTestResults.columns.add("AuthURL") | Out-Null
    
     try{
@@ -70,7 +71,7 @@ function Get-FederationEndpoint{
         if ($NameSpaceType -eq "Managed"){
             
             #Add data to the table
-            $EmailTestResults.Rows.Add($JSON[0].DomainName, "NA", "Managed", $JSON[0].FederationBrandName, "NA") | Out-Null
+            $EmailTestResults.Rows.Add($JSON[0].DomainName, "NA", "Managed", $JSON[0].FederationBrandName, "NA", "NA") | Out-Null
 
             if ($cmd){
 
@@ -96,9 +97,20 @@ function Get-FederationEndpoint{
                 $realDomain = $Matches[1]
                 }
             catch{$realDomain = "NA"}
+
+            $SSOSitesURL = $ADFSBaseUri+"adfs/ls/idpinitiatedsignon.aspx?"
+
+            try {
+                #Goes a step further to grab SSO Endpoints from ADFS server (if supported)
+                $SSORequest = Invoke-WebRequest -Uri $SSOSitesURL
+                $endpoints = @()
+                foreach ($element in $SSORequest.AllElements) {if ($element.tagName -match "OPTION"){$endpoints += $element.outerText}}
+                if ($endpoints.Length -eq 0){$endpoints = "NA"}
+                }
+            catch{$endpoints = "NA"}
             
             #Add data to the table
-            $EmailTestResults.Rows.Add($JSON[0].DomainName, $realDomain, "Federated", $JSON[0].FederationBrandName, $JSON[0].AuthURL) | Out-Null
+            $EmailTestResults.Rows.Add($JSON[0].DomainName, $realDomain, "Federated", $JSON[0].FederationBrandName, $endpoints -join ', ', $JSON[0].AuthURL) | Out-Null
 
 
             if ($cmd){
@@ -113,7 +125,7 @@ function Get-FederationEndpoint{
         Else{
             
             # If the domain has no federation information available from Microsoft
-            $EmailTestResults.Rows.Add("NA", "NA", "NA", "NA", "NA") | Out-Null
+            $EmailTestResults.Rows.Add("NA", "NA", "NA", "NA", "NA", "NA") | Out-Null
         }
 
     Return $EmailTestResults
