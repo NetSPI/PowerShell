@@ -9,7 +9,6 @@
 #       Add option to disable group dump
 #       Add additional AzureRM features/data
 
-
 #Requires -Modules MSOnline,AzureRM
 
 
@@ -163,11 +162,42 @@ Function Dump-AzureDomainInfo-AzureRM
     Write-Verbose "Getting Domain Users for each group..."
     $groups | Export-Csv -NoTypeInformation -LiteralPath $folder"\AzureRM\Groups.CSV"
     $groups | ForEach-Object {$groupName=$_.DisplayName; Get-AzureRmADGroupMember -GroupObjectId $_.Id | Select-Object @{ Label = "Group Name"; Expression={$groupName}}, DisplayName | Export-Csv -NoTypeInformation -LiteralPath $folder"\AzureRM\Groups\group_"$groupName"_Users.CSV"}
-    Write-Verbose "Domain Group Users were enumerated for $groupCount groups."
+    Write-Verbose "Domain Group Users were enumerated for $groupCount group(s)."
 
     #Get-​Azure​Rm​AD​Application
     # TBD
     
+    #Get Storage Account name(s)
+    $resourceGroupName = Get-AzureRmResourceGroup | Select ResourceGroupName
+    $storageAccounts = Get-AzureRmStorageAccount | select StorageAccountName 
+    
+    Foreach ($storageAccount in $storageAccounts){
+        $StorageAccountName = $storageAccount.StorageAccountName
+        Write-Verbose "Listing out blob files for the $StorageAccountName storage account."
+        #Set Context
+        Set-AzureRmCurrentStorageAccount –ResourceGroupName $resourceGroupName.ResourceGroupName -Name $storageAccount.StorageAccountName | Out-Null
+
+        #List Containers and Files and Export to CSV
+        $containers = Get-AzureStorageContainer | select Name
+        foreach ($container in $containers){
+            $containerName = $container.Name
+            Write-Verbose "`tListing files for $containerName"
+            $pathName = "\AzureRM\Blob_Files_"+$container.Name
+            Get-AzureStorageBlob -Container $container.Name | Export-Csv -NoTypeInformation -LiteralPath $folder$pathName".CSV"
+            
+            #Check if the container is public, write to Public_Files.CSV
+            $publicStatus = Get-AzureStorageContainerAcl $container.Name | select PublicAccess
+            if (($publicStatus.PublicAccess -eq "Blob") -or ($publicStatus.PublicAccess -eq "Container")){
+                Get-AzureStorageContainerAcl $container.Name | Export-Csv -NoTypeInformation -LiteralPath $folder"\AzureRM\PublicFiles.CSV" -Append
+                Write-Verbose "`t`tPublic File Found" 
+                #Write public file URL to list
+                $blobName = Get-AzureStorageBlob -Container $container.Name | select Name
+                $blobUrl = "https://$StorageAccountName.blob.core.windows.net/$containerName/"+$blobName.Name
+                $blobUrl >> $folder"\AzureRM\PublicFileURLs.txt"
+                }
+        } 
+    }
+
     # Get/Write Service Principals
     Write-Verbose "Getting Domain Service Principals..."
     $principals = Get-AzureRmADServicePrincipal
