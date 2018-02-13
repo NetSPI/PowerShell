@@ -168,8 +168,8 @@ Function Dump-AzureDomainInfo-AzureRM
     # TBD
     
     #Get Storage Account name(s)
-    $resourceGroupName = Get-AzureRmResourceGroup | Select ResourceGroupName
-    $storageAccounts = Get-AzureRmStorageAccount | select StorageAccountName 
+    #$resourceGroupName = Get-AzureRmResourceGroup | Select ResourceGroupName
+    $storageAccounts = Get-AzureRmStorageAccount | select StorageAccountName,ResourceGroupName 
     
     if(Test-Path $folder"\AzureRM\Files"){}
     else{New-Item -ItemType Directory $folder"\AzureRM\Files" | Out-Null}
@@ -178,10 +178,11 @@ Function Dump-AzureDomainInfo-AzureRM
         $StorageAccountName = $storageAccount.StorageAccountName
         Write-Verbose "Listing out blob files for the $StorageAccountName storage account..."
         #Set Context
-        Set-AzureRmCurrentStorageAccount –ResourceGroupName $resourceGroupName.ResourceGroupName -Name $storageAccount.StorageAccountName | Out-Null
+        Set-AzureRmCurrentStorageAccount –ResourceGroupName $storageAccount.ResourceGroupName -Name $storageAccount.StorageAccountName | Out-Null
 
         #List Containers and Files and Export to CSV
         $containers = Get-AzureStorageContainer | select Name
+        
         foreach ($container in $containers){
             $containerName = $container.Name
             Write-Verbose "`tListing files for the $containerName container"
@@ -198,13 +199,23 @@ Function Dump-AzureDomainInfo-AzureRM
                 $blobUrl >> $folder"\AzureRM\Files\PublicFileURLs.txt"
                 }
         }
-        $AZFileShares = Get-AzureStorageShare | select Name
-        Write-Verbose "Listing out File Service files for the $StorageAccountName storage account..."
-        foreach ($share in $AZFileShares) {
-            $shareName = $share.Name
-            Write-Verbose "`tListing files for the $shareName share"
-            Get-AzureStorageFile -ShareName $shareName | select Name | Export-Csv -NoTypeInformation -LiteralPath $folder"\AzureRM\Files\File_Service_Files-"$shareName".CSV" -Append
-        }
+
+        #Go through each File Service endpoint
+        Try{
+            $AZFileShares = Get-AzureStorageShare -ErrorAction Stop | select Name
+            Write-Verbose "Listing out File Service files for the $StorageAccountName storage account..."
+            foreach ($share in $AZFileShares) {
+                $shareName = $share.Name
+                Write-Verbose "`tListing files for the $shareName share"
+                Get-AzureStorageFile -ShareName $shareName | select Name | Export-Csv -NoTypeInformation -LiteralPath $folder"\AzureRM\Files\File_Service_Files-"$shareName".CSV" -Append
+                }
+            }
+        Catch{
+            Write-Verbose "No available File Service files for the $StorageAccountName storage account..."
+            }
+        finally{
+            $ErrorActionPreference = "Continue"
+            }
     }
 
     # Get/Write Service Principals
