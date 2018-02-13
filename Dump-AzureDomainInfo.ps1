@@ -176,7 +176,7 @@ Function Dump-AzureDomainInfo-AzureRM
 
     Foreach ($storageAccount in $storageAccounts){
         $StorageAccountName = $storageAccount.StorageAccountName
-        Write-Verbose "Listing out blob files for the $StorageAccountName storage account."
+        Write-Verbose "Listing out blob files for the $StorageAccountName storage account..."
         #Set Context
         Set-AzureRmCurrentStorageAccount –ResourceGroupName $resourceGroupName.ResourceGroupName -Name $storageAccount.StorageAccountName | Out-Null
 
@@ -184,7 +184,7 @@ Function Dump-AzureDomainInfo-AzureRM
         $containers = Get-AzureStorageContainer | select Name
         foreach ($container in $containers){
             $containerName = $container.Name
-            Write-Verbose "`tListing files for $containerName"
+            Write-Verbose "`tListing files for the $containerName container"
             $pathName = "\AzureRM\Files\Blob_Files_"+$container.Name
             Get-AzureStorageBlob -Container $container.Name | Export-Csv -NoTypeInformation -LiteralPath $folder$pathName".CSV"
             
@@ -199,10 +199,10 @@ Function Dump-AzureDomainInfo-AzureRM
                 }
         }
         $AZFileShares = Get-AzureStorageShare | select Name
-        Write-Verbose "Listing out File Service files for the $StorageAccountName storage account."
+        Write-Verbose "Listing out File Service files for the $StorageAccountName storage account..."
         foreach ($share in $AZFileShares) {
             $shareName = $share.Name
-            Write-Verbose "`tListing files for $shareName"
+            Write-Verbose "`tListing files for the $shareName share"
             Get-AzureStorageFile -ShareName $shareName | select Name | Export-Csv -NoTypeInformation -LiteralPath $folder"\AzureRM\Files\File_Service_Files-"$shareName".CSV" -Append
         }
     }
