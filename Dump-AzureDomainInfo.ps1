@@ -168,7 +168,6 @@ Function Dump-AzureDomainInfo-AzureRM
     # TBD
     
     #Get Storage Account name(s)
-    #$resourceGroupName = Get-AzureRmResourceGroup | Select ResourceGroupName
     $storageAccounts = Get-AzureRmStorageAccount | select StorageAccountName,ResourceGroupName 
     
     if(Test-Path $folder"\AzureRM\Files"){}
@@ -180,23 +179,29 @@ Function Dump-AzureDomainInfo-AzureRM
         #Set Context
         Set-AzureRmCurrentStorageAccount –ResourceGroupName $storageAccount.ResourceGroupName -Name $storageAccount.StorageAccountName | Out-Null
 
+        $strgName = $storageAccount.StorageAccountName
+
+        #Create folder for each Storage Account for cleaner output
+        if(Test-Path $folder"\AzureRM\Files\"$strgName){}
+        else{New-Item -ItemType Directory $folder"\AzureRM\Files\"$strgName | Out-Null}
+
         #List Containers and Files and Export to CSV
         $containers = Get-AzureStorageContainer | select Name
         
         foreach ($container in $containers){
             $containerName = $container.Name
             Write-Verbose "`tListing files for the $containerName container"
-            $pathName = "\AzureRM\Files\Blob_Files_"+$container.Name
+            $pathName = "\AzureRM\Files\"+$strgName+"\Blob_Files_"+$container.Name
             Get-AzureStorageBlob -Container $container.Name | Export-Csv -NoTypeInformation -LiteralPath $folder$pathName".CSV"
             
-            #Check if the container is public, write to Public_Files.CSV
+            #Check if the container is public, write to PublicFileURLs.txt
             $publicStatus = Get-AzureStorageContainerAcl $container.Name | select PublicAccess
             if (($publicStatus.PublicAccess -eq "Blob") -or ($publicStatus.PublicAccess -eq "Container")){
                 Write-Verbose "`t`tPublic File Found" 
                 #Write public file URL to list
                 $blobName = Get-AzureStorageBlob -Container $container.Name | select Name
                 $blobUrl = "https://$StorageAccountName.blob.core.windows.net/$containerName/"+$blobName.Name
-                $blobUrl >> $folder"\AzureRM\Files\PublicFileURLs.txt"
+                $blobUrl >> $folder"\AzureRM\Files\"$strgName"\PublicFileURLs.txt"
                 }
         }
 
@@ -207,7 +212,7 @@ Function Dump-AzureDomainInfo-AzureRM
             foreach ($share in $AZFileShares) {
                 $shareName = $share.Name
                 Write-Verbose "`tListing files for the $shareName share"
-                Get-AzureStorageFile -ShareName $shareName | select Name | Export-Csv -NoTypeInformation -LiteralPath $folder"\AzureRM\Files\File_Service_Files-"$shareName".CSV" -Append
+                Get-AzureStorageFile -ShareName $shareName | select Name | Export-Csv -NoTypeInformation -LiteralPath $folder"\AzureRM\Files\"$strgName"\File_Service_Files-"$shareName".CSV" -Append
                 }
             }
         Catch{
@@ -216,6 +221,23 @@ Function Dump-AzureDomainInfo-AzureRM
         finally{
             $ErrorActionPreference = "Continue"
             }
+
+        #Go through each Storage Table endpoint
+        Try{            
+            $tableList = Get-AzureStorageTable -ErrorAction Stop 
+            if ($tableList.Length -gt 0){
+                $tableList | Export-Csv -NoTypeInformation -LiteralPath $folder"\AzureRM\Files\"$strgName"\Data_Tables.CSV"
+                Write-Verbose "Listing out Data Tables for the $StorageAccountName storage account..."
+                }
+            else {Write-Verbose "No available Data Tables for the $StorageAccountName storage account..."}
+            }
+        Catch{
+            Write-Verbose "No available Data Tables for the $StorageAccountName storage account..."
+            }
+        finally{
+            $ErrorActionPreference = "Continue"
+            }
+
     }
 
     # Get/Write Service Principals
