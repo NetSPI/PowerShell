@@ -1,13 +1,24 @@
-# Author: Scott Sutherland (@_nullbind), NetSPI
-# This script uses the Active Directory Powershell Module to query Active Directory
-# for users with the UnixUserPassword, UserPassword, unicodePwd, or msSFU30Password properties
-# populated.  It then decodes those password fields and displays them to the user.
-# It should be run on a domain system as a domain user.
-# This script is based on information shared in the blog below.
-# Reference: https://www.blackhillsinfosec.com/domain-goodness-learned-love-ad-explorer/
-# v.0.0.1
-# Example: Get-AdDecodedPassword -Verbose
+<#
+ Author: Scott Sutherland (@_nullbind), NetSPI
+ 
+ Version: 0.0.1
+ 
+ Description
+ This script uses the Active Directory Powershell Module to query Active Directory
+ for users with the UnixUserPassword, UserPassword, unicodePwd, or msSFU30Password properties
+ populated.  It then decodes those password fields and displays them to the user.
 
+ This script is based on information shared in the blog below.
+ Reference: https://www.blackhillsinfosec.com/domain-goodness-learned-love-ad-explorer/
+ 
+ Example 1: Run on domain system as domain user.
+ Get-AdDecodedPassword -Verbose
+  
+ Example 2: Run on non-domain system and target a remote domain controller with provided credentials
+ New-PSDrive -PSProvider ActiveDirectory -Name RemoteADS -Root "" -Server a.b.c.d -credential domain\user
+ cd RemoteADS:
+ Get-AdDecodedPassword -Verbose
+#>
 
 Function Get-AdDecodedPassword
 {
