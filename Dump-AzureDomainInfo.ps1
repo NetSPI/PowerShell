@@ -177,7 +177,7 @@ Function Dump-AzureDomainInfo-AzureRM
         $StorageAccountName = $storageAccount.StorageAccountName
         Write-Verbose "Listing out blob files for the $StorageAccountName storage account..."
         #Set Context
-        Set-AzureRmCurrentStorageAccount –ResourceGroupName $storageAccount.ResourceGroupName -Name $storageAccount.StorageAccountName | Out-Null
+        Set-AzureRmCurrentStorageAccount -ResourceGroupName $storageAccount.ResourceGroupName -Name $storageAccount.StorageAccountName | Out-Null
 
         $strgName = $storageAccount.StorageAccountName
 

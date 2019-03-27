@@ -153,7 +153,7 @@ function Get-DomainInfoADPS
         $Forest_RootDomain = Get-AdForest | select RootDomain -ExpandProperty RootDomain
         
         # Get Domain Trusts
-        $Domain_Trusts = Get-AdTrust –Filter * -Properties * 
+        $Domain_Trusts = Get-AdTrust -Filter * -Properties * 
         $Domain_Trusts_C = $Domain_Trusts | measure | select count -ExpandProperty count
         Write-Output " - Found $Domain_Trusts_C trusts"
         $Domain_Trusts | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Domain-Trusts.csv"
@@ -193,7 +193,7 @@ function Get-DomainInfoADPS
         Write-Output " - Found $Groups_C groups"
 
         # Check for protected groups
-        $GroupsProtected =  $Groups | Where-Object adminCount –eq 1 
+        $GroupsProtected =  $Groups | Where-Object adminCount -eq 1 
         $GroupsProtected | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Groups-Protected.csv" 
         $GroupsProtected_C = $GroupsProtected | measure | select count -ExpandProperty count
         Write-Output " - Found $GroupsProtected_C groups with adminCount of 1 (Protected)"
@@ -204,7 +204,7 @@ function Get-DomainInfoADPS
         ForEach-Object {
             $CurrentGroup = $_
             $CurrentGroup2 = $CurrentGroup -replace '\s',''
-            $GroupMembers = Get-ADGroupMember -Identity "$CurrentGroup“ –Recursive
+            $GroupMembers = Get-ADGroupMember -Identity "$CurrentGroup“ -Recursive
             $GroupMembers | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Groups-$CurrentGroup2.csv"
             $GroupMembers_C = ($GroupMembers | Measure) | measure | select count -ExpandProperty count
             Write-Output " - Found $GroupMembers_C users in $_"
@@ -217,20 +217,20 @@ function Get-DomainInfoADPS
         Write-Output "Getting User Information..."
         
         # Get all domain users and properties
-        $DomainUsersALL = Get-AdUser –Filter * -Properties *
+        $DomainUsersALL = Get-AdUser -Filter * -Properties *
         $DomainUsers = $DomainUsersALL | Select SamAccountName,UserPrincipalName,GivenName,Surname,SID,Name,CanonicalName,CN,DistinguishedName,DisplayName,EmailAddress,mail,mailNickname,Fax,EmployeeNumber,State,StreetAddress,Manager,mDBUseDefaults,Created,CreateTimeStamp,Modified,whenChanged,whenCreated,ScriptPath,HomeDirectory,HomeDrive,homeMDB,HomePhone,Initials,msExchALObjectVersion,msExchHomeServerName,msExchRBACPolicyLink,msExchWhenMailboxCreated,msTSLicenseVersion,OfficePhone,Office,Organization,isCriticalSystemObject,Title,TrustedForDelegation,TrustedToAuthForDelegation,UseDESKeyOnly,Description,Department,Division,Company,AccountLockoutTime,adminCount,AllowReversiblePasswordEncryption,BadLogonCount,badPwdCount,CannotChangePassword,LastBadPasswordAttempt,LastLogonDate,LockedOut,legacyExchangeDN,logonCount,LogonWorkstations,PasswordExpired,PasswordNeverExpires,PasswordNotRequired,PostalCode,primaryGroupID,ProtectedFromAccidentalDeletion,Enabled,ServicePrincipalNames,DoesNotRequirePreAuth
         $DomainUsers | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Users-All.csv"
         $DomainUsers_C = $DomainUsers | measure | select count -ExpandProperty count
         Write-Output " - Found $DomainUsers_C domain users "
 
         # Get domain users that are enabled
-        $DomainUsers_Enabled = $DomainUsers | Where-Object Enabled –like “true” 
+        $DomainUsers_Enabled = $DomainUsers | Where-Object Enabled -like “true” 
         $DomainUsers_Enabled | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Users-Enabled.csv"
         $DomainUsers_Enabled_C = $DomainUsers_Enabled | measure | select count -ExpandProperty count
         Write-Output " - Found $DomainUsers_Enabled_C users enabled"
 
         # Get domain users that are disabled
-        $DomainUsers_Disabled = $DomainUsers | Where-Object Enabled –like “false” 
+        $DomainUsers_Disabled = $DomainUsers | Where-Object Enabled -like “false” 
         $DomainUsers_Disabled | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Users-Disabled.csv"
         $DomainUsers_Disabled_C = $DomainUsers_Disabled | measure | select count -ExpandProperty count
         Write-Output " - Found $DomainUsers_Disabled_C users Disabled"
@@ -242,7 +242,7 @@ function Get-DomainInfoADPS
         Write-Output " - Found $DomainUsers_Locked_C users Locked"
         
         # Get domain users that have the adminCount flag set (Meaning the are/were Domain Admins)
-        $Domain_Users_Protected = $DomainUsers | Where-Object adminCount –eq 1
+        $Domain_Users_Protected = $DomainUsers | Where-Object adminCount -eq 1
         $Domain_Users_Protected | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Users-Protected.csv"
         $Domain_Users_Protected_C = $Domain_Users_Protected | measure | select count -ExpandProperty count
         Write-Output " - Found $Domain_Users_Protected_C users with adminCount of 1 (Protected)"
@@ -260,29 +260,29 @@ function Get-DomainInfoADPS
         Write-Output " - Found $DomainUsers_RevEnc_C users that store password with reversible encryption"
 
         # Get domain users configured with different types of delegation - 1
-        $DomainUsers_Trust4Del = $DomainUsers | Where-Object TrustedForDelegation –like “true”  
+        $DomainUsers_Trust4Del = $DomainUsers | Where-Object TrustedForDelegation -like “true”  
         $DomainUsers_Trust4Del | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Users-TrustedforDelegation.csv"
         $DomainUsers_Trust4Del_C = $DomainUsers_Trust4Del | measure | select count -ExpandProperty count
         Write-Output " - Found $DomainUsers_Trust4Del_C users TrustedforDelegation"
 
         # Get domain users configured with different types of delegation - 2
-        $DomainUsers_Trust2Auth4Del = $DomainUsers | Where-Object TrustedToAuthForDelegation –like “true” 
+        $DomainUsers_Trust2Auth4Del = $DomainUsers | Where-Object TrustedToAuthForDelegation -like “true” 
         $DomainUsers_Trust2Auth4Del | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Users-TrustedToAuthForDelegation.csv"
         $DomainUsers_Trust2Auth4Del_C = $DomainUsers_Trust2Auth4Del | measure | select count -ExpandProperty count 
         Write-Output " - Found $DomainUsers_Trust2Auth4Del_C users TrustedToAuthForDelegation"
 
-        $DomainUsers_AllowedToDelegateto =  $DomainUsersALL| Where-Object msds-allowedToDelegateto –notlike “”  
+        $DomainUsers_AllowedToDelegateto =  $DomainUsersALL| Where-Object msds-allowedToDelegateto -notlike “”  
         $DomainUsers_AllowedToDelegateto | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Users-msDS-AllowedToDelegateto.csv"
         $DomainUsers_AllowedToDelegateto_C = ($DomainUsers_AllowedToDelegateto | select samaccountname -ExpandProperty samaccountname) | measure | select count -ExpandProperty count
         Write-Output " - Found $DomainUsers_AllowedToDelegateto_C users with msDS-AllowedToDelegateto configured"
 
-        $DomainUsers_AllowedToActOnBehalfOfOtherIdentity =  $DomainUsersALL | Where-Object msDS-AllowedToActOnBehalfOfOtherIdentity –notlike “”   
+        $DomainUsers_AllowedToActOnBehalfOfOtherIdentity =  $DomainUsersALL | Where-Object msDS-AllowedToActOnBehalfOfOtherIdentity -notlike “”   
         $DomainUsers_AllowedToActOnBehalfOfOtherIdentity | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Users-msDS-AllowedToActOnBehalfOfOtherIdentity.csv"
         $DomainUsers_AllowedToActOnBehalfOfOtherIdentity_C = $DomainUsers_AllowedToActOnBehalfOfOtherIdentity | measure | select count -ExpandProperty count
         Write-Output " - Found $DomainUsers_Trust2Auth4Del_C users with AllowedToActOnBehalfOfOtherIdentity configured"
         
-        # Get domain users configured with different types of delegation – Parsed msDS-AllowedToDelegateto
-        $DomainUsersALL | Where-Object msds-allowedToDelegateto –notlike “” -ErrorAction SilentlyContinue | 
+        # Get domain users configured with different types of delegation - Parsed msDS-AllowedToDelegateto
+        $DomainUsersALL | Where-Object msds-allowedToDelegateto -notlike “” -ErrorAction SilentlyContinue | 
         ForEach-Object {
 
             $SamAccountName = $_.samaccountname
@@ -298,8 +298,8 @@ function Get-DomainInfoADPS
             }
         } | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Users-msDS-AllowedToDelegateto-Parsed.csv"
 
-        # Get domain users configured with different types of delegation – Parsed AllowedToActOnBehalfOfOtherIdentity
-        $DomainUsersAll | Where-Object AllowedToActOnBehalfOfOtherIdentity –notlike “” -ErrorAction SilentlyContinue | 
+        # Get domain users configured with different types of delegation - Parsed AllowedToActOnBehalfOfOtherIdentity
+        $DomainUsersAll | Where-Object AllowedToActOnBehalfOfOtherIdentity -notlike “” -ErrorAction SilentlyContinue | 
         ForEach-Object {
 
             $SamAccountName = $_.samaccountname
@@ -316,31 +316,31 @@ function Get-DomainInfoADPS
         } | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Users-msDS-AllowedToActOnBehalfOfOtherIdentity-Parsed.csv"
 
         # Get domain users with passwords the do not expire
-        $DomainUsers_NoPwExp = $DomainUsers | Where-Object PasswordNeverExpires –like “true” 
+        $DomainUsers_NoPwExp = $DomainUsers | Where-Object PasswordNeverExpires -like “true” 
         $DomainUsers_NoPwExp | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Users-No-Pw-Expire.csv"
         $DomainUsers_NoPwExp_C = $DomainUsers_NoPwExp | measure | select count -ExpandProperty count
         Write-Output " - Found $DomainUsers_NoPwExp_C users with passwords that do not expire"
 
         # Get domain users that do not require authentication
-        $DomainUsers_NoAuthReq = Get-ADObject –LDAPFilter ‘(&(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=32))’ 
+        $DomainUsers_NoAuthReq = Get-ADObject -LDAPFilter ‘(&(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=32))’ 
         $DomainUsers_NoAuthReq | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Users-No-Auth-Req.csv"
         $DomainUsers_NoAuthReq_C = $DomainUsers_NoAuthReq | measure | select count -ExpandProperty count
         Write-Output " - Found $DomainUsers_NoAuthReq_C users that do not require authentication"
 
         # Get domain users configured to use DES keys
-        $DomainUsers_DesKey = $DomainUsers | Where-Object UseDESKeyOnly –like “true” 
+        $DomainUsers_DesKey = $DomainUsers | Where-Object UseDESKeyOnly -like “true” 
         $DomainUsers_DesKey | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Users-DesKey.csv"
         $DomainUsers_DesKey_C = $DomainUsers_DesKey | measure | select count -ExpandProperty count
         Write-Output " - Found $DomainUsers_DesKey_C users that use DES keys"         
 
         # Get domain users that with passwords that do not require Kerberos pre-authentication
-        $DomainUsers_NoPreAuthReq = $DomainUsers | Where-Object DoesNotRequirePreAuth –like “true”  
+        $DomainUsers_NoPreAuthReq = $DomainUsers | Where-Object DoesNotRequirePreAuth -like “true”  
         $DomainUsers_NoPreAuthReq | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Users-No-Pre-Auth-Req.csv"
         $DomainUsers_NoPreAuthReq_C = $DomainUsers_NoPreAuthReq | measure | select count -ExpandProperty count
         Write-Output " - Found $DomainUsers_NoPreAuthReq_C users that do not require pre-auth"
 
         # Get domain users storing a UnixUserPassword
-        $DomainUsers_UnixUserPassword = $DomainUsersALL | Where-Object UnixUserPassword –notlike "" | select samaccountname, description, UnixUserPassword
+        $DomainUsers_UnixUserPassword = $DomainUsersALL | Where-Object UnixUserPassword -notlike "" | select samaccountname, description, UnixUserPassword
         $UnixPWs = $DomainUsers_UnixUserPassword |
         ForEach-Object{
            
@@ -456,7 +456,7 @@ function Get-DomainInfoADPS
         # Get machine accounts with password older than (default is 30)
         $SixtyDaysAgo = (Get-Date).AddDays(-45).ToFileTimeUtc()
         $OldAccounts = Get-AdObject -LdapFilter "(&(sAMAccountType=805306369)(pwdlastset<=$SixtyDaysAgo))” | select name -ExpandProperty name 
-        $Suspect = $DomainComputers | Where-Object {$OldAccounts -contains $_.name} | Where-Object Enabled –like “true” | select samaccountname, description, Enabled, Created,LastLogonDate, OperatingSystem
+        $Suspect = $DomainComputers | Where-Object {$OldAccounts -contains $_.name} | Where-Object Enabled -like “true” | select samaccountname, description, Enabled, Created,LastLogonDate, OperatingSystem
         $Suspect_C = $Suspect | measure | select count -ExpandProperty count
         $Suspect | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Computers-PwOlderThan45Days.csv" 
         Write-Output " - Found $Suspect_C computers enabled with a password older than 45 days"  
@@ -468,23 +468,23 @@ function Get-DomainInfoADPS
         Write-Output " - Found $LAPS_C computers with readable LAPS passwords"
         
 		# Get domain Computers configured with different types of delegation - 1
-        $DomainComputers_Trust4Del = $DomainComputers | Where-Object TrustedForDelegation –like “true”  
+        $DomainComputers_Trust4Del = $DomainComputers | Where-Object TrustedForDelegation -like “true”  
         $DomainComputers_Trust4Del | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Computers-TrustedforDelegation.csv"
         $DomainComputers_Trust4Del_C = $DomainComputers_Trust4Del | measure | select count -ExpandProperty count
         Write-Output " - Found $DomainComputers_Trust4Del_C Computers TrustedforDelegation"
 
         # Get domain Computers configured with different types of delegation - 2
-        $DomainComputers_Trust2Auth4Del = $DomainComputers | Where-Object TrustedToAuthForDelegation –like “true” 
+        $DomainComputers_Trust2Auth4Del = $DomainComputers | Where-Object TrustedToAuthForDelegation -like “true” 
         $DomainComputers_Trust2Auth4Del | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Computers-TrustedToAuthForDelegation.csv"
         $DomainComputers_Trust2Auth4Del_C = $DomainComputers_Trust2Auth4Del | measure | select count -ExpandProperty count 
         Write-Output " - Found $DomainComputers_Trust2Auth4Del_C Computers TrustedToAuthForDelegation"
 
-        $DomainComputers_AllowedToDelegateto = $DomainComputersALL| Where-Object msds-allowedToDelegateto –notlike “”  
+        $DomainComputers_AllowedToDelegateto = $DomainComputersALL| Where-Object msds-allowedToDelegateto -notlike “”  
         $DomainComputers_AllowedToDelegateto | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Computers-msDS-AllowedToDelegateto.csv"
         $DomainComputers_AllowedToDelegateto_C = ($DomainComputers_AllowedToDelegateto | select samaccountname -ExpandProperty samaccountname) | measure | select count -ExpandProperty count
         Write-Output " - Found $DomainComputers_AllowedToDelegateto_C Computers with msDS-AllowedToDelegateto configured"
 
-        $DomainComputers_AllowedToActOnBehalfOfOtherIdentity = $DomainComputersALL | Where-Object msDS-AllowedToActOnBehalfOfOtherIdentity –notlike “”   
+        $DomainComputers_AllowedToActOnBehalfOfOtherIdentity = $DomainComputersALL | Where-Object msDS-AllowedToActOnBehalfOfOtherIdentity -notlike “”   
         $DomainComputers_AllowedToActOnBehalfOfOtherIdentity | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Computers-msDS-AllowedToActOnBehalfOfOtherIdentity.csv"
         $DomainComputers_AllowedToActOnBehalfOfOtherIdentity_C = $DomainComputers_AllowedToActOnBehalfOfOtherIdentity | measure | select count -ExpandProperty count
         Write-Output " - Found $DomainComputers_AllowedToActOnBehalfOfOtherIdentity_C Computers with AllowedToActOnBehalfOfOtherIdentity configured"

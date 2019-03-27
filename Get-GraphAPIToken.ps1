@@ -61,8 +61,8 @@ function Get-GraphData{
     $uriPage = "https://graph.windows.net/$tenant/"
     
 
-    #return (Invoke-RestMethod -Uri $uri –Headers $authHeader –Method Get).value
-    $method = (Invoke-RestMethod -Uri $uri –Headers $authHeader –Method Get)
+    #return (Invoke-RestMethod -Uri $uri -Headers $authHeader -Method Get).value
+    $method = (Invoke-RestMethod -Uri $uri -Headers $authHeader -Method Get)
 
     $output = $method.value
     
@@ -73,7 +73,7 @@ function Get-GraphData{
         {
             $nextLink = $method.'odata.nextLink'+'&api-version=1.6'
 
-            $method = (Invoke-RestMethod -Uri $uriPage$nextLink –Headers $authHeader –Method Get)
+            $method = (Invoke-RestMethod -Uri $uriPage$nextLink -Headers $authHeader -Method Get)
             
             $output += $method.value
         }
