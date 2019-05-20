@@ -34,7 +34,6 @@
     $Results | Out-GridView
 
     # Todo
-    Fix domain list, domains with no alts currently arent shown
     Add arin lookup
     Add network range scan option
 #>
