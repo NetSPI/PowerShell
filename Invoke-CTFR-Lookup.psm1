@@ -3,7 +3,7 @@ function Invoke-CTFR-Lookup{
     <#                 
         Script: Invoke-CTFR-Lookup
 
-        Version: 2.0
+        Version: 2.2
 
         Description
         This script can be used to download domain name information
@@ -14,7 +14,6 @@ function Invoke-CTFR-Lookup{
         - Providing a domain target from the pipeline
         - Resolving IPs for identified domains
         - Attempting to identify Active Directory domains from results 
-        - Resolve arin IP block owner
         - Exporting to nmap format
         - It returns a data table format that can be used to export and sort as well        
         
@@ -91,7 +90,7 @@ function Invoke-CTFR-Lookup{
         Other things to pull from the certs
         - company name
         - location
-        - verify SAN is grabbed too
+        - verify alt names
     #>
     [CmdletBinding()]
     Param(
@@ -144,16 +143,24 @@ function Invoke-CTFR-Lookup{
 
         # For return a list of Resolved IPs
         $DomainsFound = New-Object System.Data.DataTable
-        $null = $DomainsFound.Columns.Add("Domain")
-        $null = $DomainsFound.Columns.Add("SubDomain")
-        $null = $DomainsFound.Columns.Add("IP")
-        $null = $DomainsFound.Columns.Add("Owner") 
-        $null = $DomainsFound.Columns.Add("StartRange") 
-        $null = $DomainsFound.Columns.Add("EndRange") 
-        $null = $DomainsFound.Columns.Add("Country") 
-        $null = $DomainsFound.Columns.Add("City") 
-        $null = $DomainsFound.Columns.Add("Zip") 
-        $null = $DomainsFound.Columns.Add("ISP")  
+        $DomainsFound.Columns.Add("Domain") | Out-Null
+        $DomainsFound.Columns.Add("CertDomain") | Out-Null
+        $DomainsFound.Columns.Add("IpAddress") | Out-Null
+        $DomainsFound.Columns.Add("IpOwner") | Out-Null
+        $DomainsFound.Columns.Add("IpStartRange") | Out-Null
+        $DomainsFound.Columns.Add("IpEndRange") | Out-Null
+        $DomainsFound.Columns.Add("IpCountry") | Out-Null
+        $DomainsFound.Columns.Add("IpCity") | Out-Null
+        $DomainsFound.Columns.Add("IpZip") | Out-Null
+        $DomainsFound.Columns.Add("IpISP") | Out-Null
+        $DomainsFound.Columns.Add("CertEffectiveDate") | Out-Null
+        $DomainsFound.Columns.Add("CertExpirationDate") | Out-Null
+        $DomainsFound.Columns.Add("CertIssuerCountry") | Out-Null
+        $DomainsFound.Columns.Add("CertIssuerState") | Out-Null
+        $DomainsFound.Columns.Add("CertIssuerCity") | Out-Null
+        $DomainsFound.Columns.Add("CertIssuerOrg") | Out-Null
+        $DomainsFound.Columns.Add("CertIssuerOU") | Out-Null
+        $DomainsFound.Columns.Add("CertIssuerCN") | Out-Null   
 
         # Get domains or company list from a file
         if($domainList){
@@ -215,9 +222,7 @@ function Invoke-CTFR-Lookup{
         
                 # Parse initial results
                 Write-Verbose " - Cleaning data"
-                $DomainsUnique = ($JSON | ForEach-Object {$_.name_value}) | Sort-Object -Unique
-        
-                #$DomainsAll
+                $DomainsUnique = $JSON | Sort-Object name_value -Unique       
             }
             catch
             {
@@ -228,11 +233,58 @@ function Invoke-CTFR-Lookup{
             Write-Verbose " - Processing sub domains"
              
             # ---------------------
-            # Resolve IP if asked
-            # ---------------------            
+            # Process records      
+            # ---------------------                
             $DomainsUnique | 
             ForEach-Object {
+
+                # Parse record
+                $SubDomain = $_.name_value 
+                $EffectiveDate = $_.not_before
+                $ExpirationDate = $_.not_after               
+                $SubjectArray = $_.issuer_name -split(",")
+                $SubjectArray | 
+                ForEach-Object{
+        
+                    $item = $_.ToString().Trim()
+                    $itemParts = $item -split("=")
+        
+                    # Set country
+                    if($itemParts[0] -like "C"){        
+                        $IssuerCountry = $itemParts[1] 
+                    }
+
+                    # Set state
+                    if(($itemParts[0] -like "S") -or ($itemParts[0] -like "ST")){        
+                        $IssuerState = $itemParts[1] 
+                    }
+
+                    # Set city
+                    if($itemParts[0] -like "L"){        
+                        $IssuerCity = $itemParts[1]
+                    }
+
+                    # Set Oranization
+                    if($itemParts[0] -like "O"){        
+                        $IssuerOrg = $itemParts[1] -replace ("`"","")
+                    }
+
+                    # Set Oranization Unit
+                    if($itemParts[0] -like "OU"){           
+                        $IssuerOU = $itemParts[1]             
+                    }
+
+                    # Set Domain
+                    if($itemParts[0] -like "CN"){        
+                        $IssuerCN = $itemParts[1] 
+                    }
+                }
                 
+                # set resolveDNS if $arinlookup
+                if($ArinLookup){
+                    $resolveDNS = $true
+                }
+
                 # Check if user asked for resolution
                 if($resolveDNS){ 
 
@@ -240,52 +292,137 @@ function Invoke-CTFR-Lookup{
                     if ($_ -match '\*'){   
                 
                         # Add record                
-                        $DomainsFound.Rows.Add($CurrentTarget, $_,'N/A') | Out-Null                    
+                        $DomainsFound.Rows.Add($CurrentTarget, 
+                        $SubDomain,
+                        'N/A',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        $EffectiveDate,
+                        $ExpirationDate,
+                        $IssuerCountry,
+                        $IssuerState,
+                        $IssuerCity,
+                        $IssuerOrg,
+                        $IssuerOU,
+                        $IssuerCN ) | Out-Null                                                                                        
                     }else{
 
-                        Write-Verbose " - Resolving $CurrentTarget - $_"
+                        Write-Verbose " - Resolving $CurrentTarget - $subdomain"
                  
                         # Attempt to resolve IP for domain
-                        $dnsIP = Resolve-DnsName $_ -ErrorAction SilentlyContinue -Verbose:$false  | 
+                        $dnsIP = Resolve-DnsName $SubDomain -ErrorAction SilentlyContinue -Verbose:$false  | 
                         Select -ExpandProperty IPAddress -First 1 -ErrorAction SilentlyContinue
 
                         # Add IP if one is resolved
                         if ($dnsIP){
-                            $DomainsFound.Rows.Add($CurrentTarget,$_,$dnsIP) | Out-Null                           
+                            $DomainsFound.Rows.Add($CurrentTarget, 
+                            $SubDomain,
+                            $dnsIP,
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            $EffectiveDate,
+                            $ExpirationDate,
+                            $IssuerCountry,
+                            $IssuerState,
+                            $IssuerCity,
+                            $IssuerOrg,
+                            $IssuerOU,
+                            $IssuerCN) | Out-Null                                                         
                         }else{
 
                             # try the A record
-                            $dnsIP = Resolve-DnsName $_ -ErrorAction SilentlyContinue -Verbose:$false -Type A | 
+                            $dnsIP = Resolve-DnsName $SubDomain -ErrorAction SilentlyContinue -Verbose:$false -Type A | 
                             Select -ExpandProperty IP4Address -Unique -ErrorAction SilentlyContinue
 
                             # Add something either way
                             if ($dnsIP -is [array]){
-                                $DomainsFound.Rows.Add($CurrentTarget,$_,$dnsIP[0]) | Out-Null
+                                $DomainsFound.Rows.Add($CurrentTarget, 
+                                $SubDomain,
+                                $dnsIP[0],
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                $EffectiveDate,
+                                $ExpirationDate,
+                                $IssuerCountry,
+                                $IssuerState,
+                                $IssuerCity,
+                                $IssuerOrg,
+                                $IssuerOU,
+                                $IssuerCN) | Out-Null 
                             }else{
-                                $DomainsFound.Rows.Add($CurrentTarget,$_,$dnsIP) | Out-Null
+                                $DomainsFound.Rows.Add($CurrentTarget, 
+                                $SubDomain,
+                                $dnsIP,
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                $EffectiveDate,
+                                $ExpirationDate,
+                                $IssuerCountry,
+                                $IssuerState,
+                                $IssuerCity,
+                                $IssuerOrg,
+                                $IssuerOU,
+                                $IssuerCN) | Out-Null 
                             }
                         }  
                     
                     }                                                                                                                                                           
                 }else{ # end resolve dns if
                                 
-                    $DomainsFound.Rows.Add($CurrentTarget,$_,'') | Out-Null
+                            $DomainsFound.Rows.Add($CurrentTarget, 
+                            $SubDomain,
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            $EffectiveDate,
+                            $ExpirationDate,
+                            $IssuerCountry,
+                            $IssuerState,
+                            $IssuerCity,
+                            $IssuerOrg,
+                            $IssuerOU,
+                            $IssuerCN) | Out-Null 
                 }                 
             }                         
         }
 
         # ---------------------
         # Resolve arin if asked
-        # ---------------------  
+        # ---------------------          
         if($resolveDNS -and $ArinLookup){
             Write-Verbose "  - Processing arin lookups"
             $DomainsFoundArin = $DomainsFound | 
             foreach {
                 $rdomain = $_.domain
-                $rsubdomain = $_.subdomain
-                $rip = $_.ip
-                Write-Verbose "  - Processing arin lookups - $rsubdomain"                
-                Invoke-Arin-Lookup -Verbose -IpAddress $rip -Domain $rdomain -SubDomain $rsubdomain -ErrorAction SilentlyContinue
+                $rsubdomain = $_.certdomain
+                $rip = $_.ipaddress
+                Write-Verbose "  - Processing arin lookups - $rsubdomain ($rip)"                
+                Invoke-Arin-Lookup -Verbose -IpAddress $rip -Domain $rdomain -SubDomain $rsubdomain -CertEffectiveDate $EffectiveDate -CertExpirationDate $ExpirationDate -CertIssuerCountry $IssuerCountry -CertIssuerState $IssuerState -CertIssuerCity $IssuerCity  -CertIssuerOrg $IssuerOrg -CertIssuerOU $IssuerOU -CertIssuerCN $IssuerCN -ErrorAction SilentlyContinue
             }
         }
 
@@ -397,7 +534,31 @@ function Invoke-Arin-Lookup{
         [string]$Domain,
         [Parameter(Mandatory=$false,
         HelpMessage="Sub domain.")]
-        [string]$SubDomain
+        [string]$SubDomain,
+        [Parameter(Mandatory=$false,
+        HelpMessage="CertEffectiveDate.")]
+        [string]$CertEffectiveDate,
+        [Parameter(Mandatory=$false,
+        HelpMessage="CertExpirationDate.")]
+        [string]$CertExpirationDate,
+        [Parameter(Mandatory=$false,
+        HelpMessage="CertIssuerCountry.")]
+        [string]$CertIssuerCountry,
+        [Parameter(Mandatory=$false,
+        HelpMessage="CertIssuerState.")]
+        [string]$CertIssuerState,
+        [Parameter(Mandatory=$false,
+        HelpMessage="CertIssuerCity.")]
+        [string]$CertIssuerCity,
+        [Parameter(Mandatory=$false,
+        HelpMessage="CertIssuerOrg.")]
+        [string]$CertIssuerOrg,
+        [Parameter(Mandatory=$false,
+        HelpMessage="CertIssuerOU.")]
+        [string]$CertIssuerOU,
+        [Parameter(Mandatory=$false,
+        HelpMessage="CertIssuerCN.")]
+        [string]$CertIssuerCN
     )
 
     Begin
@@ -405,15 +566,23 @@ function Invoke-Arin-Lookup{
         # IP info table
         $TblIPInfo = new-object System.Data.DataTable
         $TblIPInfo.Columns.Add("Domain") | Out-Null
-        $TblIPInfo.Columns.Add("Subdomain") | Out-Null
-        $TblIPInfo.Columns.Add("IpSrc") | Out-Null
-        $TblIPInfo.Columns.Add("Owner") | Out-Null
-        $TblIPInfo.Columns.Add("StartRange") | Out-Null
-        $TblIPInfo.Columns.Add("EndRange") | Out-Null
-        $TblIPInfo.Columns.Add("Country") | Out-Null
-        $TblIPInfo.Columns.Add("City") | Out-Null
-        $TblIPInfo.Columns.Add("Zip") | Out-Null
-        $TblIPInfo.Columns.Add("ISP") | Out-Null 
+        $TblIPInfo.Columns.Add("Certdomain") | Out-Null
+        $TblIPInfo.Columns.Add("IpAddress") | Out-Null
+        $TblIPInfo.Columns.Add("IpOwner") | Out-Null
+        $TblIPInfo.Columns.Add("IpStartRange") | Out-Null
+        $TblIPInfo.Columns.Add("IpEndRange") | Out-Null
+        $TblIPInfo.Columns.Add("IpCountry") | Out-Null
+        $TblIPInfo.Columns.Add("IpCity") | Out-Null
+        $TblIPInfo.Columns.Add("IpZip") | Out-Null
+        $TblIPInfo.Columns.Add("IpISP") | Out-Null 
+        $TblIPInfo.Columns.Add("CertEffectiveDate") | Out-Null
+        $TblIPInfo.Columns.Add("CertExpirationDate") | Out-Null
+        $TblIPInfo.Columns.Add("CertIssuerCountry") | Out-Null
+        $TblIPInfo.Columns.Add("CertIssuerState") | Out-Null
+        $TblIPInfo.Columns.Add("CertIssuerCity") | Out-Null
+        $TblIPInfo.Columns.Add("CertIssuerOrg") | Out-Null
+        $TblIPInfo.Columns.Add("CertIssuerOU") | Out-Null
+        $TblIPInfo.Columns.Add("CertIssuerCN") | Out-Null 
 
         # Lookup source IP owner 
         if($IpAddress -notlike ""){
@@ -451,7 +620,15 @@ function Invoke-Arin-Lookup{
               "$IpCountry",
               "$IpCity",
               "$IpZip",
-              "$IpISP") | Out-Null           
+              "$IpISP",
+              $EffectiveDate,
+              $ExpirationDate,
+              $IssuerCountry,
+              $IssuerState,
+              $IssuerCity,
+              $IssuerOrg,
+              $IssuerOU,
+              $IssuerCN) | Out-Null           
         }else{
             # Put results in the data table   
             $TblIPInfo.Rows.Add(
@@ -464,7 +641,15 @@ function Invoke-Arin-Lookup{
               "$IpCountry",
               "$IpCity",
               "$IpZip",
-              "$IpISP") | Out-Null 
+              "$IpISP",
+              $EffectiveDate,
+              $ExpirationDate,
+              $IssuerCountry,
+              $IssuerState,
+              $IssuerCity,
+              $IssuerOrg,
+              $IssuerOU,
+              $IssuerCN) | Out-Null   
         }
 
         # Display results
@@ -475,4 +660,3 @@ function Invoke-Arin-Lookup{
     {
     }
 }
-
