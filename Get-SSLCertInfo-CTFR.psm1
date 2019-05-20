@@ -1,9 +1,9 @@
-
-function Invoke-CTFR-Lookup{
+function Get-SSLCertInfo-CTFR
+{
     <#                 
-        Script: Invoke-CTFR-Lookup
+        Script: Get-SSLCertInfo-CTFR
 
-        Version: 2.2
+        Version: 2.3
 
         Description
         This script can be used to download domain name information
@@ -25,39 +25,39 @@ function Invoke-CTFR-Lookup{
         Example Commands
 
         # Standard output with domain provided 
-        Invoke-CTFR-Lookup -Verbose -domain domain.com
+        Get-SSLCertInfo-CTFR -Verbose -domain domain.com
 
         # Standard output with domain provided in list
-        Invoke-CTFR-Lookup -Verbose -domainList c:\temp\domains.txt
+        Get-SSLCertInfo-CTFR -Verbose -domainList c:\temp\domains.txt
 
         # Standard with domain provided in pipeline
-        "netspi.com" | Invoke-CTFR-Lookup -Verbose
+        "netspi.com" | Get-SSLCertInfo-CTFR -Verbose
 
         # Standard output and list potential active directory domains
-        Invoke-CTFR-Lookup -Verbose -domain domain.com -ShowAdDomains 
+        Get-SSLCertInfo-CTFR -Verbose -domain domain.com -ShowAdDomains 
 
         # Standard output and list potential active directory domains and save them to a file (while doing al the other things)
-        Invoke-CTFR-Lookup -Verbose -domain domain.com -ShowAdDomains -ADOutputFile c:\temp\new.txt
+        Get-SSLCertInfo-CTFR -Verbose -domain domain.com -ShowAdDomains -ADOutputFile c:\temp\new.txt
 
         # Standard output and resolve IP addresses
-        Invoke-CTFR-Lookup -Verbose -domain domain.com -resolveDNS      
+        Get-SSLCertInfo-CTFR -Verbose -domain domain.com -resolveDNS      
         
         # Standard output, resolve IP addresses, and perform arin lookup
-        Invoke-CTFR-Lookup -Verbose -domain domain.com -resolveDNS -ArinLookup            
+        Get-SSLCertInfo-CTFR -Verbose -domain domain.com -resolveDNS -ArinLookup            
         
         # Standard output and resolve IP addresses, also output to an nmap file
-        Invoke-CTFR-Lookup -Verbose -domain domain.com -resolveDNS -NmapOutput results.xml
-        Invoke-CTFR-Lookup -Verbose -domain domain.com -resolveDNS -NmapOutput results
+        Get-SSLCertInfo-CTFR -Verbose -domain domain.com -resolveDNS -NmapOutput results.xml
+        Get-SSLCertInfo-CTFR -Verbose -domain domain.com -resolveDNS -NmapOutput results
                
         # Examples showing how to capture the output and write it out to differant file types
-        $Results = Invoke-CTFR-Lookup -Verbose -domain domain.com
+        $Results = Get-SSLCertInfo-CTFR -Verbose -domain domain.com
         $Results
         $Results | Export-Csv ctrdomains.csv -notypeinformation
         $Results | Export-Clixml ctrdomains.xml 
 
         Example Output
 
-        PS C:\> $Results = Invoke-CTFR-Lookup -Verbose -ShowAdDomains  -domain "other.com" -domainList C:\temp\domains.txt 
+        PS C:\> $Results = Get-SSLCertInfo-CTFR -Verbose -ShowAdDomains  -domain "other.com" -domainList C:\temp\domains.txt 
         VERBOSE: Imported 2 domain/keyword targets from the provided file.
         VERBOSE: Imported 1 domain/keyword targets from command line.
         VERBOSE: Targeting 2 unique domains/keywords.
@@ -415,7 +415,7 @@ function Invoke-CTFR-Lookup{
         # Resolve arin if asked
         # ---------------------          
         if($resolveDNS -and $ArinLookup){
-            Write-Verbose "  - Processing arin lookups"
+            Write-Verbose "Processing arin lookups:"
             $DomainsFoundArin = $DomainsFound | 
             foreach {
                 $rdomain = $_.domain
@@ -482,7 +482,7 @@ function Invoke-CTFR-Lookup{
             $DomainsFound | 
             ForEach-Object {
                 #$CheckDomain = "hostname.subdomain.domain.com"
-                $CheckDomain = $_.SubDomain
+                $CheckDomain = $_.CertDomain
                 $CheckDomainArray = $CheckDomain.Split(".")
                 $CheckDomainNum = $CheckDomainArray.GetUpperBound(0);
                 if(($CheckDomainNum -gt 2) -and ($CheckDomain -notlike "*www.*")){                
