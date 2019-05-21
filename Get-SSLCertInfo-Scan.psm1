@@ -1,7 +1,7 @@
 <#
     Script: Get-SSLCertInfo-Scan.psm1
 
-    Version: 1.0
+    Version: 1.1
 
     Author: Scott Sutherland (@_nullbind), NetSPI
     References: This was based on work by Rob VandenBrink.
@@ -33,9 +33,10 @@
     $Results | Export-CSV -NoTypeInformation output.csv
     $Results | Out-GridView
 
-    # Todo
-    Add arin lookup
+    # Todo    
     Add network range scan option
+    Add nmap importer
+    Add nessus importer
 #>
 
 function Get-SSLCertInfo-Scan {
@@ -169,18 +170,20 @@ function Get-SSLCertInfo-Scan {
         $DomainCount = $DomainList.count
         Write-Verbose "$DomainCount unique domains found."
 
+
         # ------------------------------
         # Resolve arin if asked
         # ------------------------------  
         if($ArinLookup -and (-not $OnlyDomainList)){
-            Write-Verbose "Processing arin lookups"
+            Write-Verbose "Processing arin lookups"            
             $DraftResults | Where-Object SubjectDomain -NotLike "" |
             foreach {
                 $rdomain = $_.SubjectDomain
                 $rsubdomain = $_.SubjectAltName
                 $rip = $_.ipaddress
+                $rport = $_.port
                 Write-Verbose "  - Processing arin lookups - $rip ($rdomain - $rsubdomain)"                
-                Invoke-Arin-Lookup -Verbose -IpAddress $rip -Domain $rdomain -SubDomain $rsubdomain #-ErrorAction SilentlyContinue
+                Invoke-Arin-Lookup -Verbose -IpAddress $rip -IpPort $_.port -Domain $rdomain -SubDomain $rsubdomain -Subject $_.Subject -SubjectCountry $_.SubjectCountry -SubjectState $_.SubjectState -SubjectCity $_.SubjectCity -SubjectOrganization $_.SubjectOrganization -SubjectOU $_.SubjectOU -Issuer $_.Issuer -ExpirationDate $_.ExpirationDate -EffectiveDate $_.EffectiveDate -Verified $_.Verified -thumbprint $_.thumbprint -ErrorAction SilentlyContinue
             }           
         }
          
@@ -188,7 +191,9 @@ function Get-SSLCertInfo-Scan {
         If($OnlyDomainList){                
             $DomainList            
         }else{
-            $DraftResults | Sort-Object SubjectDomain,SubjectAltName -Unique       
+            if(-not $ArinLookup){
+                $DraftResults | Sort-Object SubjectDomain,SubjectAltName -Unique       
+            }
         }
 
         # ------------------------------
@@ -304,6 +309,7 @@ function Get-CertInfo
             $CertInfo = New-Object PSObject
             $CertInfo | add-member Noteproperty IpAddress $IPAddress;
             $CertInfo | add-member Noteproperty Port $Port;
+            $CertInfo | add-member Noteproperty Subject $Certificate.GetName();
             $CertInfo | add-member Noteproperty SubjectCountry $Country;
             $CertInfo | add-member Noteproperty SubjectState $State;
             $CertInfo | add-member Noteproperty SubjectCity $City;
@@ -323,6 +329,7 @@ function Get-CertInfo
         $CertInfo = New-Object PSObject
         $CertInfo | add-member Noteproperty IpAddress $IPAddress;
         $CertInfo | add-member Noteproperty Port $Port;
+        $CertInfo | add-member Noteproperty Subject $Certificate.GetName();
         $CertInfo | add-member Noteproperty SubjectCountry $Country;
         $CertInfo | add-member Noteproperty SubjectState $State;
         $CertInfo | add-member Noteproperty SubjectCity $City;
@@ -348,11 +355,47 @@ function Invoke-Arin-Lookup{
         HelpMessage="The IP Address to lookup.")]
         [string]$IpAddress,
         [Parameter(Mandatory=$false,
+        HelpMessage="port.")]
+        [string]$IpPort,
+        [Parameter(Mandatory=$false,
         HelpMessage="Original domain.")]
         [string]$Domain,
         [Parameter(Mandatory=$false,
         HelpMessage="Sub domain.")]
-        [string]$SubDomain
+        [string]$SubDomain,
+        [Parameter(Mandatory=$false,
+        HelpMessage="subjectCountry.")]
+        [string]$Subject,
+        [Parameter(Mandatory=$false,
+        HelpMessage="subjectCountry.")]
+        [string]$SubjectCountry,
+        [Parameter(Mandatory=$false,
+        HelpMessage="SubjectState.")]
+        [string]$SubjectState,
+        [Parameter(Mandatory=$false,
+        HelpMessage="SubjectCity.")]
+        [string]$SubjectCity,
+        [Parameter(Mandatory=$false,
+        HelpMessage="SubjectOrganization.")]
+        [string]$SubjectOrganization,
+        [Parameter(Mandatory=$false,
+        HelpMessage="SubjectOU.")]
+        [string]$SubjectOU,
+        [Parameter(Mandatory=$false,
+        HelpMessage="Issuer.")]
+        [string]$Issuer,
+        [Parameter(Mandatory=$false,
+        HelpMessage="ExpirationDate.")]
+        [string]$ExpirationDate,
+        [Parameter(Mandatory=$false,
+        HelpMessage="EffectiveDate.")]
+        [string]$EffectiveDate,
+        [Parameter(Mandatory=$false,
+        HelpMessage="Verified.")]
+        [string]$Verified,
+        [Parameter(Mandatory=$false,
+        HelpMessage="thumbprint.")]
+        [string]$thumbprint
     )
 
     Begin
@@ -361,14 +404,27 @@ function Invoke-Arin-Lookup{
         $TblIPInfo = new-object System.Data.DataTable
         $TblIPInfo.Columns.Add("Domain") | Out-Null
         $TblIPInfo.Columns.Add("Subdomain") | Out-Null
-        $TblIPInfo.Columns.Add("IpSrc") | Out-Null
-        $TblIPInfo.Columns.Add("Owner") | Out-Null
-        $TblIPInfo.Columns.Add("StartRange") | Out-Null
-        $TblIPInfo.Columns.Add("EndRange") | Out-Null
-        $TblIPInfo.Columns.Add("Country") | Out-Null
-        $TblIPInfo.Columns.Add("City") | Out-Null
-        $TblIPInfo.Columns.Add("Zip") | Out-Null
-        $TblIPInfo.Columns.Add("ISP") | Out-Null 
+        $TblIPInfo.Columns.Add("IpPort") | Out-Null
+        $TblIPInfo.Columns.Add("IpAddress") | Out-Null
+        $TblIPInfo.Columns.Add("IpOwner") | Out-Null
+        $TblIPInfo.Columns.Add("IpStartRange") | Out-Null
+        $TblIPInfo.Columns.Add("IpEndRange") | Out-Null
+        $TblIPInfo.Columns.Add("IpCountry") | Out-Null
+        $TblIPInfo.Columns.Add("IpState") | Out-Null
+        $TblIPInfo.Columns.Add("IpCity") | Out-Null
+        $TblIPInfo.Columns.Add("IpZip") | Out-Null
+        $TblIPInfo.Columns.Add("IpISP") | Out-Null 
+        $TblIPInfo.Columns.Add("CertSubject") | Out-Null
+        $TblIPInfo.Columns.Add("CertSubjectCountry") | Out-Null
+        $TblIPInfo.Columns.Add("CertSubjectState") | Out-Null
+        $TblIPInfo.Columns.Add("CertSubjectCity") | Out-Null
+        $TblIPInfo.Columns.Add("CertSubjectOrganization") | Out-Null
+        $TblIPInfo.Columns.Add("CertSubjectOU") | Out-Null
+        $TblIPInfo.Columns.Add("CertIssuer") | Out-Null
+        $TblIPInfo.Columns.Add("CertExpirationDate") | Out-Null
+        $TblIPInfo.Columns.Add("CertEffectiveDate") | Out-Null
+        $TblIPInfo.Columns.Add("CertVerified") | Out-Null
+        $TblIPInfo.Columns.Add("Certthumbprint") | Out-Null
 
         # Lookup source IP owner 
         if($IpAddress -notlike ""){
@@ -384,42 +440,69 @@ function Invoke-Arin-Lookup{
             if ($IpAddress){
                 $web2 = new-object system.net.webclient
                 [xml]$results2 = $web2.DownloadString("http://ip-api.com/xml/$targetip")
-            }
+            }            
 
             # Parse data from responses    
             $IpOwner = $results.net.name 
             $IpStart = $results.net.startAddress
             $IpEnd = $results.net.endaddress  
             $IpCountry = $results2.query.country.'#cdata-section'
-            $IpCity = $results2.query.city.'#cdata-section'
+            $IpState = $results2.query.region.'#cdata-section'
+            $IpCity = $results2.query.city.'#cdata-section'            
             $IpZip = $results2.query.zip.'#cdata-section'
             $IpISP = $results2.query.isp.'#cdata-section'
 
             # Put results in the data table   
             $TblIPInfo.Rows.Add(
-              "$Domain",
-              "$SubDomain",
-              "$IpAddress",
-              "$IpOwner",
-              "$IpStart",
-              "$IpEnd",
-              "$IpCountry",
-              "$IpCity",
-              "$IpZip",
-              "$IpISP") | Out-Null           
+                "$Domain",
+                "$SubDomain",
+                "$IpPort",
+                "$IpAddress",
+                "$IpOwner",
+                "$IpStart",
+                "$IpEnd",
+                "$IpCountry",
+                "$IpState",
+                "$IpCity",
+                "$IpZip",
+                "$IpISP",
+                "$Subject",
+                "$SubjectCountry",  
+                "$SubjectState",
+                "$SubjectCity",
+                "$SubjectOrganization",
+                "$SubjectOU",
+                "$Issuer",
+                "$ExpirationDate",
+                "$EffectiveDate",
+                "$Verified",
+                "$thumbprint" ) | Out-Null           
         }else{
             # Put results in the data table   
             $TblIPInfo.Rows.Add(
-              "$Domain",
-              "$SubDomain",
-              "$IpAddress",
-              "$IpOwner",
-              "$IpStart",
-              "$IpEnd",
-              "$IpCountry",
-              "$IpCity",
-              "$IpZip",
-              "$IpISP") | Out-Null 
+                "$Domain",
+                "$SubDomain",
+                "$IpPort",
+                "$IpAddress",
+                "$IpOwner",
+                "$IpStart",
+                "$IpEnd",
+                "$IpCountry",
+                "$IpState",
+                "$IpCity",
+                "$IpZip",
+                "$IpISP",
+                "$Subject",
+                "$SubjectCountry",  
+                "$SubjectState",
+                "$SubjectCity",
+                "$SubjectOrganization",
+                "$SubjectOU",
+                "$Issuer",
+                "$ExpirationDate",
+                "$EffectiveDate",
+                "$Verified",
+                "$thumbprint" ) | Out-Null 
         }
 
         # Display results
