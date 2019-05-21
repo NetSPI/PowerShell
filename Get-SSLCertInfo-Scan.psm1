@@ -19,6 +19,9 @@
 
     # Target a list of IP:Port from file, one per line; Display a list of domains discovered.
     Get-SSLCertInfo-Scan -Verbose -InputFile C:\temp\list.txt -OnlyDomainList
+    
+    # Target a list of IP:Port from file, one per line; Look up associated arin info.
+    Get-SSLCertInfo-Scan -Verbose -InputFile C:\temp\list.txt -ArinLookup   
 
     # Target a list of IP:Port from pipeline
     "127.0.0.1:50" | Get-SSLCertInfo-Scan -Verbose 
