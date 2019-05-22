@@ -1,7 +1,7 @@
 <#
     Script: Get-SSLCertInfo-Scan.psm1
 
-    Version: 1.1
+    Version: 1.2
 
     Author: Scott Sutherland (@_nullbind), NetSPI
     References: This was based on work by Rob VandenBrink.
@@ -251,12 +251,13 @@ function Get-CertInfo
     # Create connection to server
     $TCPClient = New-Object -TypeName System.Net.Sockets.TCPClient
     $TcpSocket = New-Object Net.Sockets.TcpClient($IPAddress,$Port)
+    $TcpSocket.ReceiveTimeout = 5000;
 
     # Establish stream
     $tcpstream = $TcpSocket.GetStream()
     $Callback = {param($sender,$cert,$chain,$errors) return $true}
     $SSLStream = New-Object -TypeName System.Net.Security.SSLStream -ArgumentList @($tcpstream, $True, $Callback)
-    $SSLStream.AuthenticateAsClient($IPAddress)
+    $SSLStream.AuthenticateAsClient($IPAddress)    
     
     # Grab cert information
     $Certificate = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($SSLStream.RemoteCertificate)
