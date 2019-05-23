@@ -204,7 +204,7 @@ function Get-DomainInfoADPS
         ForEach-Object {
             $CurrentGroup = $_
             $CurrentGroup2 = $CurrentGroup -replace '\s',''
-            $GroupMembers = Get-ADGroupMember -Identity "$CurrentGroup“ -Recursive
+            $GroupMembers = Get-ADGroupMember -Identity "$CurrentGroup" -Recursive
             $GroupMembers | Export-Csv -NoTypeInformation "$CurrentPath\$AdDomain\$AdDomain-Groups-$CurrentGroup2.csv"
             $GroupMembers_C = ($GroupMembers | Measure) | measure | select count -ExpandProperty count
             Write-Output " - Found $GroupMembers_C users in $_"
