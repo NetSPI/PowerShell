@@ -17,7 +17,7 @@
 
 	    .EXAMPLE
 	       
-	       PS C:\> Invoke-ExternalDomainBruteforce -email test@test.com -password "Password123" -domain "test.com" -type "managed" | ft -AutoSize
+	       PS C:\> Invoke-ExternalDomainBruteforce -email test@test.com -password "Password123" -domain "test.com" | ft -AutoSize
 
 			Email          Domain    Password      
 			-----          ------    ----          
@@ -134,11 +134,7 @@ function Invoke-ExternalDomainBruteforce{
 		
 		[Parameter(Mandatory=$false,
         HelpMessage="Location of list of usernames/emails to test. E.g. C:\temp\emails.txt")]
-        [string]$list,
-		
-		[Parameter(Mandatory=$false,
-        HelpMessage="Federated or managed domain if you already know which.")]
-        [string]$type
+        [string]$list
     )
 
 	if($list){
@@ -153,10 +149,6 @@ function Invoke-ExternalDomainBruteforce{
 		# Get-FederationEndpoint for type of domain
 		$info = Get-FederationEndpoint -domain $domain
 		$type = $info[1]
-	}
-	elseif($type -notmatch "managed"){
-		if($type -notmatch "federated"){
-			Write-Host "Check your spelling of the type switch: $($type)"; break}
 	}
 	
     # Create data table to house results
