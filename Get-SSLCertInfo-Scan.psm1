@@ -1,7 +1,7 @@
 <#
     Script: Get-SSLCertInfo-Scan.psm1
 
-    Version: 1.2
+    Version: 1.5
 
     Author: Scott Sutherland (@_nullbind), NetSPI
     References: This was based on work by Rob VandenBrink.
@@ -13,6 +13,9 @@
 
     # Target specific IP and port
     Get-SSLCertInfo-Scan -Verbose -IPAddress 127.0.0.2 -Port 443
+
+    # Target hostname and port
+    Get-SSLCertInfo-Scan -Verbose -IPAddress domain.com -Port 443
 
     # Target a list of IP:Port from file, one per line; Display full records
     Get-SSLCertInfo-Scan -Verbose -InputFile C:\temp\list.txt 
@@ -102,7 +105,17 @@ function Get-SSLCertInfo-Scan {
                 ForEach-Object {
                     $Target = $_ -split(":")[0]  
                     $TargetPort = $Target[1]   
-                    $TargetIP = $Target[0]   
+                    $TargetIP = $Target[0] 
+
+                    # If port provided in parameter
+                    if(-not $TargetPort -and $Port){
+                        $TargetPort = $Port
+                    }                      
+
+                    # If port not provided in file, and none provided in parameter - default port :)
+                    if(-not $TargetPort){
+                        $TargetPort = "443"
+                    }
                     
                     # Add to targets list
                     $targets.Rows.Add($TargetIp,$TargetPort) | Out-Null                  
@@ -251,7 +264,7 @@ function Get-CertInfo
     # Create connection to server
     $TCPClient = New-Object -TypeName System.Net.Sockets.TCPClient
     $TcpSocket = New-Object Net.Sockets.TcpClient($IPAddress,$Port)
-    $TcpSocket.ReceiveTimeout = 5000;
+    $TcpSocket.ReceiveTimeout = 5000;    
 
     # Establish stream
     $tcpstream = $TcpSocket.GetStream()
@@ -432,6 +445,14 @@ function Invoke-Arin-Lookup{
 
         # Lookup source IP owner 
         if($IpAddress -notlike ""){
+
+            try{
+                [IpAddress]$IpAddress | Out-Null
+                $IP = "yes"
+            }catch{
+                $IP = "no"
+                $IpAddress = Resolve-DnsName -DnsOnly netspi.com | select ipaddress -ExpandProperty ipaddress        
+            }
 
             # Send whois request to arin via restful api
             $targetip = $IpAddress
