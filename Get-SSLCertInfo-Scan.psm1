@@ -1,7 +1,7 @@
 <#
     Script: Get-SSLCertInfo-Scan.psm1
 
-    Version: 1.5
+    Version: 1.6
 
     Author: Scott Sutherland (@_nullbind), NetSPI
     References: This was based on work by Rob VandenBrink.
@@ -125,11 +125,20 @@ function Get-SSLCertInfo-Scan {
             }           
         }
 
-        # Process single target
+        # Process single target with defined port
         if($IPAddress -and $Port)
         {
             # Add target to list
-            Write-Verbose " - Importing targets from parameters"
+            Write-Verbose " - Importing targets from parameters"   
+            $targets.Rows.Add($IPAddress,$Port) | Out-Null  
+        }
+
+        # Process single target without defined port
+        if($IPAddress -and -not $Port)
+        {
+            # Add target to list
+            $Port = "443"
+            Write-Verbose " - Importing targets from parameters"   
             $targets.Rows.Add($IPAddress,$Port) | Out-Null  
         }
 
@@ -137,8 +146,8 @@ function Get-SSLCertInfo-Scan {
         if($IPPort)
         {
             $Target = $IPPort -split(":")[0]  
-            $TargetIp = $Target[1]   
-            $TargetPort = $Target[0]                       
+            $TargetPort = $Target[1]   
+            $TargetIP = $Target[0]                       
 
             # Add to targets list      
             Write-Verbose " - Importing targets from parameters - alt format"     
