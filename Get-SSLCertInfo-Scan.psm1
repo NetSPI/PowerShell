@@ -45,7 +45,6 @@
     $Results | Out-GridView
 
     # Todo    
-    Add network range scan option
     Add runspace threading
     Add nmap importer
     Add nessus importer
