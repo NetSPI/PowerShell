@@ -1,7 +1,7 @@
 <#
     Script: Get-SSLCertInfo-Scan.psm1
 
-    Version: 1.6
+    Version: 1.7
 
     Author: Scott Sutherland (@_nullbind), NetSPI
     References: This was based on work by Rob VandenBrink.
@@ -12,7 +12,12 @@
     Examples:
 
     # Target specific IP and port
-    Get-SSLCertInfo-Scan -Verbose -IPAddress 127.0.0.2 -Port 443
+    Get-SSLCertInfo-Scan -Verbose -IPAddress 192.168.1 -Port 443
+
+    # Target specific IP Range and port options
+    Get-SSLCertInfo-Scan -Verbose -IPAddress 192.168.1 -cidr 24 -Port 443
+    Get-SSLCertInfo-Scan -Verbose -IPAddress 192.168.1 -mask 255.255.255.0 -Port 443
+    Get-SSLCertInfo-Scan -Verbose -Start 192.168.1 -End 192.168.1.150 -Port 443
 
     # Target hostname and port
     Get-SSLCertInfo-Scan -Verbose -IPAddress domain.com -Port 443
@@ -64,6 +69,18 @@ function Get-SSLCertInfo-Scan {
         [Parameter(Mandatory=$false,
         HelpMessage="IP Address.")]
         [string]$IPAddress,
+        [Parameter(Mandatory=$false,
+        HelpMessage="Used with the ipaddress parameter to define a subnet to be scanned.")]
+        [string]$Cidr,
+        [Parameter(Mandatory=$false,
+        HelpMessage="Used with the ipaddress parameter to define a subnet to be scanned.")]
+        [string]$mask,
+        [Parameter(Mandatory=$false,
+        HelpMessage="Used to define first ip address in range.")]
+        [string]$Start,
+        [Parameter(Mandatory=$false,
+        HelpMessage="Used to define end ip address in range.")]
+        [string]$End,
         [Parameter(Mandatory=$false,
         HelpMessage="TCP port.")]
         [string]$Port,
@@ -153,6 +170,13 @@ function Get-SSLCertInfo-Scan {
             Write-Verbose " - Importing targets from parameters - alt format"     
             $targets.Rows.Add($TargetIp,$TargetPort) | Out-Null   
         }
+
+        # Process IP range - CIDR
+
+        # Process IP range - Mask
+
+        # Process IP range - Start/End
+
     }
 
     Process
@@ -547,3 +571,63 @@ function Invoke-Arin-Lookup{
     {
     }
 }
+
+# -------------------------------------------
+# Function:  Get-IPrange
+# -------------------------------------------
+# Author: BarryCWT
+# Reference: https://gallery.technet.microsoft.com/scriptcenter/List-the-IP-addresses-in-a-60c5bb6b
+function Get-IPrange
+            {
+                <# 
+                  .SYNOPSIS  
+                    Get the IP addresses in a range 
+                  .EXAMPLE 
+                   Get-IPrange -start 192.168.8.2 -end 192.168.8.20 
+                  .EXAMPLE 
+                   Get-IPrange -ip 192.168.8.2 -mask 255.255.255.0 
+                  .EXAMPLE 
+                   Get-IPrange -ip 192.168.8.3 -cidr 24 
+                #> 
+ 
+                param 
+                ( 
+                  [string]$start, 
+                  [string]$end, 
+                  [string]$ip, 
+                  [string]$mask, 
+                  [int]$cidr 
+                ) 
+ 
+                function IP-toINT64 () { 
+                  param ($ip) 
+ 
+                  $octets = $ip.split(".") 
+                  return [int64]([int64]$octets[0]*16777216 +[int64]$octets[1]*65536 +[int64]$octets[2]*256 +[int64]$octets[3]) 
+                } 
+ 
+                function INT64-toIP() { 
+                  param ([int64]$int) 
+
+                  return (([math]::truncate($int/16777216)).tostring()+"."+([math]::truncate(($int%16777216)/65536)).tostring()+"."+([math]::truncate(($int%65536)/256)).tostring()+"."+([math]::truncate($int%256)).tostring() )
+                } 
+ 
+                if ($ip) {$ipaddr = [Net.IPAddress]::Parse($ip)} 
+                if ($cidr) {$maskaddr = [Net.IPAddress]::Parse((INT64-toIP -int ([convert]::ToInt64(("1"*$cidr+"0"*(32-$cidr)),2)))) } 
+                if ($mask) {$maskaddr = [Net.IPAddress]::Parse($mask)} 
+                if ($ip) {$networkaddr = new-object net.ipaddress ($maskaddr.address -band $ipaddr.address)} 
+                if ($ip) {$broadcastaddr = new-object net.ipaddress (([system.net.ipaddress]::parse("255.255.255.255").address -bxor $maskaddr.address -bor $networkaddr.address))} 
+ 
+                if ($ip) { 
+                  $startaddr = IP-toINT64 -ip $networkaddr.ipaddresstostring 
+                  $endaddr = IP-toINT64 -ip $broadcastaddr.ipaddresstostring 
+                } else { 
+                  $startaddr = IP-toINT64 -ip $start 
+                  $endaddr = IP-toINT64 -ip $end 
+                } 
+ 
+                for ($i = $startaddr; $i -le $endaddr; $i++) 
+                { 
+                  INT64-toIP -int $i 
+                }
+            }
