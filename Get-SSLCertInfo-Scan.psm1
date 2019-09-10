@@ -1,7 +1,7 @@
 <#
     Script: Get-SSLCertInfo-Scan.psm1
 
-    Version: 1.7
+    Version: 1.8
 
     Author: Scott Sutherland (@_nullbind), NetSPI
     References: This was based on work by Rob VandenBrink.
@@ -46,6 +46,7 @@
 
     # Todo    
     Add network range scan option
+    Add runspace threading
     Add nmap importer
     Add nessus importer
 #>
@@ -77,10 +78,10 @@ function Get-SSLCertInfo-Scan {
         [string]$mask,
         [Parameter(Mandatory=$false,
         HelpMessage="Used to define first ip address in range.")]
-        [string]$Start,
+        [string]$StartIp,
         [Parameter(Mandatory=$false,
         HelpMessage="Used to define end ip address in range.")]
-        [string]$End,
+        [string]$EndIp,
         [Parameter(Mandatory=$false,
         HelpMessage="TCP port.")]
         [string]$Port,
@@ -109,6 +110,72 @@ function Get-SSLCertInfo-Scan {
         $Targets = New-Object System.Data.DataTable
         $null = $targets.Columns.Add("IPAddress")
         $null = $targets.Columns.Add("Port")
+
+        # If port provided in parameter
+        if(-not $TargetPort -and $Port){
+            $TargetPort = $Port
+        }                      
+
+        # If port not provided in file, and none provided in parameter - default port :)
+        if(-not $TargetPort){
+            $TargetPort = "443"
+        }
+
+        # Process single target with defined port
+        if($IPAddress -and $Port -and -not $cidr -and -not $mask)
+        {
+            # Add target to list
+            Write-Verbose " - Importing targets from parameters"   
+            $targets.Rows.Add($IPAddress,$Port) | Out-Null  
+        }
+
+        # Process single target without defined port
+        if($IPAddress -and -not $Port -and -not $cidr -and -not $mask)
+        {
+            # Add target to list
+            $Port = "443"
+            Write-Verbose " - Importing targets from parameters"   
+            $targets.Rows.Add($IPAddress,$Port) | Out-Null  
+        }
+
+        # Process single IP:Port target 
+        if($IPPort)
+        {
+            $Target = $IPPort -split(":")[0]  
+            $TargetPort = $Target[1]   
+            $TargetIP = $Target[0]                       
+
+            # Add to targets list      
+            Write-Verbose " - Importing targets from parameters - alt format"     
+            $targets.Rows.Add($TargetIp,$TargetPort) | Out-Null   
+        }
+
+        # Process IP range - CIDR
+        if($IPAddress -and $Cidr){
+            Write-Verbose " - Importing IP range cidr - $IPAddress/$cidr on $TargetPort"
+            Get-IPrange -ip $IPAddress -cidr $Cidr|
+            ForEach-Object{
+                $targets.Rows.Add($_,$TargetPort) | Out-Null  
+            }
+        }
+
+        # Process IP range - Mask
+        if($IPAddress -and $mask){
+            Write-Verbose " - Importing IP range mask $IPAddress - $mask on $TargetPort"
+            Get-IPrange -ip $IPAddress -mask $mask|
+            ForEach-Object{
+                $targets.Rows.Add($_,$TargetPort) | Out-Null  
+            }
+        }
+
+        # Process IP range - Start/End
+        if($StartIp -and $EndIp){
+            Write-Verbose " - Importing IP range $startip - $Endip on $TargetPort"
+            Get-IPrange -start $StartIp -end $EndIp |
+            ForEach-Object{
+                $targets.Rows.Add($_,$TargetPort) | Out-Null  
+            }
+        }
 
         # Process a list of targets
         if($InputFile){
@@ -141,42 +208,6 @@ function Get-SSLCertInfo-Scan {
                 Write-Verbose " - File path is invalid."
             }           
         }
-
-        # Process single target with defined port
-        if($IPAddress -and $Port)
-        {
-            # Add target to list
-            Write-Verbose " - Importing targets from parameters"   
-            $targets.Rows.Add($IPAddress,$Port) | Out-Null  
-        }
-
-        # Process single target without defined port
-        if($IPAddress -and -not $Port)
-        {
-            # Add target to list
-            $Port = "443"
-            Write-Verbose " - Importing targets from parameters"   
-            $targets.Rows.Add($IPAddress,$Port) | Out-Null  
-        }
-
-        # Process single IP:Port target 
-        if($IPPort)
-        {
-            $Target = $IPPort -split(":")[0]  
-            $TargetPort = $Target[1]   
-            $TargetIP = $Target[0]                       
-
-            # Add to targets list      
-            Write-Verbose " - Importing targets from parameters - alt format"     
-            $targets.Rows.Add($TargetIp,$TargetPort) | Out-Null   
-        }
-
-        # Process IP range - CIDR
-
-        # Process IP range - Mask
-
-        # Process IP range - Start/End
-
     }
 
     Process
