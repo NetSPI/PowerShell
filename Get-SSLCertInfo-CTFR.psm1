@@ -3,7 +3,7 @@ function Get-SSLCertInfo-CTFR
     <#                 
         Script: Get-SSLCertInfo-CTFR
 
-        Version: 2.3
+        Version: 2.4
 
         Description
         This script can be used to download domain name information
@@ -141,7 +141,11 @@ function Get-SSLCertInfo-CTFR
         
         }
 
-        # For return a list of Resolved IPs
+        # For tracking domain list
+        $DomainsTbl = New-Object System.Data.DataTable
+        $DomainsTbl.Columns.Add("Domain") | Out-Null
+
+        # For returning a list of Resolved IPs
         $DomainsFound = New-Object System.Data.DataTable
         $DomainsFound.Columns.Add("Domain") | Out-Null
         $DomainsFound.Columns.Add("CertDomain") | Out-Null
@@ -168,7 +172,11 @@ function Get-SSLCertInfo-CTFR
             if((Test-Path $domainList)){
                 
                 $ProvidedDomains = gc $domainList
-                $DomainCount = $ProvidedDomains.count
+                $ProvidedDomains |
+                ForEach-Object{
+                    $DomainsTbl.Rows.Add($_) | Out-Null
+                }
+                $DomainCount = $DomainsTbl.Rows.Count
                 Write-Verbose "Imported $DomainCount domain/keyword targets from the provided file." 
             }else{
                 Write-Verbose "Couldn't find $domainList, aborting."
@@ -178,7 +186,7 @@ function Get-SSLCertInfo-CTFR
 
         # Append domains to list of 
         if($domain){
-            $ProvidedDomains += "$domain"
+            $DomainsTbl.Rows.Add("$domain") | Out-Null
             Write-Verbose "Imported 1 domain/keyword targets from command line."
         }              
     }
@@ -187,16 +195,20 @@ function Get-SSLCertInfo-CTFR
     {
         # Append pipline domains to list of 
         if($_){
-            $ProvidedDomains += "$_"
-            Write-Verbose "Imported 1 domain targets from pipeline."
+            $DomainsTbl.Rows.Add("$domain") | Out-Null           
         } 
 
+                    
+    }
+
+    End
+    {
         # Check for list of targets
-        if(-not $ProvidedDomains){
+        if($DomainsTbl.Rows.Count -eq 0){
             Write-Verbose "No targets have been provided, aborting."
             #break
         }else{
-            $ProvidedDomains = $ProvidedDomains |Select -Unique
+            $ProvidedDomains = $DomainsTbl |Select Domain -ExpandProperty Domain -Unique
             $DomainCount = $ProvidedDomains.count
             Write-Verbose "Targeting $DomainCount unique domains/keywords."            
         } 
@@ -467,11 +479,7 @@ function Get-SSLCertInfo-CTFR
                     $doc | Out-File $outfileName
                 }
                 
-            }            
-    }
-
-    End
-    {
+            }
         # Check for potential ad domains
         if($ShowAdDomains){
             
