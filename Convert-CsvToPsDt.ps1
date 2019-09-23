@@ -42,14 +42,14 @@ Function Convert-CsvToPsDt
 
     # Print data table creation
     Write-Output "[+] Writing data table object to $Outfile."    
-    write-output '$MyTable = New-Object System.Data.DataTable' | Out-File c:\temp\MyDataTable.txt
+    write-output '$MyTable = New-Object System.Data.DataTable' | Out-File $Outfile
 
     # Print columns creation
     Write-Output "[+] Writing data table columns to $Outfile."    
     $MyCsvColumns |
     ForEach-Object {
 
-        write-Output "`$null = `$MyTable.Columns.Add(`"$_`")" | Out-File c:\temp\MyDataTable.txt -Append
+        write-Output "`$null = `$MyTable.Columns.Add(`"$_`")" | Out-File $Outfile -Append
     
     }
 
@@ -72,7 +72,7 @@ Function Convert-CsvToPsDt
         }
 
         # Print row addition
-        write-Output "`$null = `$MyTable.Rows.Add($PrintRow)" | Out-File c:\temp\MyDataTable.txt -Append
+        write-Output "`$null = `$MyTable.Rows.Add($PrintRow)" | Out-File $Outfile -Append
     }
 
     Write-Output "[+] All done."
