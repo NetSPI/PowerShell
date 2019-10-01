@@ -1,7 +1,7 @@
 <#
  Author: Scott Sutherland (@_nullbind), NetSPI
  
- Version: 0.0.1
+ Version: 0.0.2
  
  Description
  This script uses the Active Directory Powershell Module to query Active Directory
@@ -32,7 +32,7 @@ Function Get-AdDecodedPassword
     # Get domain users with populated UnixUserPassword properties
     Write-Verbose "Getting list of domain accounts and properties..."
     $EncodedUserPasswords = Get-AdUser -Filter * -Properties * |
-    Select-Object samaccountname, description, UnixUserPassword, UserPassword, unicodePwd, msSFU30Name, msSFU30Password
+    Select-Object samaccountname, description, UnixUserPassword, UserPassword, unicodePwd, msSFU30Name, msSFU30Password, os400-password
 
     # Decode passwords for each user    
     Write-Verbose "Decoding passwords for each account..."
@@ -48,6 +48,13 @@ Function Get-AdDecodedPassword
             $UnixUserPassword = [System.Text.Encoding]::ASCII.GetString($UnixUserPasswordEnc) 
         }else{
             $UnixUserPassword = ""
+        }
+
+        $os400PasswordEnc = $_.UnixUserPassword | ForEach-Object {$_};     
+        if($os400PasswordEnc -notlike ""){       
+            $os400Password = [System.Text.Encoding]::ASCII.GetString($os400PasswordEnc) 
+        }else{
+            $os400Password = ""
         }
     
         $UserPasswordEnc = $_.UserPassword | ForEach-Object {$_};   
@@ -84,6 +91,7 @@ Function Get-AdDecodedPassword
             $UnixPasswords | add-member Noteproperty unicodePwd $unicodePwd
             $UnixPasswords | add-member Noteproperty msSFU30Name $msSFU30Name
             $UnixPasswords | add-member Noteproperty msSFU30Password $msSFU30Password
+            $UnixPasswords | add-member Noteproperty os400Password $os400Password
         }
 
         # Return object
