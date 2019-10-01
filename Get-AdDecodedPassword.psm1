@@ -1,7 +1,7 @@
 <#
  Author: Scott Sutherland (@_nullbind), NetSPI
  
- Version: 0.0.2
+ Version: 0.0.3
  
  Description
  This script uses the Active Directory Powershell Module to query Active Directory
@@ -91,7 +91,7 @@ Function Get-AdDecodedPassword
             $UnixPasswords | add-member Noteproperty unicodePwd $unicodePwd
             $UnixPasswords | add-member Noteproperty msSFU30Name $msSFU30Name
             $UnixPasswords | add-member Noteproperty msSFU30Password $msSFU30Password
-            $UnixPasswords | add-member Noteproperty os400Password $os400Password
+            $UnixPasswords | add-member Noteproperty os400Password $os400Password # Other info in os400-text, os400-profile, os400-owner, os400-pwdexp
         }
 
         # Return object
