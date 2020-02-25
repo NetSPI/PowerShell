@@ -47,7 +47,7 @@ Function  Get-GPRegistryPolicy
         }
 
         # Policies Path
-        $ServerPath = "\\$server\sysvol\$domain\Policies"
+        $ServerPath = "\\$DomainController\sysvol\$domain\Policies"
         Write-Verbose "-----------------------------------"
         Write-Verbose "Target Information"
         Write-Verbose "-----------------------------------"
