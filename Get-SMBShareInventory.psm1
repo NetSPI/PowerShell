@@ -400,7 +400,7 @@ function Get-SMBShareInventory
         $ExcessiveSharePrivs = foreach ($line in $ShareACLs){
             
             # Filter for basic user ACLs
-            if (($line.IdentityReference -eq "Everyone") -or ($line.IdentityReference -eq "BUILTIN\Users") -or ($line.IdentityReference -eq "Authenticated Users") -or ($line.IdentityReference -eq " US\Domain Users") ){
+            if (($line.IdentityReference -eq "Everyone") -or ($line.IdentityReference -eq "BUILTIN\Users") -or ($line.IdentityReference -eq "Authenticated Users") -or ($line.IdentityReference -eq " Domain Users") ){
                 
                 if($line.ShareAccess -like "Yes"){
 
