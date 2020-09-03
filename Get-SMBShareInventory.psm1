@@ -162,8 +162,8 @@ function Get-SMBShareInventory
         # Enumerate domain computers 
         # ----------------------------------------------------------------------
 
-        # Set target domain
-        $DCRecord = Get-LdapQuery -LdapFilter "(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))" -DomainController $DomainController -Username $username -Password $Password | select -first 1 | select properties -expand properties
+        # Set target domain        
+        $DCRecord = Get-LdapQuery -LdapFilter "(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))" -DomainController $DomainController -Username $username -Password $Password | select -first 1 | select properties -expand properties -ErrorAction SilentlyContinue
         [string]$DCHostname = $DCRecord.dnshostname
         [string]$DCCn = $DCRecord.cn
         [string]$TargetDomain = $DCHostname -replace ("$DCCn\.","") 
