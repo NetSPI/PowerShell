@@ -125,7 +125,7 @@ function Get-SMBShareInventory
     
     Begin
     {
-        $TheVersion = "v1.2.8"
+        $TheVersion = "v1.2.9"
         Write-Output "  ---------------------------------------------------------------" 
         Write-Output " | Get-SMBShareInventory $TheVersion                             |"
         Write-Output "  ---------------------------------------------------------------"         
@@ -362,7 +362,7 @@ function Get-SMBShareInventory
                       $FileCount = $FullFileList.Count 
 
                       # Get top 5 files list
-                      $FileList = $FullFileList | Select-Object -First 5 | Select-Object Name -ExpandProperty Name
+                      $FileList = $FullFileList | Select-Object -First 5 | Select-Object Name -ExpandProperty Name | Out-String
 
                       # Last modified date
                       $TargetPath = $_.Path
