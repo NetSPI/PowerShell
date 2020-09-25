@@ -125,7 +125,7 @@ function Get-SMBShareInventory
     
     Begin
     {
-        $TheVersion = "v1.2.7"
+        $TheVersion = "v1.2.8"
         Write-Output "  ---------------------------------------------------------------" 
         Write-Output " | Get-SMBShareInventory $TheVersion                             |"
         Write-Output "  ---------------------------------------------------------------"         
@@ -354,12 +354,19 @@ function Get-SMBShareInventory
              $currentaacl = Get-PathAcl "\\$TargetAsset\$CurrentShareName" -ErrorAction SilentlyContinue
              $currentaacl |
                 foreach{
+                        
+                      # Get file listing
+                      $FullFileList = Get-ChildItem -Path "\\$TargetAsset\$CurrentShareName"
 
                       # Get file count
+                      $FileCount = $FullFileList.Count 
 
                       # Get top 5 files list
+                      $FileList = $FullFileList | Select-Object -First 5 | Select-Object Name -ExpandProperty Name
 
                       # Last modified date
+                      $TargetPath = $_.Path
+                      $LastModifiedDate = Get-Item "\\$TargetAsset\$CurrentShareName" -ErrorAction SilentlyContinue | Select-Object LastWriteTime -ExpandProperty LastWriteTime
 
                       $aclObject = new-object psobject            
                       $aclObject | add-member  Noteproperty ComputerName         $CurrentComputerName
@@ -374,6 +381,9 @@ function Get-SMBShareInventory
                       $aclObject | add-member  Noteproperty IdentityReference    $_.IdentityReference
                       $aclObject | add-member  Noteproperty IdentitySID          $_.IdentitySID
                       $aclObject | add-member  Noteproperty AccessControlType    $_.AccessControlType
+                      $aclObject | add-member  Noteproperty LastModifiedDate     $LastModifiedDate
+                      $aclObject | add-member  Noteproperty FileCount            $FileCount
+                      $aclObject | add-member  Noteproperty FileList             $FileList
                       $aclObject                             
                 }
          }   
