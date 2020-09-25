@@ -125,7 +125,7 @@ function Get-SMBShareInventory
     
     Begin
     {
-        $TheVersion = "v1.2.6"
+        $TheVersion = "v1.2.7"
         Write-Output "  ---------------------------------------------------------------" 
         Write-Output " | Get-SMBShareInventory $TheVersion                             |"
         Write-Output "  ---------------------------------------------------------------"         
@@ -354,12 +354,20 @@ function Get-SMBShareInventory
              $currentaacl = Get-PathAcl "\\$TargetAsset\$CurrentShareName" -ErrorAction SilentlyContinue
              $currentaacl |
                 foreach{
+
+                      # Get file count
+
+                      # Get top 5 files list
+
+                      # Last modified date
+
                       $aclObject = new-object psobject            
                       $aclObject | add-member  Noteproperty ComputerName         $CurrentComputerName
                       $aclObject | add-member  Noteproperty IpAddress            $CurrentIP
                       $aclObject | add-member  Noteproperty ShareName            $CurrentShareName
                       $aclObject | add-member  Noteproperty SharePath            $_.Path
                       $aclObject | add-member  Noteproperty ShareDescription     $ShareDescription
+                      $aclObject | add-member  Noteproperty ShareOwner           $_.PathOwner
                       $aclObject | add-member  Noteproperty ShareType            $ShareType
                       $aclObject | add-member  Noteproperty ShareAccess          $ShareAccess
                       $aclObject | add-member  Noteproperty FileSystemRights     $_.FileSystemRights
@@ -404,7 +412,7 @@ function Get-SMBShareInventory
                 
                 if($line.ShareAccess -like "Yes"){
 
-                    if(($line.ShareName -notlike "print$") -and ($line.ShareName -notlike "prnproc$") -and ($line.ShareName -notlike "*printer*"))
+                    if(($line.ShareName -notlike "print$") -and ($line.ShareName -notlike "prnproc$") -and ($line.ShareName -notlike "*printer*") -and ($line.ShareName -notlike "netlogon") -and ($line.ShareName -notlike "sysvol"))
                     {
                         $line 
                     }
@@ -2458,6 +2466,8 @@ function Get-PathAcl {
         try {
             $ACL = Get-Acl -Path $Path
 
+            [String]$PathOwner = $ACL.Owner
+
             $ACL.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier]) | ForEach-Object {
 
                 $Names = @()
@@ -2481,6 +2491,7 @@ function Get-PathAcl {
                 ForEach($Name in $Names) {
                     $Out = New-Object PSObject
                     $Out | Add-Member Noteproperty 'Path' $Path
+                    $Out | Add-Member Noteproperty 'PathOwner' $PathOwner
                     $Out | Add-Member Noteproperty 'FileSystemRights' (Convert-FileRight -FSR $_.FileSystemRights.value__)
                     $Out | Add-Member Noteproperty 'IdentityReference' $Name[1]
                     $Out | Add-Member Noteproperty 'IdentitySID' $Name[0]
