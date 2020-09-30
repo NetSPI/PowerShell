@@ -1,10 +1,10 @@
 # ------------------------------------------
-# Function:  Invoke-SQLServerHunt
+# Function:  Invoke-HuntSQLServers
 # ------------------------------------------
 # Version 1.2
 # Requires PowerUpSQL
 # Author: Scott Sutherland, NetSPI
-function Invoke-SQLServerHunt
+function Invoke-HuntSQLServers
 {
     <#
             .SYNOPSIS
@@ -26,14 +26,14 @@ function Invoke-SQLServerHunt
             File path where all csv and html report will be exported.
             .EXAMPLE
             Run as current domain user on domain joined system.  Only targets instances that respond to UDP scan.
-            PS C:\> Invoke-SQLServerHunt -OutputDirectory C:\temp\
+            PS C:\> Invoke-HuntSQLServers -OutputDirectory C:\temp\
             .EXAMPLE
             Run as current domain user on domain joined system.  Target all instances found during SPN discovery.
-            PS C:\> Invoke-SQLServerHunt -CheckAll -OutputDirectory C:\temp\
+            PS C:\> Invoke-HuntSQLServers -CheckAll -OutputDirectory C:\temp\
             .EXAMPLE
             Run as current domain user on domain joined system.  Target all instances found during SPN discovery.
             Also, check for management servers that commonly have unregistered instances via additional UDP scan.
-            PS C:\> Invoke-SQLServerHunt -CheckAll -CheckMgmt -OutputDirectory C:\temp\
+            PS C:\> Invoke-HuntSQLServers -CheckAll -CheckMgmt -OutputDirectory C:\temp\
              .EXAMPLE
             Run as alernative domain user against alertative domain:
             PS C:\> runas /netonly /user domain\user powershell_ise.exe
@@ -41,10 +41,10 @@ function Invoke-SQLServerHunt
             PS C:\> Invoke-SQLServerHunt -CheckAll -OutputDirectory C:\temp\ -DomainController 192.168.1.1 -Username domain\user -Password MyPassword
             .EXAMPLE
             Full output example.
-            PS C:\> Invoke-SQLServerHunt -OutputDirectory C:\temp\
+            PS C:\> Invoke-HuntSQLServers -OutputDirectory C:\temp\
 
               ----------------------------------------------------------------
-             | Invoke-SQLServerHunt                                           |
+             | Invoke-HuntSQLServers                                          |
               ----------------------------------------------------------------
              |                                                                |
              | This function automates the following tasks:                   |
@@ -243,7 +243,7 @@ function Invoke-SQLServerHunt
    Begin
    {        
         Write-Output "  ----------------------------------------------------------------" 
-        Write-Output " | Invoke-SQLServerHunt                                           |"
+        Write-Output " | Invoke-HuntSQLServers                                          |"
         Write-Output "  ----------------------------------------------------------------"         
         Write-Output " |                                                                |"
         Write-Output " | This function automates the following tasks:                   |"
