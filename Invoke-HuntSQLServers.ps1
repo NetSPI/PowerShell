@@ -1,9 +1,10 @@
 # ------------------------------------------
 # Function:  Invoke-HuntSQLServers
 # ------------------------------------------
+# Author: Scott Sutherland, NetSPI
+# License: 3-clause BSD
 # Version 1.2
 # Requires PowerUpSQL
-# Author: Scott Sutherland, NetSPI
 function Invoke-HuntSQLServers
 {
     <#
