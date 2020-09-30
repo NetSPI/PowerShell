@@ -1,10 +1,10 @@
 #--------------------------------------
-# Function: Get-SMBShareInventory
+# Function: Invoke-HuntSMBShares
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 
-function Get-SMBShareInventory
+function Invoke-HuntSMBShares
 {    
 	<#
             .SYNOPSIS
@@ -15,11 +15,11 @@ function Get-SMBShareInventory
             .PARAMETER Output Directory
             File path where all csv and html report will be exported.
             .EXAMPLE
-			PS C:\temp\test> Get-SMBShareInventory -Threads 100 -OutputDirectory c:\temp\test -DomainController 10.1.1.1 -Username user -Password password            
+			PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test -DomainController 10.1.1.1 -Username user -Password password            
             .EXAMPLE
-			PS C:\temp\test> Get-SMBShareInventory -Threads 100 -OutputDirectory c:\temp\test
+			PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test
 			  ---------------------------------------------------------------
-			| Get-SMBShareInventory v1.2.6                                  |
+			| Invoke-HuntSMBShares v1.2.6                                  |
 			  ---------------------------------------------------------------
 			| This function automates the following tasks:                  |
 			|                                                               |
@@ -127,7 +127,7 @@ function Get-SMBShareInventory
     {
         $TheVersion = "v1.2.9"
         Write-Output "  ---------------------------------------------------------------" 
-        Write-Output " | Get-SMBShareInventory $TheVersion                             |"
+        Write-Output " | Invoke-HuntSMBShares $TheVersion                             |"
         Write-Output "  ---------------------------------------------------------------"         
         Write-Output " | This function automates the following tasks:                  |"
         Write-Output " |                                                               |"
