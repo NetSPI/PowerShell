@@ -38,7 +38,7 @@ function Invoke-HuntSQLServers
             Run as alernative domain user against alertative domain:
             PS C:\> runas /netonly /user domain\user powershell_ise.exe
             PS C:\> import-module PowerUpSQL 
-            PS C:\> Invoke-SQLServerHunt -CheckAll -OutputDirectory C:\temp\ -DomainController 192.168.1.1 -Username domain\user -Password MyPassword
+            PS C:\> Invoke-HuntSQLServers -CheckAll -OutputDirectory C:\temp\ -DomainController 192.168.1.1 -Username domain\user -Password MyPassword
             .EXAMPLE
             Full output example.
             PS C:\> Invoke-HuntSQLServers -OutputDirectory C:\temp\
