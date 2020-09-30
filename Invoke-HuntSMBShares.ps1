@@ -2,6 +2,7 @@
 # Function: Invoke-HuntSMBShares
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
+# License: 3-clause BSD
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 function Invoke-HuntSMBShares
 {    
