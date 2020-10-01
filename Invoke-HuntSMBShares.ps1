@@ -561,9 +561,9 @@ function Invoke-HuntSMBShares
         Write-Output " [*] "
         Write-Output " [*] Share Summary"      
         Write-Output " [*] - $AllSMBSharesCount shares were found."
-        Write-Output " [*] - $ExcessiveSharePrivsCount potentially excessive ACLs on $ExcessiveSharesCount shares across $ComputerWithExcessive systems."
-        Write-Output " [*] - $SharesWithWriteCount shares can be written to across $ComputerWithWriteCount systems."
-        Write-Output " [*] - $SharesHighRiskCount shares are considered high risk across $ComputerwithHighRisk systems."
+        Write-Output " [*] - $ExcessiveSharesCount shares across $ComputerWithExcessive systems are configured with $ExcessiveSharePrivsCount potentially excessive ACLs."
+        Write-Output " [*] - $SharesWithWriteCount shares across $ComputerWithWriteCount systems can be written to."
+        Write-Output " [*] - $SharesHighRiskCount shares across $ComputerwithHighRisk systems are considered high risk ."
         Write-Output " [*] - $Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names."
         Write-Output " [*] - The 5 most common share names are:"
         $CommonShareNamesTop5 |
