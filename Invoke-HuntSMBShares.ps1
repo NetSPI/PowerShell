@@ -32,7 +32,7 @@ function Invoke-HuntSMBShares
 			| o Identify shares with potentially excessive privielges       |
 			| o Identify shares that provide write access                   |
 			| o Identify shares thare are high risk                         |
-			| o Identify common share names with more that 5 instances      |
+			| o Identify common share names with more than 5 instances      |
 			|                                                               |
 			  ---------------------------------------------------------------
 			| Note: This can take hours to run in large environments.       |
