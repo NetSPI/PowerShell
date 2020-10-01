@@ -605,9 +605,9 @@ $HTMLReport1 = @"
             
             <ul>
              <li>$AllSMBSharesCount shares were found.</li>
-             <li>$ExcessiveSharePrivsCount potentially excessive ACLs on $ExcessiveSharesCount shares across $ComputerWithExcessive systems.</li>
-             <li>$SharesWithWriteCount shares can be written to across $ComputerWithWriteCount systems.</li>
-             <li>$SharesHighRiskCount shares are considered high risk across $ComputerwithHighRisk systems. (c`$,admin`$,wwwroot)</li>
+             <li>$ExcessiveSharesCount shares across $ComputerWithExcessive systems are configured with $ExcessiveSharePrivsCount potentially excessive ACLs.</li>
+             <li>$SharesWithWriteCount shares across $ComputerWithWriteCount systems can be written to.</li>
+             <li>$SharesHighRiskCount shares across $ComputerwithHighRisk systems are considered high risk. (c`$,admin`$,wwwroot)</li>
              <li>$Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names.<Br>
                  The 5 most common share names are:<br>
                  <ul>
