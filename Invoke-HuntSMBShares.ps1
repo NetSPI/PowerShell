@@ -125,7 +125,7 @@ function Invoke-HuntSMBShares
     
     Begin
     {
-        $TheVersion = "v1.2.9"
+        $TheVersion = "v1.2.10"
         Write-Output "  ---------------------------------------------------------------" 
         Write-Output " | Invoke-HuntSMBShares $TheVersion                             |"
         Write-Output "  ---------------------------------------------------------------"         
@@ -163,7 +163,7 @@ function Invoke-HuntSMBShares
         # ----------------------------------------------------------------------
 
         # Set target domain        
-        $DCRecord = Get-LdapQuery -LdapFilter "(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))" -DomainController $DomainController -Username $username -Password $Password | select -first 1 | select properties -expand properties -ErrorAction SilentlyContinue
+        $DCRecord = Get-LdapQuery -LdapFilter "(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))" -DomainController $DomainController -Username $username -Password $Password -Credential $Credential | select -first 1 | select properties -expand properties -ErrorAction SilentlyContinue
         [string]$DCHostname = $DCRecord.dnshostname
         [string]$DCCn = $DCRecord.cn
         [string]$TargetDomain = $DCHostname -replace ("$DCCn\.","") 
