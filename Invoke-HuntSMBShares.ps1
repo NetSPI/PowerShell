@@ -19,7 +19,7 @@ function Invoke-HuntSMBShares
             .EXAMPLE
 			PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test
 			  ---------------------------------------------------------------
-			| Invoke-HuntSMBShares v1.2.6                                  |
+			| Invoke-HuntSMBShares                                          |
 			  ---------------------------------------------------------------
 			| This function automates the following tasks:                  |
 			|                                                               |
