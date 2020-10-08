@@ -15,7 +15,9 @@ function Invoke-HuntSMBShares
             .PARAMETER Output Directory
             File path where all csv and html report will be exported.
             .EXAMPLE
-			PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test -DomainController 10.1.1.1 -Username user -Password password            
+			PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test -DomainController 10.1.1.1 -Credential domain\user    
+            .EXAMPLE
+			PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test -DomainController 10.1.1.1 -Username domain\user -Password password            
             .EXAMPLE
 			PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test
 			  ---------------------------------------------------------------
