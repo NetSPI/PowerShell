@@ -1,10 +1,10 @@
 #--------------------------------------
-# Function: Get-SMBShareInventory
+# Function: Invoke-HuntSMBShares
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
+# License: 3-clause BSD
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
-
-function Get-SMBShareInventory
+function Invoke-HuntSMBShares
 {    
 	<#
             .SYNOPSIS
@@ -15,11 +15,13 @@ function Get-SMBShareInventory
             .PARAMETER Output Directory
             File path where all csv and html report will be exported.
             .EXAMPLE
-			PS C:\temp\test> Get-SMBShareInventory -Threads 100 -OutputDirectory c:\temp\test -DomainController 10.1.1.1 -Username user -Password password            
+			PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test -DomainController 10.1.1.1 -Credential domain\user    
             .EXAMPLE
-			PS C:\temp\test> Get-SMBShareInventory -Threads 100 -OutputDirectory c:\temp\test
+			PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test -DomainController 10.1.1.1 -Username domain\user -Password password            
+            .EXAMPLE
+			PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test
 			  ---------------------------------------------------------------
-			| Get-SMBShareInventory v1.2.6                                  |
+			| Invoke-HuntSMBShares                                          |
 			  ---------------------------------------------------------------
 			| This function automates the following tasks:                  |
 			|                                                               |
@@ -32,7 +34,7 @@ function Get-SMBShareInventory
 			| o Identify shares with potentially excessive privielges       |
 			| o Identify shares that provide write access                   |
 			| o Identify shares thare are high risk                         |
-			| o Identify common share names with more that 5 instances      |
+			| o Identify common share names with more than 5 instances      |
 			|                                                               |
 			  ---------------------------------------------------------------
 			| Note: This can take hours to run in large environments.       |
@@ -125,9 +127,9 @@ function Get-SMBShareInventory
     
     Begin
     {
-        $TheVersion = "v1.2.6"
+        $TheVersion = "v1.2.10"
         Write-Output "  ---------------------------------------------------------------" 
-        Write-Output " | Get-SMBShareInventory $TheVersion                             |"
+        Write-Output " | Invoke-HuntSMBShares $TheVersion                             |"
         Write-Output "  ---------------------------------------------------------------"         
         Write-Output " | This function automates the following tasks:                  |"
         Write-Output " |                                                               |"
@@ -162,8 +164,8 @@ function Get-SMBShareInventory
         # Enumerate domain computers 
         # ----------------------------------------------------------------------
 
-        # Set target domain
-        $DCRecord = Get-LdapQuery -LdapFilter "(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))" -DomainController $DomainController -Username $username -Password $Password | select -first 1 | select properties -expand properties
+        # Set target domain        
+        $DCRecord = Get-LdapQuery -LdapFilter "(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))" -DomainController $DomainController -Username $username -Password $Password -Credential $Credential | select -first 1 | select properties -expand properties -ErrorAction SilentlyContinue
         [string]$DCHostname = $DCRecord.dnshostname
         [string]$DCCn = $DCRecord.cn
         [string]$TargetDomain = $DCHostname -replace ("$DCCn\.","") 
@@ -354,18 +356,36 @@ function Get-SMBShareInventory
              $currentaacl = Get-PathAcl "\\$TargetAsset\$CurrentShareName" -ErrorAction SilentlyContinue
              $currentaacl |
                 foreach{
+                        
+                      # Get file listing
+                      $FullFileList = Get-ChildItem -Path "\\$TargetAsset\$CurrentShareName"
+
+                      # Get file count
+                      $FileCount = $FullFileList.Count 
+
+                      # Get top 5 files list
+                      $FileList = $FullFileList | Select-Object -First 5 | Select-Object Name -ExpandProperty Name | Out-String
+
+                      # Last modified date
+                      $TargetPath = $_.Path
+                      $LastModifiedDate = Get-Item "\\$TargetAsset\$CurrentShareName" -ErrorAction SilentlyContinue | Select-Object LastWriteTime -ExpandProperty LastWriteTime
+
                       $aclObject = new-object psobject            
                       $aclObject | add-member  Noteproperty ComputerName         $CurrentComputerName
                       $aclObject | add-member  Noteproperty IpAddress            $CurrentIP
                       $aclObject | add-member  Noteproperty ShareName            $CurrentShareName
                       $aclObject | add-member  Noteproperty SharePath            $_.Path
                       $aclObject | add-member  Noteproperty ShareDescription     $ShareDescription
+                      $aclObject | add-member  Noteproperty ShareOwner           $_.PathOwner
                       $aclObject | add-member  Noteproperty ShareType            $ShareType
                       $aclObject | add-member  Noteproperty ShareAccess          $ShareAccess
                       $aclObject | add-member  Noteproperty FileSystemRights     $_.FileSystemRights
                       $aclObject | add-member  Noteproperty IdentityReference    $_.IdentityReference
                       $aclObject | add-member  Noteproperty IdentitySID          $_.IdentitySID
                       $aclObject | add-member  Noteproperty AccessControlType    $_.AccessControlType
+                      $aclObject | add-member  Noteproperty LastModifiedDate     $LastModifiedDate
+                      $aclObject | add-member  Noteproperty FileCount            $FileCount
+                      $aclObject | add-member  Noteproperty FileList             $FileList
                       $aclObject                             
                 }
          }   
@@ -404,7 +424,7 @@ function Get-SMBShareInventory
                 
                 if($line.ShareAccess -like "Yes"){
 
-                    if(($line.ShareName -notlike "print$") -and ($line.ShareName -notlike "prnproc$") -and ($line.ShareName -notlike "*printer*"))
+                    if(($line.ShareName -notlike "print$") -and ($line.ShareName -notlike "prnproc$") -and ($line.ShareName -notlike "*printer*") -and ($line.ShareName -notlike "netlogon") -and ($line.ShareName -notlike "sysvol"))
                     {
                         $line 
                     }
@@ -543,9 +563,9 @@ function Get-SMBShareInventory
         Write-Output " [*] "
         Write-Output " [*] Share Summary"      
         Write-Output " [*] - $AllSMBSharesCount shares were found."
-        Write-Output " [*] - $ExcessiveSharePrivsCount potentially excessive ACLs on $ExcessiveSharesCount shares across $ComputerWithExcessive systems."
-        Write-Output " [*] - $SharesWithWriteCount shares can be written to across $ComputerWithWriteCount systems."
-        Write-Output " [*] - $SharesHighRiskCount shares are considered high risk across $ComputerwithHighRisk systems."
+        Write-Output " [*] - $ExcessiveSharesCount shares across $ComputerWithExcessive systems are configured with $ExcessiveSharePrivsCount potentially excessive ACLs."
+        Write-Output " [*] - $SharesWithWriteCount shares across $ComputerWithWriteCount systems can be written to."
+        Write-Output " [*] - $SharesHighRiskCount shares across $ComputerwithHighRisk systems are considered high risk ."
         Write-Output " [*] - $Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names."
         Write-Output " [*] - The 5 most common share names are:"
         $CommonShareNamesTop5 |
@@ -587,9 +607,9 @@ $HTMLReport1 = @"
             
             <ul>
              <li>$AllSMBSharesCount shares were found.</li>
-             <li>$ExcessiveSharePrivsCount potentially excessive ACLs on $ExcessiveSharesCount shares across $ComputerWithExcessive systems.</li>
-             <li>$SharesWithWriteCount shares can be written to across $ComputerWithWriteCount systems.</li>
-             <li>$SharesHighRiskCount shares are considered high risk across $ComputerwithHighRisk systems. (c`$,admin`$,wwwroot)</li>
+             <li>$ExcessiveSharesCount shares across $ComputerWithExcessive systems are configured with $ExcessiveSharePrivsCount potentially excessive ACLs.</li>
+             <li>$SharesWithWriteCount shares across $ComputerWithWriteCount systems can be written to.</li>
+             <li>$SharesHighRiskCount shares across $ComputerwithHighRisk systems are considered high risk. (c`$,admin`$,wwwroot)</li>
              <li>$Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names.<Br>
                  The 5 most common share names are:<br>
                  <ul>
@@ -2458,6 +2478,8 @@ function Get-PathAcl {
         try {
             $ACL = Get-Acl -Path $Path
 
+            [String]$PathOwner = $ACL.Owner
+
             $ACL.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier]) | ForEach-Object {
 
                 $Names = @()
@@ -2481,6 +2503,7 @@ function Get-PathAcl {
                 ForEach($Name in $Names) {
                     $Out = New-Object PSObject
                     $Out | Add-Member Noteproperty 'Path' $Path
+                    $Out | Add-Member Noteproperty 'PathOwner' $PathOwner
                     $Out | Add-Member Noteproperty 'FileSystemRights' (Convert-FileRight -FSR $_.FileSystemRights.value__)
                     $Out | Add-Member Noteproperty 'IdentityReference' $Name[1]
                     $Out | Add-Member Noteproperty 'IdentitySID' $Name[0]
