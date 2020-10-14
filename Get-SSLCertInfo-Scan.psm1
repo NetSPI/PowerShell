@@ -245,7 +245,7 @@ function Get-SSLCertInfo-Scan {
         # ------------------------------
         $AltDomainList = $DraftResults | where SubjectAltName -notlike "" | Select-Object SubjectAltName -ExpandProperty SubjectAltName                   
         $OrgDomainList = $DraftResults | where SubjectDomain -notlike "" | Select-Object SubjectDomain -ExpandProperty SubjectDomain      
-        $DomainList = $AltDomainList+$DomainList | Select-Object @{Name="DomainName";Expression={$_}} | Sort-Object DomainName -Unique             
+        $DomainList = $AltDomainList+$OrgDomainList | Select-Object @{Name="DomainName";Expression={$_}} | Sort-Object DomainName -Unique             
         $DomainCount = $DomainList.count
         Write-Verbose "$DomainCount unique domains found."
 
