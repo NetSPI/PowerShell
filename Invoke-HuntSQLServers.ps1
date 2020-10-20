@@ -455,44 +455,44 @@ function Invoke-HuntSQLServers
 
         # Filter for potential high value databases if transparent encryption is used
         Write-Output " [*] Filtering for databases using transparent encryption."
-        $DatabasesEnc = $Databases | Where-Object {$_.is_encrypted –eq “TRUE”} 
+        $DatabasesEnc = $Databases | Where-Object {$_.is_encrypted –eq "TRUE"} 
         $DatabasesEncCount =  $DatabasesEnc.count
         Write-Output " [*] - $DatabasesEncCount databases were found using encryption."
         $DatabasesEnc | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases-Encrypted.csv"
 
         # Filter for potential high value databases based on keywords       
         Write-Output " [*] Filtering for databases with names that contain ACH."
-        $DatabasesACH = $Databases | Where-Object {$_.DatabaseName –like “*ACH*”} 
+        $DatabasesACH = $Databases | Where-Object {$_.DatabaseName –like "*ACH*"} 
         $DatabasesACHCount = $DatabasesACH.count
         Write-Output " [*] - $DatabasesACHCount database names contain ACH."
         $DatabasesACH | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases-ach.csv"
 
         Write-Output " [*] Filtering for databases with names that contain finance."
-        $DatabasesFinance  = $Databases | Where-Object {$_.DatabaseName –like “*finance*”} 
+        $DatabasesFinance  = $Databases | Where-Object {$_.DatabaseName –like "*finance*"} 
         $DatabasesFinanceCount = $DatabasesFinance.count
         Write-Output " [*] - $DatabasesFinanceCount database names contain finance."
         $DatabasesFinance | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases-finance.csv"
 
         Write-Output " [*] Filtering for databases with names that contain pci."
-        $DatabasesPCI = $Databases | Where-Object {$_.DatabaseName –like “*pci*”}
+        $DatabasesPCI = $Databases | Where-Object {$_.DatabaseName –like "*pci*"}
         $DatabasesPCICount = $DatabasesPCI.count
         Write-Output " [*] - $DatabasesPCICount database names contain pci."
         $DatabasesPCI | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases-pci.csv" 
 
         Write-Output " [*] Filtering for databases with names that contain chd."
-        $DatabasesCHD = $Databases | Where-Object {$_.DatabaseName –like “*chd*”} 
+        $DatabasesCHD = $Databases | Where-Object {$_.DatabaseName –like "*chd*"} 
         $DatabasesCHDCount = $DatabasesCHD.count
         Write-Output " [*] - $DatabasesCHDCount database names contain chd."
         $DatabasesCHD | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases-chd.csv"
 
         Write-Output " [*] Filtering for databases with names that contain enclave."
-        $DatabasesEnclave = $Databases | Where-Object {$_.DatabaseName –like “*enclave*”}
+        $DatabasesEnclave = $Databases | Where-Object {$_.DatabaseName –like "*enclave*"}
         $DatabasesEnclaveCount = $DatabasesEnclave.count
         Write-Output " [*] - $DatabasesEnclaveCount database names contain enclave."
         $DatabasesEnclave | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases-enclave.csv"
 
         Write-Output " [*] Filtering for databases with names that contain pos."
-        $DatabasesPOS = $Databases | Where-Object {$_.DatabaseName –like “*pos*”} 
+        $DatabasesPOS = $Databases | Where-Object {$_.DatabaseName –like "*pos*"} 
         $DatabasesPOSCount = $DatabasesPOS.count
         Write-Output " [*] - $DatabasesPOSCount database names contain pos."
         $DatabasesPOS | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases-pos.csv"
