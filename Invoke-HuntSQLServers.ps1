@@ -3,7 +3,7 @@
 # ------------------------------------------
 # Author: Scott Sutherland, NetSPI
 # License: 3-clause BSD
-# Version 1.2.2
+# Version 1.2.3
 # Requires PowerUpSQL
 function Invoke-HuntSQLServers
 {
@@ -462,12 +462,17 @@ function Invoke-HuntSQLServers
         $ExcessiveRoleMemberships | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-RoleMembers-Excessive.csv"
 
         # Create a list of share service accounts from the instance information
-        Write-Output " [*] Identifying shared SQL Server service accounts."
-        $SharedAccounts = $AllInstances |  Group-Object DomainAccount | Sort-Object Count -Descending  | Where Count -GT 4 |  Select Count, Name
-        $SharedAccountsCount = $SharedAccounts.count
-        Write-Output " [*] - $SharedAccountsCount shared accounts were found."
-        $SharedAccounts | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-SharedAccounts.csv"
- 
+        if($TargetsFile)
+        {
+            Write-Output " [*] Shared service accounts will not be identified, because SPN informatin is required."            
+        }else{
+            Write-Output " [*] Identifying shared SQL Server service accounts."
+            $SharedAccounts = $AllInstances |  Group-Object DomainAccount | Sort-Object Count -Descending  | Where Count -GT 4 |  Select Count, Name
+            $SharedAccountsCount = $SharedAccounts.count
+            Write-Output " [*] - $SharedAccountsCount shared accounts were found."
+            $SharedAccounts | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-SharedAccounts.csv"
+        }
+
         # Create a summary of the affected SQL Server versions
         Write-Output " [*] Creating a list of accessible SQL Server instance versions."
         $SQLServerVersions = $LoginAccess |  Group-Object SQLServerEdition | Sort-Object Count -Descending | Select Count, Name
