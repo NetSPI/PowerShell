@@ -245,7 +245,7 @@ function Invoke-HuntSQLServers
         HelpMessage = 'Directory to output files to.')]
         [string]$OutputDirectory,
 
-        [Parameter(Mandatory = $true,
+        [Parameter(Mandatory = $false,
         HelpMessage = 'Path to file containing a list of target computers.  One per line. If this is chosen SPN discovery will not be conducted.')]
         [string]$TargetsFile
     )
