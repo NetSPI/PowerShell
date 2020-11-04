@@ -3,7 +3,7 @@
 # ------------------------------------------
 # Author: Scott Sutherland, NetSPI
 # License: 3-clause BSD
-# Version 1.2
+# Version 1.2.1
 # Requires PowerUpSQL
 function Invoke-HuntSQLServers
 {
@@ -344,10 +344,10 @@ function Invoke-HuntSQLServers
             Write-Output " [*] Querying LDAP for SQL Server SPNs (mssql* and MSServerClusterMgmtAPI)."
             Write-Output " [*] - WARNING: You have chosen to target MSServerClusterMgmtAPI"
             Write-Output " [*]            It will yield more results, but will be much slower."
-            $AllInstances = Get-SQLInstanceDomain -CheckMgmt
+            $AllInstances = Get-SQLInstanceDomain -CheckMgmt -DomainController $DomainController -Username $Username -Password $Password 
         }else{
             Write-Output " [*] Querying LDAP for SQL Server SPNs (mssql*)."
-            $AllInstances = Get-SQLInstanceDomain 
+            $AllInstances = Get-SQLInstanceDomain -DomainController $DomainController -Username $Username -Password $Password
         }
         
         $AllInstancesCount = $AllInstances.count
