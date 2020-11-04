@@ -3,7 +3,7 @@
 # ------------------------------------------
 # Author: Scott Sutherland, NetSPI
 # License: 3-clause BSD
-# Version 1.2.1
+# Version 1.2.2
 # Requires PowerUpSQL
 function Invoke-HuntSQLServers
 {
@@ -25,9 +25,14 @@ function Invoke-HuntSQLServers
             Attempt to log into all identify instances even if they dont respond to UDP requests.
             .PARAMETER Output Directory
             File path where all csv and html report will be exported.
+            .PARAMETER TargetsFile
+            Path to file containing a list of target computers.  One per line. If this is chosen the SPN discovery will not be conducted.
             .EXAMPLE
             Run as current domain user on domain joined system.  Only targets instances that respond to UDP scan.
             PS C:\> Invoke-HuntSQLServers -OutputDirectory C:\temp\
+            .EXAMPLE
+            Run as current domain user on domain joined system.  Only target computers in the provided list.
+            PS C:\> Invoke-HuntSQLServers -OutputDirectory C:\temp\ -TargetsFile c:\temp\targets.txt
             .EXAMPLE
             Run as current domain user on domain joined system.  Target all instances found during SPN discovery.
             PS C:\> Invoke-HuntSQLServers -CheckAll -OutputDirectory C:\temp\
@@ -238,7 +243,11 @@ function Invoke-HuntSQLServers
 
         [Parameter(Mandatory = $true,
         HelpMessage = 'Directory to output files to.')]
-        [string]$OutputDirectory
+        [string]$OutputDirectory,
+
+        [Parameter(Mandatory = $true,
+        HelpMessage = 'Path to file containing a list of target computers.  One per line. If this is chosen SPN discovery will not be conducted.')]
+        [string]$TargetsFile
     )
 
    Begin
@@ -301,8 +310,7 @@ function Invoke-HuntSQLServers
         Write-Output " [*] Start time: $StartTime"
         $StopWatch =  [system.diagnostics.stopwatch]::StartNew()
 
-        # Get domain controller
-        
+        # Verify domain controller connection        
         # Set target domain and domain  
         Write-Output " [*] Verifying connectivity to the domain controller"        
         if(-not $DomainController){
@@ -312,19 +320,19 @@ function Invoke-HuntSQLServers
             $TargetDomain = $env:USERDNSDOMAIN
         }else{                
             $DCRecord = Get-domainobject -LdapFilter "(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))" -DomainController $DomainController -Username $username -Password $Password | select -first 1 | select properties -expand properties -ErrorAction SilentlyContinue
-            [string]$DCHostname = $DCRecord.dnshostname
+            [string]$DCHostname = $DomainController
             [string]$DCCn = $DCRecord.cn
             [string]$TargetDomain = $DCHostname -replace ("$DCCn\.","") 
         }
                 
         if($DCHostname)
         {
-            Write-Output " [*] - Targeting domain $TargetDomain"
-            Write-Output " [*] - Confirmed connection to domain controller $DCHostname"                         
+         Write-Output " [*] - Targeting domain $TargetDomain"
+         Write-Output " [*] - Confirmed connection to domain controller $DCHostname"                         
         }else{
-            Write-Output " [*] - There appears to have been an error connecting to the domain controller."
-            Write-Output " [*] - Aborting."
-            break
+          Write-Output " [*] - There appears to have been an error connecting to the domain controller."
+          Write-Output " [*] - Aborting."
+          break
         }  
    }
 
@@ -339,25 +347,54 @@ function Invoke-HuntSQLServers
         Write-Output " [*] INSTANCE DISCOVERY"
         Write-Output " [*] -------------------------------------------------------------"
 
-        # Get SQL Server instances
-        if($CheckMgmt){
-            Write-Output " [*] Querying LDAP for SQL Server SPNs (mssql* and MSServerClusterMgmtAPI)."
-            Write-Output " [*] - WARNING: You have chosen to target MSServerClusterMgmtAPI"
-            Write-Output " [*]            It will yield more results, but will be much slower."
-            $AllInstances = Get-SQLInstanceDomain -CheckMgmt -DomainController $DomainController -Username $Username -Password $Password 
-        }else{
-            Write-Output " [*] Querying LDAP for SQL Server SPNs (mssql*)."
-            $AllInstances = Get-SQLInstanceDomain -DomainController $DomainController -Username $Username -Password $Password
-        }
+        # Check for provided list
+        if(-not $TargetsFile) 
+        {
+            # Get SQL Server instances
+            if($CheckMgmt){
+                Write-Output " [*] Querying LDAP for SQL Server SPNs (mssql* and MSServerClusterMgmtAPI)."
+                Write-Output " [*] - WARNING: You have chosen to target MSServerClusterMgmtAPI"
+                Write-Output " [*]            It will yield more results, but will be much slower."
+                $AllInstances = Get-SQLInstanceDomain -CheckMgmt -DomainController $DomainController -Username $Username -Password $Password 
+            }else{
+                Write-Output " [*] Querying LDAP for SQL Server SPNs (mssql*)."
+                $AllInstances = Get-SQLInstanceDomain -DomainController $DomainController -Username $Username -Password $Password
+            }
         
-        $AllInstancesCount = $AllInstances.count
-        $AllComputers = $AllInstances | Select ComputerName -Unique
-        $AllComputersCount = $AllComputers.count
-        Write-Output " [*] - $AllInstancesCount SQL Server SPNs were found across $AllComputersCount computers."
+            $AllInstancesCount = $AllInstances.count
+            $AllComputers = $AllInstances | Select ComputerName -Unique
+            $AllComputersCount = $AllComputers.count
+            Write-Output " [*] - $AllInstancesCount SQL Server SPNs were found across $AllComputersCount computers."
 
-        # Save list of SQL Server instances to a file
-        write-output " [*] - Writing list of SQL Server SPNs to $OutputDirectory\$TargetDomain-SQL-Server-Instance-SPNs.csv"
-        $AllInstances | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-All.csv"
+            # Save list of SQL Server instances to a file
+            write-output " [*] - Writing list of SQL Server SPNs to $OutputDirectory\$TargetDomain-SQL-Server-Instance-SPNs.csv"
+            $AllInstances | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-All.csv"
+        }else{
+            
+            # Status user
+            Write-Output " [*] Attempting to read target computers from $TargetsFile." 
+            Write-Output " [*] SPN discovery will not be conducted." 
+
+            # Verify file path
+            if(-not (Test-Path $TargetsFile))
+            {
+                Write-Output " [*] - $TargetsFile is not accessible or does not exist. Aborting."
+                Break                        
+            }
+
+            # Import list            
+            $AllComputers = gc $TargetsFile |  
+            foreach {             
+                $object = New-Object PSObject 
+                $object | add-member Noteproperty ComputerName $_
+                $object
+            }
+
+            $AllComputersCount = $AllComputers.count
+
+            # Status user
+            Write-Output " [*] - $AllComputersCount computers found in file."
+        }
 
         # Perform UDP scanning of identified SQL Server instances on udp port 1434
         write-output " [*] Performing UDP scanning $AllComputersCount computers."
