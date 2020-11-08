@@ -3,7 +3,9 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
+# Version: v1.2.11
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
+# TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write. Update export description.
 function Invoke-HuntSMBShares
 {    
 	<#
@@ -121,7 +123,11 @@ function Invoke-HuntSMBShares
 
         [Parameter(Mandatory = $true,
         HelpMessage = 'Directory to output files to.')]
-        [string]$OutputDirectory
+        [string]$OutputDirectory,
+
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'Creat exported csv for import into other tools.')]
+        [switch]$ExportFindings
     )
 	
     
@@ -420,13 +426,13 @@ function Invoke-HuntSMBShares
         $ExcessiveSharePrivs = foreach ($line in $ShareACLs){
             
             # Filter for basic user ACLs
-            if (($line.IdentityReference -eq "Everyone") -or ($line.IdentityReference -eq "BUILTIN\Users") -or ($line.IdentityReference -eq "Authenticated Users") -or ($line.IdentityReference -eq " Domain Users") ){
+            if (($line.IdentityReference -eq "Everyone") -or ($line.IdentityReference -eq "BUILTIN\Users") -or ($line.IdentityReference -eq "Authenticated Users") -or ($line.IdentityReference -like "*Domain Users*") ){
                 
                 if($line.ShareAccess -like "Yes"){
 
                     if(($line.ShareName -notlike "print$") -and ($line.ShareName -notlike "prnproc$") -and ($line.ShareName -notlike "*printer*") -and ($line.ShareName -notlike "netlogon") -and ($line.ShareName -notlike "sysvol"))
                     {
-                        $line 
+                        $line                        
                     }
                 }
             }
@@ -635,16 +641,153 @@ $HTMLReport1 = @"
         $HTMLReport | Out-File "$OutputDirectory\$TargetDomain-Share-Inventory-Summary-Report.html"      
                 
         # ----------------------------------------------------------------------
-        # Find high risk file names by keyword
+        # Generate Excessive Privilege Findings
         # ----------------------------------------------------------------------
-        
-        # Pending
-        
+        if($ExportFindings){           
+                        
+            Write-Output " [*] Generating exccessive privileges export."        
+
+            # Define excessive priv fields           
+            $ExcessivePrivID = "M:2989294"
+            $ExcessivePrivName = "Excessive Privileges - Network Shares"
+            $ExcessivePrivFinding = "At least one network share has been configured with excessive privileges.  Excessive privileges include shares that are configured to provide the Everyone, BUILTIN\Users, Authenticated Users, or Domain Users groups with access that is not required."
+            $ExcessivePrivRecommmend = "Practice the principle of least privileges and only allow users with a defined business need to access the affected shares."
+            
+            # Create a finding for each instance
+            $PrivExport = $ExcessiveSharePrivs |  
+            Foreach {
+
+                # Grab default fields
+                $ComputerName      =  $_.ComputerName
+                $IpAddress         =  $_.IpAddress 
+                $ShareName         =  $_.ShareName
+                $SharePath         =  $_.SharePath
+                $ShareDescription  =  $_.ShareDescription
+                $ShareOwner        =  $_.ShareOwner
+                $ShareACcess       =  $_.ShareACcess
+                $FileSystemRights  =  $_.FileSystemRights
+                $AccessControlType =  $_.AccessControlType
+                $IdentityReference =  $_.IdentityReference
+                $IdentitySID       =  $_.IdentitySID
+                $AccessControlType =  $_.AccessControlType
+                $LastModifiedDate  =  $_.LastModifiedDate
+                $FileCount         =  $_.FileCount
+                $FileList          =  $_.FileList 
+
+                # Create new finding object
+                $object = New-Object psobject
+                $object | add-member noteproperty MasterFindingSourceIdentifier $ExcessivePrivID
+                $object | add-member noteproperty InstanceName            "Excessive Share ACL"
+                $object | add-member noteproperty AssetName               $ComputerName       
+                $object | add-member noteproperty IssueFirstFoundDate     "1/21/2020  10:57:01 AM"
+                $object | add-member noteproperty VerificationCaption01   "$SharePath access for $IdentityReference." 
+                $ShareDetails = @"
+Computer Name: $ComputerName
+IP Address: $IpAddress 
+Share Name: $ShareName
+Share Path: $SharePath
+Share Description: $ShareDescription
+Share Owner $ShareOwner
+Share Accses: $ShareACcess
+File System Rights: $FileSystemRights
+Access Control Type: $AccessControlType
+Identify Reference: $IdentityReference
+Identity SID: $IdentitySID
+Access Control Type: $AccessControlType
+Last Modification Date: $LastModifiedDate
+File Count: $FileCount
+File List Sample: 
+$FileList 
+"@                
+                $object | add-member noteproperty VerificationText01      $ShareDetails
+                $object | add-member noteproperty VerificationCaption02   "caption 2"
+                $object | add-member noteproperty VerificationText02      "text 2"
+                $object | add-member noteproperty VerificationCaption03   "caption 3"
+                $object | add-member noteproperty VerificationText03      "text 3"
+                $object | add-member noteproperty VerificationCaption04   "caption 4"
+                $object | add-member noteproperty VerificationText04      "text 4"
+                $object
+            }
+
+            # Write export file
+            Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-EXPORT-Excessive-Privileges.csv"        
+            $PrivExport | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-EXPORT-Excessive-Privileges.csv"
+        }
+
         # ----------------------------------------------------------------------
-        # Find high risk file names by extension
-        # ----------------------------------------------------------------------        
-        
-        # Pending
+        # Generate Excessive Privilege Findings - High Risk
+        # ----------------------------------------------------------------------
+        if($ExportFindings){
+
+            Write-Output " [*] Generating HIGH RISK exccessive privileges export." 
+
+            # Define excessive priv fields 
+            $ExcessivehighRiskID = "MAN:M:e581ab69-a0fc-4cb1-a7ff-87256c1a9e91"
+            $ExcessivehighRiskName = "Excessive Privileges - Network Shares - High Risk"
+            $ExcessiveHighRiskFinding = "At least one network share has been configured with high risk excessive privileges.  High risk excessive privileges  provide the Everyone, BUILTIN\Users, Authenticated Users, or Domain Users groups with read/write access to system shares, web roots, or directories containing potentially sensitive data."
+            $ExcessiveHighRiskRecommmend = "Practice the principle of least privileges and only allow users with a defined business need to access the affected shares."
+                
+
+            # Create a finding for each instance
+            $PrivHighExport = $SharesHighRisk | 
+            Foreach {
+
+                # Grab default fields
+                $ComputerName      =  $_.ComputerName
+                $IpAddress         =  $_.IpAddress 
+                $ShareName         =  $_.ShareName
+                $SharePath         =  $_.SharePath
+                $ShareDescription  =  $_.ShareDescription
+                $ShareOwner        =  $_.ShareOwner
+                $ShareACcess       =  $_.ShareACcess
+                $FileSystemRights  =  $_.FileSystemRights
+                $AccessControlType =  $_.AccessControlType
+                $IdentityReference =  $_.IdentityReference
+                $IdentitySID       =  $_.IdentitySID
+                $AccessControlType =  $_.AccessControlType
+                $LastModifiedDate  =  $_.LastModifiedDate
+                $FileCount         =  $_.FileCount
+                $FileList          =  $_.FileList 
+
+                # Create new finding object
+                $object = New-Object psobject
+                $object | add-member noteproperty MasterFindingSourceIdentifier $ExcessivehighRiskID
+                $object | add-member noteproperty InstanceName            "Excessive Share ACL"
+                $object | add-member noteproperty AssetName               $ComputerName       
+                $object | add-member noteproperty IssueFirstFoundDate     "1/21/2020  10:57:01 AM"
+                $object | add-member noteproperty VerificationCaption01   "$SharePath access for $IdentityReference." 
+                $ShareDetails = @"
+Computer Name: $ComputerName
+IP Address: $IpAddress 
+Share Name: $ShareName
+Share Path: $SharePath
+Share Description: $ShareDescription
+Share Owner $ShareOwner
+Share Accses: $ShareACcess
+File System Rights: $FileSystemRights
+Access Control Type: $AccessControlType
+Identify Reference: $IdentityReference
+Identity SID: $IdentitySID
+Access Control Type: $AccessControlType
+Last Modification Date: $LastModifiedDate
+File Count: $FileCount
+File List Sample: 
+$FileList 
+"@                
+                $object | add-member noteproperty VerificationText01      $ShareDetails
+                $object | add-member noteproperty VerificationCaption02   "caption 2"
+                $object | add-member noteproperty VerificationText02      "text 2"
+                $object | add-member noteproperty VerificationCaption03   "caption 3"
+                $object | add-member noteproperty VerificationText03      "text 3"
+                $object | add-member noteproperty VerificationCaption04   "caption 4"
+                $object | add-member noteproperty VerificationText04      "text 4"
+                $object
+            }
+
+            # Write export file
+            Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-EXPORT-Excessive-Privileges-HighRisk.csv"        
+            $PrivHighExport | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-EXPORT-Excessive-Privileges-HighRisk.csv"
+        }              
     }
 }
 
