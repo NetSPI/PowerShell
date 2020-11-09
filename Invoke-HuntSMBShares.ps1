@@ -3,9 +3,9 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.2.11
+# Version: v1.2.12
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
-# TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write. Update export description.
+# TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
 {    
 	<#
@@ -679,8 +679,8 @@ $HTMLReport1 = @"
                 $object | add-member noteproperty MasterFindingSourceIdentifier $ExcessivePrivID
                 $object | add-member noteproperty InstanceName            "Excessive Share ACL"
                 $object | add-member noteproperty AssetName               $ComputerName       
-                $object | add-member noteproperty IssueFirstFoundDate     "1/21/2020  10:57:01 AM"
-                $object | add-member noteproperty VerificationCaption01   "$SharePath access for $IdentityReference." 
+                $object | add-member noteproperty IssueFirstFoundDate     $EndTime
+                $object | add-member noteproperty VerificationCaption01   "$IdentityReference has $FileSystemRights privileges on $SharePath." 
                 $ShareDetails = @"
 Computer Name: $ComputerName
 IP Address: $IpAddress 
@@ -709,9 +709,27 @@ $FileList
                 $object
             }
 
-            # Write export file
-            Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-EXPORT-Excessive-Privileges.csv"        
-            $PrivExport | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-EXPORT-Excessive-Privileges.csv"
+            # Write export file            
+            $PrivExport | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Excessive-Privileges-EXPORT.csv" -Append
+
+            # Create record containing verification summary for domain
+            $object = New-Object psobject
+            $object | add-member noteproperty MasterFindingSourceIdentifier $ExcessivePrivID
+            $object | add-member noteproperty InstanceName            "Domain ACL Summary"
+            $object | add-member noteproperty AssetName               $TargetDomain       
+            $object | add-member noteproperty IssueFirstFoundDate     $EndTime            
+            $object | add-member noteproperty VerificationCaption01   "$ExcessiveSharesCount shares across $ComputerWithExcessive systems are configured with $ExcessiveSharePrivsCount potentially excessive ACLs." 
+            $ShareDetails = $ExcessiveSharePrivs | Select-Object SharePath -Unique -ExpandProperty SharePath | Out-String            
+            $object | add-member noteproperty VerificationText01      $ShareDetails
+            $object | add-member noteproperty VerificationCaption02   "Scan Summary"
+            $object | add-member noteproperty VerificationText02      "text 2"
+            $object | add-member noteproperty VerificationCaption03   "caption 3"
+            $object | add-member noteproperty VerificationText03      "text 3"
+            $object | add-member noteproperty VerificationCaption04   "caption 4"
+            $object | add-member noteproperty VerificationText04      "text 4"
+            
+            # Write record to file
+            $object | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Excessive-Privileges-EXPORT.csv" -Append
         }
 
         # ----------------------------------------------------------------------
@@ -754,8 +772,8 @@ $FileList
                 $object | add-member noteproperty MasterFindingSourceIdentifier $ExcessivehighRiskID
                 $object | add-member noteproperty InstanceName            "Excessive Share ACL"
                 $object | add-member noteproperty AssetName               $ComputerName       
-                $object | add-member noteproperty IssueFirstFoundDate     "1/21/2020  10:57:01 AM"
-                $object | add-member noteproperty VerificationCaption01   "$SharePath access for $IdentityReference." 
+                $object | add-member noteproperty IssueFirstFoundDate     $EndTime
+                $object | add-member noteproperty VerificationCaption01   "$IdentityReference has $FileSystemRights privileges on $SharePath." 
                 $ShareDetails = @"
 Computer Name: $ComputerName
 IP Address: $IpAddress 
@@ -784,10 +802,31 @@ $FileList
                 $object
             }
 
-            # Write export file
-            Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-EXPORT-Excessive-Privileges-HighRisk.csv"        
-            $PrivHighExport | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-EXPORT-Excessive-Privileges-HighRisk.csv"
-        }              
+            # Write export file            
+            $PrivHighExport | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Excessive-Privileges-EXPORT.csv" -Append
+
+
+            # Create record containing verification summary for domain
+            $object = New-Object psobject
+            $object | add-member noteproperty MasterFindingSourceIdentifier $ExcessivehighRiskID
+            $object | add-member noteproperty InstanceName            "Domain ACL Summary"
+            $object | add-member noteproperty AssetName               $TargetDomain       
+            $object | add-member noteproperty IssueFirstFoundDate     $EndTime            
+            $object | add-member noteproperty VerificationCaption01   "$SharesHighRiskCount shares across $ComputerwithHighRisk systems are considered high risk." 
+            $ShareDetails = $SharesHighRisk | Select-Object SharePath -Unique -ExpandProperty SharePath | Out-String            
+            $object | add-member noteproperty VerificationText01      $ShareDetails
+            $object | add-member noteproperty VerificationCaption02   "caption 2"
+            $object | add-member noteproperty VerificationText02      "text 2"
+            $object | add-member noteproperty VerificationCaption03   "caption 3"
+            $object | add-member noteproperty VerificationText03      "text 3"
+            $object | add-member noteproperty VerificationCaption04   "caption 4"
+            $object | add-member noteproperty VerificationText04      "text 4"
+            
+            # Write record to file
+            $object | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Excessive-Privileges-EXPORT.csv" -Append
+        }       
+        
+        Write-Output " [*] Results exported to $OutputDirectory\$TargetDomain-Excessive-Privileges-EXPORT.csv"               
     }
 }
 
