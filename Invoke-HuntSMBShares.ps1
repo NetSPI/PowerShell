@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.2.12
+# Version: v1.2.13
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -721,8 +721,41 @@ $FileList
             $object | add-member noteproperty VerificationCaption01   "$ExcessiveSharesCount shares across $ComputerWithExcessive systems are configured with $ExcessiveSharePrivsCount potentially excessive ACLs." 
             $ShareDetails = $ExcessiveSharePrivs | Select-Object SharePath -Unique -ExpandProperty SharePath | Out-String            
             $object | add-member noteproperty VerificationText01      $ShareDetails
-            $object | add-member noteproperty VerificationCaption02   "Scan Summary"
-            $object | add-member noteproperty VerificationText02      "text 2"
+            $object | add-member noteproperty VerificationCaption02   "$TargetDomain SMB Share Scan Summary"
+            $Summary1 = @"
+Target Domain: $TargetDomain
+
+Scan Summary
+Start Time: $StartTime
+End Time: $EndTime
+Run Time: $RunTime
+
+Computer Summary
+$ComputerCount domain computers found
+$ComputerPingableCount domain computers responded to ping
+$Computers445OpenCount domain computers had TCP port 445 accessible         
+
+Share Summary
+$AllSMBSharesCount shares were found.
+$ExcessiveSharesCount shares across $ComputerWithExcessive systems are configured with $ExcessiveSharePrivsCount potentially excessive ACLs.
+$SharesWithWriteCount shares across $ComputerWithWriteCount systems can be written to.</li>
+$SharesHighRiskCount shares across $ComputerwithHighRisk systems are considered high risk.
+$Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names.
+
+The 5 most common share names are:
+
+"@
+
+            $Summary2 = $CommonShareNamesTop5 |
+            foreach {
+                $ShareCount = $_.count
+                $ShareName = $_.name
+                Write-Output "- $ShareCount $ShareName"   
+            } | Out-String                
+
+            $SummaryFinal = $Summary1 + $Summary2
+
+            $object | add-member noteproperty VerificationText02      "$SummaryFinal"
             $object | add-member noteproperty VerificationCaption03   "caption 3"
             $object | add-member noteproperty VerificationText03      "text 3"
             $object | add-member noteproperty VerificationCaption04   "caption 4"
@@ -815,8 +848,41 @@ $FileList
             $object | add-member noteproperty VerificationCaption01   "$SharesHighRiskCount shares across $ComputerwithHighRisk systems are considered high risk." 
             $ShareDetails = $SharesHighRisk | Select-Object SharePath -Unique -ExpandProperty SharePath | Out-String            
             $object | add-member noteproperty VerificationText01      $ShareDetails
-            $object | add-member noteproperty VerificationCaption02   "caption 2"
-            $object | add-member noteproperty VerificationText02      "text 2"
+            $object | add-member noteproperty VerificationCaption02   "$TargetDomain SMB Share Scan Summary"
+            $Summary1 = @"
+Target Domain: $TargetDomain
+
+Scan Summary
+Start Time: $StartTime
+End Time: $EndTime
+Run Time: $RunTime
+
+Computer Summary
+$ComputerCount domain computers found
+$ComputerPingableCount domain computers responded to ping
+$Computers445OpenCount domain computers had TCP port 445 accessible         
+
+Share Summary
+$AllSMBSharesCount shares were found.
+$ExcessiveSharesCount shares across $ComputerWithExcessive systems are configured with $ExcessiveSharePrivsCount potentially excessive ACLs.
+$SharesWithWriteCount shares across $ComputerWithWriteCount systems can be written to.</li>
+$SharesHighRiskCount shares across $ComputerwithHighRisk systems are considered high risk.
+$Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names.
+
+The 5 most common share names are:
+
+"@
+
+            $Summary2 = $CommonShareNamesTop5 |
+            foreach {
+                $ShareCount = $_.count
+                $ShareName = $_.name
+                Write-Output "- $ShareCount $ShareName"   
+            } | Out-String                
+
+            $SummaryFinal = $Summary1 + $Summary2
+
+            $object | add-member noteproperty VerificationText02      "$SummaryFinal"
             $object | add-member noteproperty VerificationCaption03   "caption 3"
             $object | add-member noteproperty VerificationText03      "text 3"
             $object | add-member noteproperty VerificationCaption04   "caption 4"
