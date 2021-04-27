@@ -27,7 +27,7 @@ Function Get-AdDecodedPassword
     Param()    
 
     # Import the AD PS module
-    Import-Module ActiveDirectory  
+    #Import-Module ActiveDirectory  
                 
     # Get domain users with populated UnixUserPassword properties
     Write-Verbose "Getting list of domain accounts and properties..."
@@ -50,7 +50,7 @@ Function Get-AdDecodedPassword
             $UnixUserPassword = ""
         }
 
-        $os400PasswordEnc = $_.UnixUserPassword | ForEach-Object {$_};     
+        $os400PasswordEnc = $_.'os400-password' | ForEach-Object {$_};     
         if($os400PasswordEnc -notlike ""){       
             $os400Password = [System.Text.Encoding]::ASCII.GetString($os400PasswordEnc) 
         }else{
