@@ -146,6 +146,7 @@ function Resolve-DnsDomainValidationToken
     $null = $DomainTokenList.Columns.Add("Example")
     $null = $DomainTokenList.Columns.Add("Name")
     $null = $DomainTokenList.Columns.Add("SiteReference")
+    $null = $DomainTokenList.Rows.Add("Cloud Services","90","Unknown","Managed Apple ID for a Domain","apple-domain-verification","apple-domain-verification=WQm123456789","apple.com","https://support.apple.com/guide/apple-school-manager/verify-existing-domains-apd15d24426c/web")
     $null = $DomainTokenList.Rows.Add("Collaboration","90","Unknown","Zoom Meeting Software","Zoom","ZOOM_verify_EPq123456789_1234-1234","zoom.com","https://www.google.com")
     $null = $DomainTokenList.Rows.Add("Cloud Services","90","149785","G Suite","google-site-verification","google-site-verification=ZZYRwyiI6QKg0jVwmdIha68vuiZlNtfAJ90msPo1i7E","gmail.com","https://support.google.com/a/answer/2716802?hl=en")
     $null = $DomainTokenList.Rows.Add("Cloud Services","90","70797","Microsoft Office 365","MS=","MS=ms38205980 or MS=AAD33B75124A131B85F0845428DA3BFF9DAC703","Microsoft Office 365","https://docs.microsoft.com/en-us/office365/admin/setup/add-domain?view=o365-worldwide")
