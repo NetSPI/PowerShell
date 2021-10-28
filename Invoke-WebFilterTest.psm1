@@ -9,6 +9,7 @@ Function Invoke-WebFilterTest{
     # Note: should test access to uncategorized site
     # Note: should test more categories
     # Note: Should add a shorter timeout
+    # Note: Add access test for all window.net and similar MS domains - reference: https://www.netspi.com/blog/technical/cloud-penetration-testing/enumerating-azure-services/
     
     # Example Commands:
     <#
