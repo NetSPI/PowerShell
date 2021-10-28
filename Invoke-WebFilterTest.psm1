@@ -85,6 +85,8 @@ Function Invoke-WebFilterTest{
         $WebSites.rows.add("http://TextSave.de")| Out-Null
         $WebSites.rows.add("http://TextSnip.com")| Out-Null
         $WebSites.rows.add("http://TxtB.in")| Out-Null
+        $WebSites.rows.add("https://raw.githubusercontent.com/NetSPI/PowerShell/master/Invoke-WebFilterTest.psm1") | Out-Null
+        $WebSites.rows.add("https://gist.githubusercontent.com/nullbind/75a8fa02ba8d0a6f028cfb21c300e1e2/raw/0319cabbbd69c7bbd013850f1bc65188986b4636/MiniPowerUpSQL.psm1") | Out-Null
 
         # Check for target websites from provide file path
         If ($ListPath){ 
