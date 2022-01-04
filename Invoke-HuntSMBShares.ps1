@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.10
+# Version: v1.3.11
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -718,9 +718,9 @@ function Invoke-HuntSMBShares
         $PercentAclWriteBarVal = ($PercentAclWrite *2).tostring("P") -replace(" %","px")
 
         # ACL with excessive highrisk
-        $PercentAclHighRisk= [math]::Round($AclHighRiskCount/$ShareACLsCount,4)
+        $PercentAclHighRisk = [math]::Round($AclHighRiskCount/$ShareACLsCount,4)
         $PercentAclHighRiskP = $PercentAclHighRisk.tostring("P") -replace(" ","")
-        $PercentAclHighRiskBarVal = ($PercentAclHighRisk= *2).tostring("P") -replace(" %","px")
+        $PercentAclHighRiskBarVal = ($PercentAclHighRisk *2).tostring("P") -replace(" %","px")
         
         Write-Output " [*] - $Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names."
 
@@ -1505,7 +1505,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
       <td>HIGH RISK</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclHighRiskBarVal;"></div></div></td>     
 	  <td>$PercentAclHighRiskP</td>
-	  <td>$AclHighRiskCount</td>	  	 
+	  <td>$AclHighRiskCount $PercentAclHighRiskBarVal</td>	  	 
 	  <td>Open File</td>
     </tr>	
   </tbody>
