@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.6
+# Version: v1.3.
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -321,6 +321,10 @@ function Invoke-HuntSMBShares
         # Get smb shares threaded
         $AllSMBShares = $Computers445Open | Invoke-Parallel -ScriptBlock $MyScriptBlock -ImportSessionFunctions -ImportVariables -Throttle $GlobalThreadCount -RunspaceTimeout 2 -ErrorAction SilentlyContinue
 
+        # Computer computers with shares
+        $AllComputersWithShares = $AllSMBShares | Select-Object ComputerName -Unique
+        $AllComputersWithSharesCount =  $AllComputersWithShares.count
+
         # Status user
         $AllSMBSharesCount = $AllSMBShares.count
         Write-Output " [*] - $AllSMBSharesCount SMB shares were found."
@@ -637,6 +641,11 @@ function Invoke-HuntSMBShares
         $PercentComputerPort = [math]::Round($Computers445OpenCount/$ComputerCount,4) 
         $PercentComputerPortP = $PercentComputerPort.tostring("P") -replace(" ","")
         $PercentComputerPortBarVal = ($PercentComputerPort*2).tostring("P") -replace(" %","")
+
+        # Computer with share        
+        $PercentComputerWitShare = [math]::Round($AllComputersWithSharesCount/$ComputerCount,4)
+        $PercentComputerWitShareP = $PercentComputerWitShare.tostring("P") -replace(" ","")
+        $PercentComputerWitShareBarVal = ($PercentComputerWitShare*2).tostring("P") -replace(" %","px")
 
         # Computer with non default shares   
         $PercentComputerNonDefault = [math]::Round($ComputerwithNonDefaultCount/$ComputerCount,4)
@@ -1329,9 +1338,9 @@ $NewHtmlReport = @"
     </tr>
     <tr>
       <td>HOST SHARE</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 80px;"></div></div></td>
-      <td>PENDING</td>	
-	  <td>PENDING</td>  
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWitShareBarVal ;"></div></div></td>
+      <td>$PercentComputerWitShareP</td>	
+	  <td>$AllComputersWithSharesCount</td>  
       <td>Open File</td>	  
     </tr>
     <tr>
