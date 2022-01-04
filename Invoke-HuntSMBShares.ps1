@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.2.17
+# Version: v1.2.18
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -440,8 +440,8 @@ function Invoke-HuntSMBShares
 
         # Status user
         $ExcessiveAclCount = $ExcessiveSharePrivs.count
-		$ExcessiveShares = $ExcessiveSharePrivs | Select-Object ComputerName,ShareName -unique
-		$ExcessiveSharesCount = $ExcessiveShares.count
+	$ExcessiveShares = $ExcessiveSharePrivs | Select-Object ComputerName,ShareName -unique
+	$ExcessiveSharesCount = $ExcessiveShares.count
         $ExcessiveSharePrivsCount = $ExcessiveSharePrivs.count
         $ComputerWithExcessive = $ExcessiveSharePrivs | Select-Object ComputerName -Unique | Measure-Object | select count -ExpandProperty count
         Write-Output " [*] - $ExcessiveSharePrivsCount potentially excessive privileges were found across $ComputerWithExcessive systems."
@@ -593,84 +593,84 @@ function Invoke-HuntSMBShares
         # Get count of all accessible shares
         $AllAccessibleSharesCount = $ExcessiveSharePrivs | Select-Object ComputerName,ShareName -Unique | measure | select count -ExpandProperty count
 
-        # --------------
-        # Get percents
-        # --------------
+        # ----------------------------------------------------------------------
+        # Calculate percentages
+        # ----------------------------------------------------------------------
 
         # top 5 shares
         $DupDec = $Top5ShareCountTotal / $AllAccessibleSharesCount
-		$DupPercent = $DupDec.tostring("P")
+        $DupPercent = $DupDec.tostring("P")
 
         # Expected share count from know defaults
         $MinExpectedShareCount = $Computers445OpenCount * 2
 
-        # Computer ping                       - $ComputerPingableCount/$ComputerCount
+        # Computer ping                      
         $PercentComputerPing = [math]::Round($ComputerPingableCount/$ComputerCount,4)
-		$PercentComputerPingP = $PercentComputerPing.tostring("P")
+        $PercentComputerPingP = $PercentComputerPing.tostring("P")
 
-        # Computer port 445 open              - $Computers445OpenCount/$ComputerCount
+        # Computer port 445 open              
         $PercentComputerPort = [math]::Round($Computers445OpenCount/$ComputerCount,4)
-		$PercentComputerPortP = $PercentComputerPort.tostring("P")
+        $PercentComputerPortP = $PercentComputerPort.tostring("P")
 
-        # Computer with non default shares   - $ComputerwithNonDefaultCount/$ComputerCount
+        # Computer with non default shares   
         $PercentComputerNonDefault = [math]::Round($ComputerwithNonDefaultCount/$ComputerCount,4)
-		$PercentComputerNonDefaultP = $PercentComputerNonDefault.tostring("P")
+        $PercentComputerNonDefaultP = $PercentComputerNonDefault.tostring("P")
 
-        # Computer with excessive priv shares - $ComputerWithExcessive/$ComputerCount
+        # Computer with excessive priv shares 
         $PercentComputerExPriv = [math]::Round($ComputerWithExcessive/$ComputerCount,4)
-		$PercentComputerExPrivP = $PercentComputerExPriv.tostring("P")
+        $PercentComputerExPrivP = $PercentComputerExPriv.tostring("P")
 
-        # Computer read  share access        - $ComputerWithReadCount/$ComputerCount
+        # Computer read  share access       
         $PercentComputerRead = [math]::Round($ComputerWithReadCount/$ComputerCount,4)
-		$PercentComputerReadP = $PercentComputerRead.tostring("P")
+        $PercentComputerReadP = $PercentComputerRead.tostring("P")
 
-        # Computer write share access         - $ComputerWithWriteCount/$ComputerCount
+        # Computer write share access         
         $PercentComputerWrite = [math]::Round($ComputerWithWriteCount/$ComputerCount,4)
-		$PercentComputerWriteP = $PercentComputerWrite.tostring("P")
+        $PercentComputerWriteP = $PercentComputerWrite.tostring("P")
 
-        # Computer highrisk shares            - $ComputerwithHighRisk/$ComputerCount
+        # Computer highrisk shares            
         $PercentComputerHighRisk = [math]::Round($ComputerwithHighRisk/$ComputerCount,4)
-		$PercentComputerHighRiskP = $PercentComputerHighRisk.tostring("P")
+        $PercentComputerHighRiskP = $PercentComputerHighRisk.tostring("P")
 
-        # Shares with non default names      - $SharesNonDefaultCount/$AllSMBSharesCount
+        # Shares with non default names      
         $PercentSharesNonDefault = [math]::Round($SharesNonDefaultCount/$AllSMBSharesCount,4)
-		$PercentSharesNonDefaultP = $PercentSharesNonDefault.tostring("P")
+        $PercentSharesNonDefaultP = $PercentSharesNonDefault.tostring("P")
 
-        # Shares with excessive priv shares   - $ExcessiveSharesCount/$AllSMBSharesCount
+        # Shares with excessive priv shares   
         $PercentSharesExPriv = [math]::Round($ExcessiveSharesCount/$AllSMBSharesCount,4)
-		$PercentSharesExPrivP = $PercentSharesExPriv.tostring("P")
+        $PercentSharesExPrivP = $PercentSharesExPriv.tostring("P")
 
-        # Shares with excessive read         - $SharesWithReadCount/$AllSMBSharesCount
+        # Shares with excessive read        
         $PercentSharesRead = [math]::Round($SharesWithReadCount/$AllSMBSharesCount,4)
-		$PercentSharesReadP = $PercentSharesRead.tostring("P")
+        $PercentSharesReadP = $PercentSharesRead.tostring("P")
 
-        # Shares with excessive write         - $SharesWithWriteCount/$AllSMBSharesCount
+        # Shares with excessive write         
         $PercentSharesWrite = [math]::Round($SharesWithWriteCount/$AllSMBSharesCount,4)
-		$PercentSharesWriteP = $PercentSharesWrite.tostring("P")
+        $PercentSharesWriteP = $PercentSharesWrite.tostring("P")
 
-        # Shares with excessive highrisk      - $SharesHighRiskCount/$AllSMBSharesCount
+        # Shares with excessive highrisk      
         $PercentSharesHighRisk = [math]::Round($SharesHighRiskCount/$AllSMBSharesCount,4)
-		$PercentSharesHighRiskP = $PercentSharesHighRisk.tostring("P")
+        $PercentSharesHighRiskP = $PercentSharesHighRisk.tostring("P")
 
-        # ACL with non default names          - $AclNonDefaultCount/$ShareACLsCount 
+        # ACL with non default names          
         $PercentAclNonDefault = [math]::Round($AclNonDefaultCount/$ShareACLsCount,4)
-		$PercentAclNonDefaultP = $PercentAclNonDefault.tostring("P")
+        $PercentAclNonDefaultP = $PercentAclNonDefault.tostring("P")
 
-        # ACL with excessive priv shares      - $ExcessiveSharePrivsCount/$ShareACLsCount 
+        # ACL with excessive priv shares      
         $PercentAclExPriv = [math]::Round($ExcessiveSharePrivsCount/$ShareACLsCount,4)
-		$PercentAclExPrivP = $PercentAclExPriv.tostring("P")
+        $PercentAclExPrivP = $PercentAclExPriv.tostring("P")
 
-        # ACL with excessive read             - $AclWithReadCount/$ShareACLsCount 
+        # ACL with excessive read           
         $PercentAclRead = [math]::Round($AclWithReadCount/$ShareACLsCount,4)
-		$PercentAclReadP = $PercentAclRead.tostring("P")
+        $PercentAclReadP = $PercentAclRead.tostring("P")
 
-        # ACL with excessive write            - $AclWithWriteCount/$ShareACLsCount 
+        # ACL with excessive write             
         $PercentAclWrite = [math]::Round($AclWithWriteCount/$ShareACLsCount,4)
-		$PercentAclWriteP = $PercentAclWrite.tostring("P")
+        $PercentAclWriteP = $PercentAclWrite.tostring("P")
 
-        # ACL with excessive highrisk         - $AclHighRiskCount/$ShareACLsCount 
+        # ACL with excessive highrisk
         $PercentAclHighRisk= [math]::Round($AclHighRiskCount/$ShareACLsCount,4)
-		$PercentAclHighRiskP = $PercentAclHighRisk.tostring("P")
+        $PercentAclHighRiskP = $PercentAclHighRisk.tostring("P")
         
         Write-Output " [*] - $Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names."
 
