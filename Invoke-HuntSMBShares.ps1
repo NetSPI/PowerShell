@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.2.18
+# Version: v1.3
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -606,71 +606,88 @@ function Invoke-HuntSMBShares
 
         # Computer ping                      
         $PercentComputerPing = [math]::Round($ComputerPingableCount/$ComputerCount,4)
-        $PercentComputerPingP = $PercentComputerPing.tostring("P")
+        $PercentComputerPingP = $PercentComputerPing.tostring("P") -replace(" ","")
+        $PercentComputerPingBarVal = ($PercentComputerPing*2).tostring("P") -replace(" %","px")
 
         # Computer port 445 open              
-        $PercentComputerPort = [math]::Round($Computers445OpenCount/$ComputerCount,4)
-        $PercentComputerPortP = $PercentComputerPort.tostring("P")
+        $PercentComputerPort = [math]::Round($Computers445OpenCount/$ComputerCount,4) 
+        $PercentComputerPortP = $PercentComputerPort.tostring("P") -replace(" ","")
+        $PercentComputerPortBarVal = ($PercentComputerPort*2).tostring("P") -replace(" %","")
 
         # Computer with non default shares   
         $PercentComputerNonDefault = [math]::Round($ComputerwithNonDefaultCount/$ComputerCount,4)
-        $PercentComputerNonDefaultP = $PercentComputerNonDefault.tostring("P")
+        $PercentComputerNonDefaultP = $PercentComputerNonDefault.tostring("P") -replace(" ","")
+        $PercentComputerNonDefaultBarVal = ($PercentComputerNonDefault*2).tostring("P") -replace(" %","px")
 
         # Computer with excessive priv shares 
         $PercentComputerExPriv = [math]::Round($ComputerWithExcessive/$ComputerCount,4)
-        $PercentComputerExPrivP = $PercentComputerExPriv.tostring("P")
+        $PercentComputerExPrivP = $PercentComputerExPriv.tostring("P") -replace(" ","")
+        $PercentComputerExPrivBarVal = ($PercentComputerExPriv*2).tostring("P") -replace(" %","px")
 
         # Computer read  share access       
         $PercentComputerRead = [math]::Round($ComputerWithReadCount/$ComputerCount,4)
-        $PercentComputerReadP = $PercentComputerRead.tostring("P")
+        $PercentComputerReadP = $PercentComputerRead.tostring("P") -replace(" ","")
+        $PercentComputerReadBarVal = ($PercentComputerRead*2).tostring("P") -replace(" %","px")
 
         # Computer write share access         
         $PercentComputerWrite = [math]::Round($ComputerWithWriteCount/$ComputerCount,4)
         $PercentComputerWriteP = $PercentComputerWrite.tostring("P")
+        $PercentComputerWriteBarVal = ($PercentComputerWrite*2).tostring("P") -replace(" %","px")
 
         # Computer highrisk shares            
         $PercentComputerHighRisk = [math]::Round($ComputerwithHighRisk/$ComputerCount,4)
         $PercentComputerHighRiskP = $PercentComputerHighRisk.tostring("P")
+        $PercentComputerHighRiskBarVal = ($PercentComputerHighRisk*2).tostring("P") -replace(" %","px")
 
         # Shares with non default names      
         $PercentSharesNonDefault = [math]::Round($SharesNonDefaultCount/$AllSMBSharesCount,4)
-        $PercentSharesNonDefaultP = $PercentSharesNonDefault.tostring("P")
+        $PercentSharesNonDefaultP = $PercentSharesNonDefault.tostring("P") -replace(" ","")
+        $PercentSharesNonDefaultBarVal = ($PercentSharesNonDefault*2).tostring("P") -replace(" %","px")
 
         # Shares with excessive priv shares   
         $PercentSharesExPriv = [math]::Round($ExcessiveSharesCount/$AllSMBSharesCount,4)
-        $PercentSharesExPrivP = $PercentSharesExPriv.tostring("P")
+        $PercentSharesExPrivP = $PercentSharesExPriv.tostring("P") -replace(" ","")
+        $PercentSharesExPrivBarVal = ($PercentSharesExPriv*2).tostring("P") -replace(" %","px")
 
         # Shares with excessive read        
         $PercentSharesRead = [math]::Round($SharesWithReadCount/$AllSMBSharesCount,4)
-        $PercentSharesReadP = $PercentSharesRead.tostring("P")
+        $PercentSharesReadP = $PercentSharesRead.tostring("P") -replace(" ","")
+        $PercentSharesReadBarVal = ($PercentSharesRead*2).tostring("P") -replace(" %","px")
 
         # Shares with excessive write         
-        $PercentSharesWrite = [math]::Round($SharesWithWriteCount/$AllSMBSharesCount,4)
-        $PercentSharesWriteP = $PercentSharesWrite.tostring("P")
+        $PercentSharesWrite = [math]::Round($SharesWithWriteCount/$AllSMBSharesCount,4) 
+        $PercentSharesWriteP = $PercentSharesWrite.tostring("P") -replace(" ","")
+        $PercentSharesWriteBarVal = ($PercentSharesWrite*2).tostring("P") -replace(" %","px")
 
         # Shares with excessive highrisk      
         $PercentSharesHighRisk = [math]::Round($SharesHighRiskCount/$AllSMBSharesCount,4)
-        $PercentSharesHighRiskP = $PercentSharesHighRisk.tostring("P")
+        $PercentSharesHighRiskP = $PercentSharesHighRisk.tostring("P") -replace(" ","")
+        $PercentSharesHighRiskBarVal = ($PercentSharesHighRisk*2).tostring("P") -replace(" %","px")
 
         # ACL with non default names          
         $PercentAclNonDefault = [math]::Round($AclNonDefaultCount/$ShareACLsCount,4)
-        $PercentAclNonDefaultP = $PercentAclNonDefault.tostring("P")
+        $PercentAclNonDefaultP = $PercentAclNonDefault.tostring("P") -replace(" ","")
+        $PercentAclNonDefaultBarVal = ($PercentAclNonDefault*2).tostring("P") -replace(" %","px")
 
         # ACL with excessive priv shares      
         $PercentAclExPriv = [math]::Round($ExcessiveSharePrivsCount/$ShareACLsCount,4)
-        $PercentAclExPrivP = $PercentAclExPriv.tostring("P")
+        $PercentAclExPrivP = $PercentAclExPriv.tostring("P") -replace(" ","")
+        $PercentAclExPrivBarVal = ($PercentAclExPriv*2).tostring("P") -replace(" %","px")
 
         # ACL with excessive read           
         $PercentAclRead = [math]::Round($AclWithReadCount/$ShareACLsCount,4)
-        $PercentAclReadP = $PercentAclRead.tostring("P")
+        $PercentAclReadP = $PercentAclRead.tostring("P") -replace(" ","")
+        $PercentAclReadBarVal = ($PercentAclRead *2).tostring("P") -replace(" %","px")
 
         # ACL with excessive write             
         $PercentAclWrite = [math]::Round($AclWithWriteCount/$ShareACLsCount,4)
         $PercentAclWriteP = $PercentAclWrite.tostring("P")
+        $PercentAclWriteBarVal = ($PercentAclWrite *2).tostring("P") -replace(" %","px")
 
         # ACL with excessive highrisk
         $PercentAclHighRisk= [math]::Round($AclHighRiskCount/$ShareACLsCount,4)
-        $PercentAclHighRiskP = $PercentAclHighRisk.tostring("P")
+        $PercentAclHighRiskP = $PercentAclHighRisk.tostring("P") -replace(" ","")
+        $PercentAclHighRiskBarVal = ($PercentAclHighRisk= *2).tostring("P") -replace(" %","px")
         
         Write-Output " [*] - $Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names."
 
@@ -728,7 +745,920 @@ function Invoke-HuntSMBShares
         }
         Write-Output " [*] -----------------------------------------------"
         
-        
+        # ----------------------------------------------------------------------
+        # Display final summary - NEW HTML REPORT
+        # ----------------------------------------------------------------------
+		if($username -like ""){$username = whoami}
+		$SourceIps = (Get-NetIPAddress | where AddressState -like "*Pref*" | where AddressFamily -like "ipv4" | where ipaddress -notlike "127.0.0.1" | select IpAddress).ipaddress -join (",")
+		$SourceHost = (hostname) + " ($SourceIps)"
+        $CommonShareNamesTopString = $CommonShareNamesTop5 |
+        foreach {
+            $ShareCount = $_.count
+            $ShareName = $_.name
+            Write-Output "$ShareCount $ShareName <br>"   
+        }  
+$NewHtmlReport = @" 
+<html>
+<head>
+  <title>SMB Share Discovery Scan Report</title>
+  <style> 
+  
+	.tabs{
+		display:-webkit-box;
+		display:-ms-flexbox;
+		display:flex;
+		-ms-flex-wrap:wrap;
+		flex-wrap:wrap;
+		width:100%
+	}
+	
+	.tabInput{
+		position:fixed;
+		top:0;
+		left:0;
+		opacity:0
+	}
+	
+	.tabLabel{
+		width:auto;
+		color:#9B3722;
+		font-weight:bold;
+		cursor:pointer;
+		border-bottom:2px solid transparent;
+		margin-left:0.2rem;
+		padding:0.75em 1em;
+		-webkit-box-ordinal-group:2;
+		-ms-flex-order:1;
+		order:1;
+		border-radius:0.25rem 0.25rem 0 0
+	}
+	
+	.tabLabel:focus{
+		outline:0
+	}
+	
+	.tabInput:target+
+	.tabLabel,
+	.tabInput:checked+
+	.tabLabel{
+		background:white;
+		border-bottom-color:#9B3722;
+		color:#55595c
+	}
+		
+	.tabLabel:hover{
+		border-color:#eceeef #eceeef #ddd
+	}
+		
+	.tabPanel{
+		display:none;width:100%;
+		-webkit-box-ordinal-group:100;
+		-ms-flex-order:99;order:99
+	}
+	
+	.tabInput:target+
+	.tabLabel+.tabPanel,
+	.tabInput:checked+
+	.tabLabel+
+	.tabPanel{
+		display:block
+	}
+	
+	.tabPanel.nojs{
+		opacity:0
+	}
+  
+	{box-sizing:border-box}
+	body,html{
+		font-family:"Open Sans", 
+		sans-serif;font-weight:400;
+		min-height:100%;;color:#3d3935;
+		margin:16px;line-height:1.5;
+		overflow-x:hidden
+	}
+		
+	table{
+		width:100%;
+		max-width:100%;
+		margin-bottom:1rem;
+		border-collapse:collapse
+	}
+	
+	table thead th{
+		vertical-align:bottom;
+		border-bottom:2px solid #eceeef
+	}
+	
+	table tbody tr:nth-of-type(odd){
+		background-color:#f9f9f9
+	}
+	
+	table tbody tr:hover{
+		background-color:#f5f5f5
+	}
+	
+	table td,table th{
+		padding:.75rem;
+		line-height:1.5;
+		text-align:left;
+		font-size:1rem;
+		vertical-align:top;
+		border-top:1px solid #eceeef
+	}
+	
+	h2{
+		font-size:2rem
+	}
+		
+	h3{
+		font-size:1.75rem
+	}
+	
+	h4{
+		font-size:1.5rem
+	}
+	
+	h1,h2,h3,h4,h5,h6{
+		margin-bottom:.5rem;
+		margin-top:0px;
+		font-family:inherit;
+		font-weight:500;
+		line-height:1.1;
+		color:inherit
+	}
+	
+	label{
+		display:inline-block;
+		margin-bottom:.5rem
+	}
+	
+	code{
+		padding:.2rem .4rem;
+		font-size:1rem;
+		color:#bd4147;
+		background-color:#f7f7f9;
+		border-radius:.25rem
+	}
+	
+	p{
+		margin-top:0;
+		margin-bottom:1rem
+	}
+	
+	a,a:visited{
+		text-decoration:none;
+		color:#0275d8
+	}
+	
+	a:hover{
+		text-decoration:underline
+	}
+	
+	.preload *{
+		-webkit-transition:none !important;
+		-moz-transition:none !important;
+		-ms-transition:none !important;
+		-o-transition:none !important
+	}
+	
+	.header{
+		text-align:center
+	}.noscroll{overflow:hidden}
+	
+	.link:hover{
+		text-decoration:underline
+	}
+	
+	li{
+		list-style-type:none
+	}
+	
+	.mobile{
+		display:none;
+		height:0;
+		width:0
+	}
+	
+	@media (max-width: 700px){
+		.mobile{display:block !important}
+	}
+	
+	code{
+		color:black;
+		font-family:monospace
+	}
+	
+	ul.noindent{
+		padding-left:20px
+	}
+	
+	.topone{background:#999999}
+  
+	.bottomone{
+		background:#666666
+		height: 100px;
+		width: 100%;
+		border-top: 2px solid #eceeef
+	}
+  
+	.divbarDomain{
+		background:#F8F8F8;
+		width:200px;
+		border: 1px solid #999999;
+		height: 25px;
+		text-align:center;
+	}
+  
+	.divbarDomainInside{
+		background:#d9d7d7;
+		width:100px;
+		text-align:center;
+		height: 25px;
+		vertical-align:middle;
+	}
+
+	.dotoutter {
+	  height: 60px;
+	  width: 60px;
+	  background-color: #bbb;
+	  border-radius: 50%;
+	  display: inline-block;
+	}
+	
+	.dotinner{
+	  height: 40px;
+	  width: 40px;
+	  background-color: #9B3722;	  	  
+	  border-collapse: 50%;
+	  border-separate: 50%;
+	  border-radius: 50%;
+	  display: inline-block;
+	}	
+	
+	.dotkey{
+	  height: 12px;
+	  width: 12px;
+	  background-color: #9B3722;	  	  
+	  border-collapse: 50%;
+	  border-separate: 50%;
+	  border-radius: 50%;
+	  display: inline-block;
+	}
+	
+	.piechartComputers {    		
+        display: block;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(white 40%, transparent 41%), 
+		conic-gradient(#9B3722 0% $PercentComputerExPrivP, 
+					   #999 $PercentComputerExPrivP 100%);
+		border-radius: 50%;
+		text-align: center;
+    }
+
+	.piechartShares {    
+        display: block;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(white 40%, transparent 41%), 
+		conic-gradient(#9B3722 0% $PercentSharesExPrivP, 
+					   #999 $PercentSharesExPrivP 100%);
+		border-radius: 50%;
+		text-align: center;
+    }
+	
+	.piechartAcls {   
+        position: relative;
+		display: block;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(white 40%, transparent 41%), 
+		conic-gradient(#9B3722 0% $PercentAclExPrivP, 
+					   #999 $PercentAclExPrivP 100%);
+		border-radius: 50%;
+		text-align: center;
+    }
+	
+	.percentagetext {
+		text-align: center;
+		font-size: 1.25em;
+		font-weight: 700;
+		font-family:"Open Sans", sans-serif;
+		color:#666;
+	}
+
+	.dashboardsub {
+		text-align: center;
+		font-size: 12;
+		font-family:"Open Sans", sans-serif;
+		color:#666;
+		font-weight: bold;
+	}
+	
+	.dashboardsub2 {
+		font-size: 10;
+		font-family:"Open Sans", sans-serif;
+		color:#666;		
+		text-align: right;
+	}
+	
+	.scansum {
+		font-size: 12;
+		font-family:"Open Sans", sans-serif;
+		color:#666;		
+	}
+  </style>
+</head>
+<body>
+	  <h1>	 
+	  SMB Share Discovery Scan Report
+	  </h1>
+      <div class="topone">
+	  <br>
+	  </div>	
+	  </span>
+	 <div id="tabs" class="tabs" data-tabs-ignore-url="false">
+		<input class="tabInput"  name="tabs" type="radio" id="dashboard"/>
+		<label class="tabLabel" onClick="updateTab('dashboard',false)" for="dashboard">Dashboard</label>
+		<div id="tabPanel" class="tabPanel">
+			<p class="pageDescription">Below is a summary of share discovery scan and the results.</p>
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>	  
+	  <th style="text-align:left;">
+		  COMPUTERS <br>
+		  <span style="font-size:12">$ComputerCount</span>
+		  <br>
+		  <span style="color:#9B3722;font-size:12">$ComputerWithExcessive affected</span>
+	  </th>
+	  <th style="text-align:left">
+		SHARES <br>
+		<span style="font-size:12">$AllSMBSharesCount</span>
+		<br>
+		<span style="color:#9B3722;font-size:12">$ExcessiveSharesCount affected</span>
+	 </th>	
+	<th style="text-align:left">
+		ACLS <br><span style="font-size:12">$ShareACLsCount</span><br>
+		<span style="color:#9B3722;font-size:12">$ExcessiveSharePrivsCount affected</span>
+	 </th>
+	  <th style="vertical-align: top;">
+	   KEY<br>
+	   <span class = "dotkey"></span>	   
+	   <span style="font-size:12">Excessive Share Privileges</span>
+	   <br>
+	   </th>	  
+    </tr>
+  </thead>
+  <tbody>  	
+   <tr>
+	  <td>
+			<span class="piechartComputers">
+				<span class="percentagetext">
+					<div style="height: 38%;"></div>
+					$PercentComputerExPrivP
+				</span>
+			</span>
+	  </td>
+	  <td>
+			<span class="piechartshares">
+				<span class="percentagetext">
+					<div style="height: 38%;"></div>
+					$PercentSharesExPrivP
+				</span>
+			</span>
+	  </td> 
+	  <td>
+			<span class="piechartacls">
+				<span class="percentagetext">
+					<div style="height: 38%;"></div>
+					$PercentAclExPrivP
+				</span>
+			</span>
+	  </td> 
+      <td style="text-align:left">
+	  <span class="dashboardsub">SCAN SUMMARY</span><br>
+	  <span class="scansum">
+	  START TIME &nbsp;&nbsp;&nbsp;            : &nbsp;$StartTime<br>
+	  STOP TIME  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: &nbsp;$EndTime<br> 
+	  DURATION   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: &nbsp;$RunTime<br>
+	  TEST HOST  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: &nbsp;$SourceHost<BR>
+	  TEST USER  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : &nbsp;$username<br> 
+	  DOMAIN     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : &nbsp;$TargetDomain<br> 
+      DC         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : &nbsp;$DomainController
+	  </span>
+	  </td> 	  
+    </tr>	
+   <tr>
+		<td style="text-align:left">
+		
+			<span class="dashboardsub">READ</span><br>
+			<span class="dashboardsub2">$PercentComputerReadP ($ComputerWithReadCount of $ComputerCount)</span>
+			<div class="divbarDomain">
+				<div class="divbarDomainInside" style="width: $PercentComputerReadBarVal;"></div>
+			</div>
+			
+			<br>
+			<span class="dashboardsub">WRITE</span><br>
+			<span class="dashboardsub2">$PercentComputerWriteP ($ComputerWithWriteCount of $ComputerCount)</span>
+			<div class="divbarDomain">
+				<div class="divbarDomainInside" style="width: $PercentComputerWriteBarVal;"></div>
+			</div>
+			
+			<br>
+			<span class="dashboardsub">HIGH RISK</span><br>
+			<span class="dashboardsub2">$PercentComputerHighRiskP ($ComputerwithHighRisk of $ComputerCount)</span>
+			<div class="divbarDomain">
+				<div class="divbarDomainInside" style="width: $PercentComputerHighRiskBarVal;"></div>
+			</div>	
+			
+	    </td>   
+		<td style="text-align:left">
+		
+			<span class="dashboardsub">READ</span><br>
+			<span class="dashboardsub2">$PercentSharesReadP ($SharesWithReadCount of $AllSMBSharesCount)</span>
+			<div class="divbarDomain">
+				<div class="divbarDomainInside" style="width: $PercentSharesReadBarVal;"></div>
+			</div>
+			
+			<br>
+			<span class="dashboardsub">WRITE</span><br>
+			<span class="dashboardsub2">$PercentSharesWriteP ($SharesWithWriteCount of $AllSMBSharesCount)</span>
+			<div class="divbarDomain">
+				<div class="divbarDomainInside" style="width: $PercentSharesWriteBarVal;"></div>
+			</div>
+			
+			<br>
+			<span class="dashboardsub">HIGH RISK</span><br>
+			<span class="dashboardsub2">$PercentSharesHighRiskP ($SharesHighRiskCount of $AllSMBSharesCount)</span>
+			<div class="divbarDomain">
+				<div class="divbarDomainInside" style="width: $PercentSharesHighRiskBarVal;"></div>
+			</div>	
+			
+	    </td> 
+		<td style="text-align:left">
+		
+			<span class="dashboardsub">READ</span><br>
+			<span class="dashboardsub2">$PercentAclReadP  ($AclWithReadCount of $ShareACLsCount)</span>
+			<div class="divbarDomain">
+				<div class="divbarDomainInside" style="width: $PercentAclReadBarVal;"></div>
+			</div>
+			
+			<br>
+			<span class="dashboardsub">WRITE</span><br>
+			<span class="dashboardsub2">$PercentAclWriteP ($AclWithWriteCount of $ShareACLsCount)</span>
+			<div class="divbarDomain">
+				<div class="divbarDomainInside" style="width: $PercentAclWriteBarVal;"></div>
+			</div>
+			
+			<br>
+			<span class="dashboardsub">HIGH RISK</span><br>
+			<span class="dashboardsub2">$PercentAclHighRiskP ($AclHighRiskCount of $ShareACLsCount)</span>
+			<div class="divbarDomain">
+				<div class="divbarDomainInside" style="width: $PercentAclWriteBarVal;"></div>
+			</div>	
+			
+	    </td>  
+	  <td>
+	  <span class="dashboardsub">TOP 5 SHARE NAMES</span><br>
+        <span class="scansum">
+        $CommonShareNamesTopString
+        </span>
+      </td> 	  
+    </tr>				
+  </tbody>
+</table>
+		</div>
+
+<input class="tabInput"  name="tabs" type="radio" id="computersummary"/>
+<label class="tabLabel" onClick="updateTab('computersummary',false)" for="computersummary">Computer Summary</label>
+<div id="tabPanel" class="tabPanel">
+<p class="pageDescription">Below is a summary of the domain computers that were targeted, connectivity to them, and the number that are hosting potentially insecure SMB shares.</p>
+	
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>Description</th>
+      <th align="left">Percent Chart</th>	  
+	  <th align="left">Percent</th>
+	  <th align="left">Computers</th>
+	  <th align="left">Details</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>DISCOVERED</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
+	  <td>100%</td>
+	  <td>$ComputerCount</td>
+      <td>Open File</td>	  
+    </tr>
+    <tr>
+      <td>PING RESPONSE</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerPingBarVal;"></div></div></td>
+      <td>$PercentComputerPingP</td>	
+	  <td>$ComputerPingableCount</td>  
+      <td>Open File</td>	  
+    </tr>
+    <tr>
+      <td>PORT 445 OPEN</td>
+      <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerPortBarVal;"></div></div></td>
+	  <td>$PercentComputerPortP</td>
+	  <td>$Computers445OpenCount</td>
+      <td>Open File</td>	  
+    </tr>
+    <tr>
+      <td>HOST SHARE</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 80px;"></div></div></td>
+      <td>PENDING</td>	
+	  <td>PENDING</td>  
+      <td>Open File</td>	  
+    </tr>
+    <tr>
+      <td>HOST NON-DEFAULT SHARE</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerNonDefaultBarVal;"></div></div></td>
+      <td>$PercentComputerNonDefaultP</td>	
+	  <td>$ComputerwithNonDefaultCount</td>  
+      <td>Open File</td>	  
+    </tr>	
+    <tr>
+      <td>HOST POTENITIALLY INSECURE SHARE</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width:$PercentComputerExPrivBarVal;"></div></div></td>
+      <td>$PercentComputerExPrivP</td>	
+	  <td>$ComputerWithExcessive</td>  
+      <td>Open File</td>	  
+    </tr>	
+    <tr>
+      <td>HOST READABLE SHARE</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerReadBarVal;"></div></div></td>
+      <td>$PercentComputerReadP</td>	  
+	  <td>$ComputerWithReadCount</td>	  
+      <td>Open File</td>	  
+    </tr>
+	<tr>
+      <td>HOST WRITEABLE SHARE</td>
+      <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWriteBarVal;"></div></div></td>
+	  <td>$PercentComputerWriteP</td>
+	  <td>$ComputerWithWriteCount</td>	  	  
+	  <td>Open File</td>	  
+    </tr>
+	<tr>
+      <td>HOST HIGH RISK SHARE</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerHighRiskBarVal;"></div></div></td>     
+	  <td>$PercentComputerHighRiskP</td>
+	  <td>$ComputerwithHighRisk</td>	  	 
+	  <td>Open File</td>
+    </tr>	
+  </tbody>
+</table>
+
+</div>
+
+<input class="tabInput"  name="tabs" type="radio" id="sharesum"/>
+<label class="tabLabel" onClick="updateTab('sharesum,false)" for="sharesum">Share Summary</label>
+<div id="tabPanel" class="tabPanel">
+<p class="pageDescription">Below is a summary of the SMB shares discovered on computers associated with the target domain that may provide excessive privileges to standard domain users. 
+<br>
+</p>
+
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>Description</th>
+      <th align="left">Percent Chart</th>	  
+	  <th align="left">Percent</th>
+	  <th align="left">Shares</th>
+	  <th align="left">Details</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>DISCOVERED</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
+	  <td>100%</td>
+	  <td>$AllSMBSharesCount</td>
+      <td>Open File</td>	  
+    </tr>
+    <tr>
+      <td>NON-DEFAULT</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesNonDefaultBarVal;"></div></div></td>
+      <td>$PercentSharesNonDefaultP</td>	
+	  <td>$SharesNonDefaultCount</td>  
+      <td>Open File</td>	  
+    </tr>	
+    <tr>
+      <td>POTENTIALLY EXCESSIVE</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesExPrivBarVal;"></div></div></td>
+      <td>$PercentSharesExPrivP</td>	
+	  <td>$ExcessiveSharesCount</td>  
+      <td>Open File</td>	  
+    </tr>
+    <tr>
+      <td>READ ACCESS</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesReadBarVal;"></div></div></td>
+      <td>$PercentSharesReadP</td>	  
+	  <td>$SharesWithReadCount</td>	  
+      <td>Open File</td>	  
+    </tr>
+	<tr>
+      <td>WRITE ACCESS</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesWriteBarVal;"></div></div></td>     
+	  <td>$PercentSharesWriteP</td>
+	  <td>$SharesWithWriteCount</td>	  	 
+	  <td>Open File</td>	  
+    </tr>
+	<tr>
+      <td>HIGH RISK</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesHighRiskBarVal;"></div></div></td>     
+	  <td>$PercentSharesHighRiskP</td>
+	  <td>$SharesHighRiskCount</td>	  	 
+	  <td>Open File</td>
+    </tr>	
+  </tbody>
+</table>
+<span style="font-size:12">
+Note: All Windows systems have a c$ and admin$ share configured by default.  A a result, the number of visible shares should be (at a minimum) double the number of the computers found with port 445 open. In this case, $Computers445OpenCount computers were found with port 445 open, so we would expect to discover approximetly $MinExpectedShareCount or more shares.
+</span>
+</div>
+
+<input class="tabInput"  name="tabs" type="radio" id="ACLsum"/>
+<label class="tabLabel" onClick="updateTab('ACLsum',false)" for="ACLsum">ACL Summary</label>
+<div id="tabPanel" class="tabPanel">
+<p class="pageDescription">Below is a summary of the SMB share ACLs discovered on computers associated with the target domain that may provide excessive privileges to standard domain users.</p>
+
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>Description</th>
+      <th align="left">Percent Chart</th>	  
+	  <th align="left">Percent</th>
+	  <th align="left">ACLs</th>
+	  <th align="left">Details</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>DISCOVERED</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
+	  <td>100%</td>
+	  <td>$ShareACLsCount</td>
+      <td>Open File</td>	  
+    </tr>	
+    <tr>
+      <td>NON-DEFAULT</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclNonDefaultBarVal;"></div></div></td>
+      <td>$PercentAclNonDefaultP</td>	
+	  <td>$AclNonDefaultCount</td>  
+      <td>Open File</td>	  
+    </tr>		
+    <tr>
+      <td>POTENTIALLY EXCESSIVE</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclExPrivBarVal;"></div></div></td>
+      <td>$PercentAclExPrivP</td>	
+	  <td>$ExcessiveSharePrivsCount</td>  
+      <td>Open File</td>	  
+    </tr>
+    <tr>
+      <td>READ ACCESS</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclReadBarVal;"></div></div></td>
+      <td>$PercentAclReadP</td>	  
+	  <td>$AclWithReadCount</td>	  
+      <td>Open File</td>	  
+    </tr>
+	<tr>
+      <td>WRITE ACCESS</td>
+      <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclWriteBarVal;"></div></div></td>
+	  <td>$PercentAclWriteP</td>
+	  <td>$AclWithWriteCount</td>	  	  
+	  <td>Open File</td>	  
+    </tr>
+	<tr>
+      <td>HIGH RISK</td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclHighRiskBarVal;"></div></div></td>     
+	  <td>$PercentAclHighRiskP</td>
+	  <td>$AclHighRiskCount</td>	  	 
+	  <td>Open File</td>
+    </tr>	
+  </tbody>
+</table>
+</div>
+
+<input class="tabInput"  name="tabs" type="radio" id="datainsights"/>
+<label class="tabLabel" onClick="updateTab('datainsights',false)" for="datainsights">Data Insights</label>
+<div id="tabPanel" class="tabPanel">
+<p class="pageDescription">This section contains data insights that could be helpful when planning a prioritizing remediation efforts.</p>
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>Description</th>
+      <th align="left">Names</th>
+	  <th align="left">Affected Shares</th>
+	  <th align="left">Affected ACLs</th>	 	 
+	  <th align="left">Details</th>
+    </tr>
+  </thead>
+  <tbody>
+  <tr>
+      <td>
+	  Top 5 Share Names<br>
+	  <span style="font-size:10">account for n shares and n ACLs across n computers.</span>
+	  </td>
+	  <td>List here<br>
+		  List here<br>
+	      List here<br>
+		  List here<br>
+		  List here<br>
+	  </td>		  
+	  <td>
+	  <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)</td>     	 
+	  <td>	  
+	  <div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)
+	  </td>     
+	  
+	  <td>Open File</td>	  
+    </tr>
+  <tr>
+      <td>
+	  Top 5 Share Owners<br>
+	  <span style="font-size:10">account for n shares and n ACLs across n computers.</span>
+	  </td>
+	  <td>
+          List here PENDING <br>
+		  List here PENDING <br>
+	      List here PENDING <br>
+		  List here PENDING <br>
+		  List here PENDING <br>
+	  </td>		  
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)</td>     	 
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)</td>           
+	  <td>Open File</td>	  
+    </tr>
+  <tr>
+      <td>
+	  Top 5 Share Groups<br>
+	  <span style="font-size:10">account for n shares and n ACLs across n computers.</span>
+	  <br>
+	  <span style="font-size:10">Shares are grouped by a Hashed list of non-default files found in the share.</span>
+	  </td>
+	  <td>
+          List here PENDING <br>
+		  List here PENDING <br>
+	      List here PENDING <br>
+		  List here PENDING <br>
+		  List here PENDING <br>
+	  </td>		  
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100) PENDING</td>     	 
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     
+	  <td>Open File</td>	  
+    </tr>	
+	
+<tr>
+      <td>ACL Assingment<br>
+	  <span style="font-size:10">Everyone is associated with n computers, n shares, and n ACLs.</span>	        
+	  </td>
+	  <td>Everyone</td>		  
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     
+	  <td>Open File</td>	  
+    </tr>	
+<tr>
+  <tr>
+      <td>ACL Assingment<br>
+	  <span style="font-size:10">Users is associated with n computers, n shares, and n ACLs.</span>	       
+	  </td>
+	  <td>Users</td>		  
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     	
+	  <td>Open File</td>	  
+    </tr>	
+<tr>
+      <td>ACL Assingment<br>
+	  <span style="font-size:10">Authenticated Users is associated with n computers, n shares, and n ACLs.</span>	    	    
+	  </td>
+	  <td>Authenticated Users</td>		  
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     
+	  <td>Open File</td>	  
+    </tr>	
+<tr>
+      <td>ACL Assingment<br>
+	  <span style="font-size:10">Domain Users is associated with n computers, n shares, and n ACLs.</span>	     
+	  </td>
+	  <td>Domain Users</td>		  
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     	  
+	  <td>Open File</td>	  
+    </tr>
+<tr>
+      <td>ACL Assingment<br>
+	  <span style="font-size:10">Domain Computer is associated with n computers, n shares, and n ACLs.</span>	    
+	  </td>
+	  <td>Domain Computers</td>		  
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     
+	  <td>Open File</td>	  
+    </tr>	
+  </tbody>
+</table>
+</div>
+
+<input class="tabInput"  name="tabs" type="radio" id="recsum"/>
+<label class="tabLabel" onClick="updateTab('recsum',false)" for="recsum">Recommendations</label>
+<div id="tabPanel" class="tabPanel">
+<p class="pageDescription">Below is a list of recommendations for consideration when trying to prioritize remediation and build attack detections.</p>
+
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>	  
+	  <th align="left">Item</th>
+	  <th align="left">Description</th>	  
+    </tr>
+  </thead>
+  <tbody>  	
+    <tr>
+	  <td>High Risk Shares</td>
+	  <td>Remediate high risk shares. In the context of this report, high risk shares have been defined as shares that provide unauthorized remote access to systems or applications. By default, that includes wwwroot, inetpub, c$, and admin$ shares. However, additional exposures may exist that are not called out beyond that.</td>  
+    </tr>	
+    <tr>
+	  <td>Write Access Shares</td>
+	  <td>Remediate shares with write access. Write access to shares may allow an attacker to modify data, insert their own users into configuration files to access applications, or leverage write access to execute code on remote systems.  Folders that provide write access could also fall victem to ransomware attacks.</td>  
+    </tr>		
+    <tr>
+	  <td>Read Access Shares</td>
+	  <td>Remediate shares with read access. Read access may provide an attacker with unauthorized access to sensitive data and stored secrets such as passwords and private keys that could be used to gain unauthorized access to systems, applications, and databases.</td>  
+    </tr>
+    <tr>
+	  <td>Top Share Names</td>
+	  <td>Sub prioritize remediation based on top groups of share names(most common share names). When a large number of systems are configured with the same share, they often represent weak configurations associated with applications and processes.</td>  	  
+    </tr>
+   <tr>
+	  <td>Top Share Groups</td>
+	  <td>Sub prioritize remediation based on top share groups that have the same list of files in their directory.  This is another way to identify systems that are configured with the same share are associated with the same insecure application deployment or process.
+	  </td>  	  
+    </tr>		
+      <tr>	
+	  <td>Sub Prioritzation Tips</td>
+	  <td>
+	  Use the detailed .csv files to:<br><br>
+	  1. Identify share owners with the ShareOwner field. Filter out "BUILTIN\Administrators", "NT AUTHORITY\SYSTEM", and "NT SERVICE\TrustedInstaller" to identify potential asset owners.<br><br> 
+	  2. Filter out shares with a FileCount of 0.<br><br> 
+	  3. Sort shares by LastModifiedDate.<br><br> 
+	  4. Filter for keywords in the FileList.<br><br>
+	  For example, simple keywords like sql, database, backup, password, etc can help identify additional high risk exposures quickly. <br>
+	  </td>  
+    </tr>	
+   <tr>
+	  <td>Detect Share Scanning</td>
+	  <td>Build detections for authenticated share scanning.  event 1 and event 2. At min frequency of x y z.
+	  </td>  	  
+    </tr>
+   <tr>
+	  <td>Detect Canaries</td>
+	  <td>Build detections for authenticated share access read/write access.
+	  </td>  	  
+    </tr>				
+  </tbody>
+</table>
+</div>
+
+</div>
+<p align="left">
+<div class="bottomone"></div>
+<br>
+<strong>Overview</strong>
+<br>
+This report is the output of the Invoke-HuntSMBShares.ps1 audit script. 
+The report summarizes the SMB shares that could be discovered and accessed on domain joined systems by standard domain users.  The initial list of computers was obtained from a domain controller associated with the target domain. The <strong>Dashboard, Computer, Share, and ACL</strong> summary sections will provide coverage summaries.  The <strong>Data Insights and Recommendations</strong> sections are intented to help prioritize remediation by highlighting natural share groupings. The hope is the grouping can be used to tie large numbers of shares to a person, department, application, or process so they can be remediated using a more centralized approach.
+<br>
+<br>
+<strong>Excessive Privilege Definition</strong>
+<br>
+In the context of this report, excessive read and write share permissions have been defined as any network share ACL containing an explicit entry for the <strong>"Everyone", "Authenticated Users", "BUILTIN\Users", "Domain Users", or "Domain Computers" </strong> groups. All provide domain users access to the target share due to privilege inheritance. Please note that share permissions can be overruled by NTFS permissions. Also, be aware that testing excluded share names containing the following keywords: <strong>"print$", "prnproc$", "printer", "netlogon",and "sysvol"</strong>.
+<br>
+<br>
+<strong>High Risk Share Definition</strong>
+<br>
+In the context of this report, high risk shares have been defined as shares that provide unauthorized remote access to a system or application. By default, that includes wwwroot, inetpub, c$, and admin$ shares.  However, additional exposures may exist that are not called out beyond that.
+</p>
+<table class="table table-striped table-hover">
+  <tbody>
+    <tr>
+      <td></td>  
+    </tr>
+       <tr>
+      <td>	  
+	  <img src="data:image/png;base64, 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"/><br><br>
+Script: Invoke-HuntSMBShares.ps1<br>
+Author: Scott Sutherland<br>
+License: 3-clause BSD
+</td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>
+"@
+$NewHtmlReport | Out-File "$OutputDirectory\$TargetDomain-Share-Inventory-Summary-Report2.html"
+
         # ----------------------------------------------------------------------
         # Display final summary - HTML
         # ----------------------------------------------------------------------
