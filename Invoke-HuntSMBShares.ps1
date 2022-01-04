@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.1
+# Version: v1.3.3
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1127,8 +1127,8 @@ $NewHtmlReport = @"
 	 </th>
 	  <th style="vertical-align: top;">
 	   KEY<br>
-	   <span class = "dotkey"></span>	   
-	   <span style="font-size:12">Excessive Share Privileges</span>
+	   <span class = "dotkey" style="vertical-align:middle"></span>	   
+	   <span style="font-size:12;vertical-align:middle">Excessive Share Privileges</span>
 	   <br>
 	   </th>	  
     </tr>
