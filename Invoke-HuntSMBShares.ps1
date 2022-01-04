@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.2.16
+# Version: v1.2.17
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -716,7 +716,7 @@ function Invoke-HuntSMBShares
         Write-Output " [*] - $ExcessiveSharePrivsCount ($PercentAclExPrivP) ACLs were found to be potentially excessive."               
         Write-Output " [*] - $AclWithReadCount ($PercentAclReadP) ACLs were found that allowed READ access."  
         Write-Output " [*] - $AclWithWriteCount ($PercentAclWriteP) ACLs were found that allowed WRITE access."                               
-        Write-Output " [*] - $AclHighRiskCount $PercentAclHighRiskP) ACLs were found that are associated with HIGH RISK share names."
+        Write-Output " [*] - $AclHighRiskCount ($PercentAclHighRiskP) ACLs were found that are associated with HIGH RISK share names."
         Write-Output " [*] "
         Write-Output " [*] - The 5 most common share names are:"
         Write-Output " [*] - $Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) discovered shares are associated with the top 5 share names."
