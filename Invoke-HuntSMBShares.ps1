@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.2.13
+# Version: v1.2.16
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -439,6 +439,7 @@ function Invoke-HuntSMBShares
         } 
 
         # Status user
+        $ExcessiveAclCount = $ExcessiveSharePrivs.count
 		$ExcessiveShares = $ExcessiveSharePrivs | Select-Object ComputerName,ShareName -unique
 		$ExcessiveSharesCount = $ExcessiveShares.count
         $ExcessiveSharePrivsCount = $ExcessiveSharePrivs.count
@@ -451,6 +452,32 @@ function Invoke-HuntSMBShares
             $ExcessiveSharePrivs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
         }else{
             break
+        }
+
+        # ----------------------------------------------------------------------
+        # Identify shares that provide read access
+        # ----------------------------------------------------------------------
+
+        # Get shares that provide read access
+        $SharesWithread = $ExcessiveSharePrivs | 
+        Foreach {
+
+            if(($_.FileSystemRights -like "*read*"))
+            {
+                $_ # out to file
+            }
+        }
+                
+        # Status user
+        $AclWithReadCount = $SharesWithread.count
+        $SharesWithReadCount = $SharesWithread | Select-Object SharePath -Unique | Measure-Object | select count -ExpandProperty count
+        $ComputerWithReadCount = $SharesWithread | Select-Object ComputerName -Unique | Measure-Object | select count -ExpandProperty count
+        Write-Output " [*] - $SharesWithReadCount shares can be written to across $ComputerWithReadCount systems."
+
+        # Save results
+        if($SharesWithReadCount -ne 0){
+            Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
+            $SharesWithRead | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
         }
 
         # ----------------------------------------------------------------------
@@ -468,14 +495,41 @@ function Invoke-HuntSMBShares
         }
                 
         # Status user
+        $AclWithWriteCount = $SharesWithWrite | Measure-Object | select count -ExpandProperty count
         $SharesWithWriteCount = $SharesWithWrite | Select-Object SharePath -Unique | Measure-Object | select count -ExpandProperty count
         $ComputerWithWriteCount = $SharesWithWrite | Select-Object ComputerName -Unique | Measure-Object | select count -ExpandProperty count
-        Write-Output " [*] - $SharesWithWriteCount shares can be written to across $ComputerWithWriteCount systems."
+        Write-Output " [*] - $SharesWithWriteCount shares can be written to across $ComputerWithWriteCount systems."          
 
         # Save results
         if($SharesWithWriteCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"
             $SharesWithWrite | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"
+        }
+
+        # ----------------------------------------------------------------------
+        # Identify shares that are non-default
+        # ----------------------------------------------------------------------
+
+        # Get high risk share access
+        $SharesNonDefault = $ShareACLs | 
+        Foreach {
+
+            if(($_.ShareName -notlike 'admin$') -or ($_.ShareName -notlike 'c$') -or ($_.ShareName -notlike 'd$') -or ($_.ShareName -notlike 'e$') -or ($_.ShareName -notlike 'f$'))
+            {
+                $_ # out to file
+            }
+        }
+
+        # Status user
+        $AclNonDefaultCount = $SharesNonDefault.count
+        $SharesNonDefaultCount = $SharesNonDefault | Select-Object SharePath -Unique | Measure-Object | select count -ExpandProperty count
+        $ComputerwithNonDefaultCount = $SharesNonDefault | Select-Object ComputerName -Unique | Measure-Object | select count -ExpandProperty count
+        Write-Output " [*] - $SharesNonDefaultCount that are considered high risk across $ComputerwithNonDefaultCount systems."
+
+        # Save results
+        if($SharesNonDefaultCount-ne 0){
+            Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
+            $SharesNonDefault | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
         }
 
         # ----------------------------------------------------------------------
@@ -493,6 +547,7 @@ function Invoke-HuntSMBShares
         }
 
         # Status user
+        $AclHighRiskCount = $SharesHighRisk.count
         $SharesHighRiskCount = $SharesHighRisk | Select-Object SharePath -Unique | Measure-Object | select count -ExpandProperty count
         $ComputerwithHighRisk = $SharesHighRisk | Select-Object ComputerName -Unique | Measure-Object | select count -ExpandProperty count
         Write-Output " [*] - $SharesHighRiskCount that are considered high risk across $ComputerwithHighRisk systems."
@@ -538,9 +593,84 @@ function Invoke-HuntSMBShares
         # Get count of all accessible shares
         $AllAccessibleSharesCount = $ExcessiveSharePrivs | Select-Object ComputerName,ShareName -Unique | measure | select count -ExpandProperty count
 
-        # Get percent
+        # --------------
+        # Get percents
+        # --------------
+
+        # top 5 shares
         $DupDec = $Top5ShareCountTotal / $AllAccessibleSharesCount
-		    $DupPercent = $DupDec.tostring("P")
+		$DupPercent = $DupDec.tostring("P")
+
+        # Expected share count from know defaults
+        $MinExpectedShareCount = $Computers445OpenCount * 2
+
+        # Computer ping                       - $ComputerPingableCount/$ComputerCount
+        $PercentComputerPing = [math]::Round($ComputerPingableCount/$ComputerCount,4)
+		$PercentComputerPingP = $PercentComputerPing.tostring("P")
+
+        # Computer port 445 open              - $Computers445OpenCount/$ComputerCount
+        $PercentComputerPort = [math]::Round($Computers445OpenCount/$ComputerCount,4)
+		$PercentComputerPortP = $PercentComputerPort.tostring("P")
+
+        # Computer with non default shares   - $ComputerwithNonDefaultCount/$ComputerCount
+        $PercentComputerNonDefault = [math]::Round($ComputerwithNonDefaultCount/$ComputerCount,4)
+		$PercentComputerNonDefaultP = $PercentComputerNonDefault.tostring("P")
+
+        # Computer with excessive priv shares - $ComputerWithExcessive/$ComputerCount
+        $PercentComputerExPriv = [math]::Round($ComputerWithExcessive/$ComputerCount,4)
+		$PercentComputerExPrivP = $PercentComputerExPriv.tostring("P")
+
+        # Computer read  share access        - $ComputerWithReadCount/$ComputerCount
+        $PercentComputerRead = [math]::Round($ComputerWithReadCount/$ComputerCount,4)
+		$PercentComputerReadP = $PercentComputerRead.tostring("P")
+
+        # Computer write share access         - $ComputerWithWriteCount/$ComputerCount
+        $PercentComputerWrite = [math]::Round($ComputerWithWriteCount/$ComputerCount,4)
+		$PercentComputerWriteP = $PercentComputerWrite.tostring("P")
+
+        # Computer highrisk shares            - $ComputerwithHighRisk/$ComputerCount
+        $PercentComputerHighRisk = [math]::Round($ComputerwithHighRisk/$ComputerCount,4)
+		$PercentComputerHighRiskP = $PercentComputerHighRisk.tostring("P")
+
+        # Shares with non default names      - $SharesNonDefaultCount/$AllSMBSharesCount
+        $PercentSharesNonDefault = [math]::Round($SharesNonDefaultCount/$AllSMBSharesCount,4)
+		$PercentSharesNonDefaultP = $PercentSharesNonDefault.tostring("P")
+
+        # Shares with excessive priv shares   - $ExcessiveSharesCount/$AllSMBSharesCount
+        $PercentSharesExPriv = [math]::Round($ExcessiveSharesCount/$AllSMBSharesCount,4)
+		$PercentSharesExPrivP = $PercentSharesExPriv.tostring("P")
+
+        # Shares with excessive read         - $SharesWithReadCount/$AllSMBSharesCount
+        $PercentSharesRead = [math]::Round($SharesWithReadCount/$AllSMBSharesCount,4)
+		$PercentSharesReadP = $PercentSharesRead.tostring("P")
+
+        # Shares with excessive write         - $SharesWithWriteCount/$AllSMBSharesCount
+        $PercentSharesWrite = [math]::Round($SharesWithWriteCount/$AllSMBSharesCount,4)
+		$PercentSharesWriteP = $PercentSharesWrite.tostring("P")
+
+        # Shares with excessive highrisk      - $SharesHighRiskCount/$AllSMBSharesCount
+        $PercentSharesHighRisk = [math]::Round($SharesHighRiskCount/$AllSMBSharesCount,4)
+		$PercentSharesHighRiskP = $PercentSharesHighRisk.tostring("P")
+
+        # ACL with non default names          - $AclNonDefaultCount/$ShareACLsCount 
+        $PercentAclNonDefault = [math]::Round($AclNonDefaultCount/$ShareACLsCount,4)
+		$PercentAclNonDefaultP = $PercentAclNonDefault.tostring("P")
+
+        # ACL with excessive priv shares      - $ExcessiveSharePrivsCount/$ShareACLsCount 
+        $PercentAclExPriv = [math]::Round($ExcessiveSharePrivsCount/$ShareACLsCount,4)
+		$PercentAclExPrivP = $PercentAclExPriv.tostring("P")
+
+        # ACL with excessive read             - $AclWithReadCount/$ShareACLsCount 
+        $PercentAclRead = [math]::Round($AclWithReadCount/$ShareACLsCount,4)
+		$PercentAclReadP = $PercentAclRead.tostring("P")
+
+        # ACL with excessive write            - $AclWithWriteCount/$ShareACLsCount 
+        $PercentAclWrite = [math]::Round($AclWithWriteCount/$ShareACLsCount,4)
+		$PercentAclWriteP = $PercentAclWrite.tostring("P")
+
+        # ACL with excessive highrisk         - $AclHighRiskCount/$ShareACLsCount 
+        $PercentAclHighRisk= [math]::Round($AclHighRiskCount/$ShareACLsCount,4)
+		$PercentAclHighRiskP = $PercentAclHighRisk.tostring("P")
         
         Write-Output " [*] - $Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names."
 
@@ -564,16 +694,32 @@ function Invoke-HuntSMBShares
         Write-Output " [*] "
         Write-Output " [*] Computer Summary"
         Write-Output " [*] - $ComputerCount domain computers found."
-        Write-Output " [*] - $ComputerPingableCount domain computers responded to ping."
-        Write-Output " [*] - $Computers445OpenCount domain computers had TCP port 445 accessible."
+        Write-Output " [*] - $ComputerPingableCount ($PercentComputerPingP) domain computers responded to ping."
+        Write-Output " [*] - $Computers445OpenCount ($PercentComputerPortP) domain computers had TCP port 445 accessible."
+        Write-Output " [*] - $ComputerwithNonDefaultCount ($PercentComputerNonDefaultP) domain computers had shares that were non-default."  
+        Write-Output " [*] - $ComputerWithExcessive ($PercentComputerExPrivP) domain computers had shares with potentially excessive privileges."      
+        Write-Output " [*] - $ComputerWithReadCount ($PercentComputerReadP) domain computers had shares that allowed READ access."  
+        Write-Output " [*] - $ComputerWithWriteCount ($PercentComputerWriteP) domain computers had shares that allowed WRITE access."  
+        Write-Output " [*] - $ComputerwithHighRisk ($PercentComputerHighRiskP) domain computers had shares that are HIGH RISK."  
         Write-Output " [*] "
         Write-Output " [*] Share Summary"      
-        Write-Output " [*] - $AllSMBSharesCount shares were found."
-        Write-Output " [*] - $ExcessiveSharesCount shares across $ComputerWithExcessive systems are configured with $ExcessiveSharePrivsCount potentially excessive ACLs."
-        Write-Output " [*] - $SharesWithWriteCount shares across $ComputerWithWriteCount systems can be written to."
-        Write-Output " [*] - $SharesHighRiskCount shares across $ComputerwithHighRisk systems are considered high risk ."
-        Write-Output " [*] - $Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names."
+        Write-Output " [*] - $AllSMBSharesCount shares were found. We expect a minimum of $MinExpectedShareCount shares, because $Computers445OpenCount systems had open ports and there are typically two default shares."
+        Write-Output " [*] - $SharesNonDefaultCount ($PercentSharesNonDefaultP) shares across $ComputerwithNonDefaultCount systems were non-default."
+        Write-Output " [*] - $ExcessiveSharesCount ($PercentSharesExPrivP) shares across $ComputerWithExcessive systems are configured with $ExcessiveSharePrivsCount potentially excessive ACLs."
+        Write-Output " [*] - $SharesWithReadCount ($PercentSharesReadP) shares across $ComputerWithReadCount systems allowed READ access."
+        Write-Output " [*] - $SharesWithWriteCount ($PercentSharesWriteP) shares across $ComputerWithWriteCount systems allowed WRITE access."
+        Write-Output " [*] - $SharesHighRiskCount ($PercentSharesHighRiskP) shares across $ComputerwithHighRisk systems are considered HIGH RISK."
+        Write-Output " [*] "
+        Write-Output " [*] ACL Summary"
+        Write-Output " [*] - $ShareACLsCount ACLs were found."
+        Write-Output " [*] - $AclNonDefaultCount ($PercentAclNonDefaultP) ACLs were associated with non-default shares." 
+        Write-Output " [*] - $ExcessiveSharePrivsCount ($PercentAclExPrivP) ACLs were found to be potentially excessive."               
+        Write-Output " [*] - $AclWithReadCount ($PercentAclReadP) ACLs were found that allowed READ access."  
+        Write-Output " [*] - $AclWithWriteCount ($PercentAclWriteP) ACLs were found that allowed WRITE access."                               
+        Write-Output " [*] - $AclHighRiskCount $PercentAclHighRiskP) ACLs were found that are associated with HIGH RISK share names."
+        Write-Output " [*] "
         Write-Output " [*] - The 5 most common share names are:"
+        Write-Output " [*] - $Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) discovered shares are associated with the top 5 share names."
         $CommonShareNamesTop5 |
         foreach {
             $ShareCount = $_.count
