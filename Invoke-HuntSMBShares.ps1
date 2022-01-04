@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3
+# Version: v1.3.1
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1067,6 +1067,21 @@ $NewHtmlReport = @"
 		font-family:"Open Sans", sans-serif;
 		color:#666;		
 	}
+
+	.landingheader	{
+		font-size: 16;
+		font-family:"Open Sans", sans-serif;
+		color:#666;
+		font-weight: bold;	
+		margin: 10px;
+	}
+	
+	.landingtext {
+		font-size: 14;
+		font-family:"Open Sans", sans-serif;
+		color:#666;
+		margin: 10px;
+	}
   </style>
 </head>
 <body>
@@ -1629,24 +1644,25 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 </div>
 
 </div>
-<p align="left">
+<div style="border-bottom: 2px solid red; background-color:#f0f3f5;">
 <div class="bottomone"></div>
 <br>
-<strong>Overview</strong>
-<br>
+<span class="landingheader">Overview</span><br>
+<div class="landingtext">
 This report is the output of the Invoke-HuntSMBShares.ps1 audit script. 
-The report summarizes the SMB shares that could be discovered and accessed on domain joined systems by standard domain users.  The initial list of computers was obtained from a domain controller associated with the target domain. The <strong>Dashboard, Computer, Share, and ACL</strong> summary sections will provide coverage summaries.  The <strong>Data Insights and Recommendations</strong> sections are intented to help prioritize remediation by highlighting natural share groupings. The hope is the grouping can be used to tie large numbers of shares to a person, department, application, or process so they can be remediated using a more centralized approach.
-<br>
-<br>
-<strong>Excessive Privilege Definition</strong>
-<br>
-In the context of this report, excessive read and write share permissions have been defined as any network share ACL containing an explicit entry for the <strong>"Everyone", "Authenticated Users", "BUILTIN\Users", "Domain Users", or "Domain Computers" </strong> groups. All provide domain users access to the target share due to privilege inheritance. Please note that share permissions can be overruled by NTFS permissions. Also, be aware that testing excluded share names containing the following keywords: <strong>"print$", "prnproc$", "printer", "netlogon",and "sysvol"</strong>.
-<br>
-<br>
-<strong>High Risk Share Definition</strong>
-<br>
+The report summarizes the SMB shares that could be discovered and accessed on domain joined systems by standard domain users.  The initial list of computers was obtained from a domain controller associated with the target domain. The <em>Dashboard, Computer, Share, and ACL</em> summary sections will provide coverage summaries.  The <em>Data Insights and Recommendations</em> sections are intented to help prioritize remediation by highlighting natural share groupings. The hope is the grouping can be used to tie large numbers of shares to a person, department, application, or process so they can be remediated using a more centralized approach.
+</div>
+
+<span class="landingheader">Excessive Privilege Definition</span><br>
+<div class="landingtext">
+In the context of this report, excessive read and write share permissions have been defined as any network share ACL containing an explicit entry for the <em>"Everyone", "Authenticated Users", "BUILTIN\Users", "Domain Users", or "Domain Computers"</em> groups. All provide domain users access to the target share due to privilege inheritance. Please note that share permissions can be overruled by NTFS permissions. Also, be aware that testing excluded share names containing the following keywords: <em>"print$", "prnproc$", "printer", "netlogon",and "sysvol"</em>.
+</div>
+
+<span class="landingheader">High Risk Share Definition</span><br>
+<div class="landingtext">
 In the context of this report, high risk shares have been defined as shares that provide unauthorized remote access to a system or application. By default, that includes wwwroot, inetpub, c$, and admin$ shares.  However, additional exposures may exist that are not called out beyond that.
-</p>
+</div>
+</div>
 <table class="table table-striped table-hover">
   <tbody>
     <tr>
