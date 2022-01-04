@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.5
+# Version: v1.3.6
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -558,6 +558,29 @@ function Invoke-HuntSMBShares
             $SharesHighRisk | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"
         }
 
+
+        # ----------------------------------------------------------------------
+        # Identify common excessive share owners
+        # ----------------------------------------------------------------------
+        
+        # Get share owner list
+        $CommonShareOwners = $ExcessiveSharePrivs | 
+        Select-Object ShareOwner | 
+        <#
+        where ShareOwner -notlike "BUILTIN\Administrators" |
+        where ShareOwner -notlike "NT AUTHORITY\SYSTEM" |
+        where ShareOwner -notlike "NT SERVICE\TrustedInstaller" |
+        #>
+        Group-Object ShareOwner | 
+        Select-Object count,name |
+        Sort-Object Count -Descending
+
+        # Save list
+        $CommonShareOwners | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Common-Owners.csv"
+
+        # Get top  5
+        $CommonShareOwnersTop5 = $CommonShareOwners | Select-Object count,name -First 5
+
         # ----------------------------------------------------------------------
         # Identify common share names
         # ----------------------------------------------------------------------
@@ -581,6 +604,7 @@ function Invoke-HuntSMBShares
         # Get top five share name
         $CommonShareNamesCount = $CommonShareNames.count
         $CommonShareNamesTop5 = $CommonShareNames | Select-Object count,name -First 5 
+
         
         # Get count of share name if in the top 5
         $Top5ShareCountTotal = 0
@@ -757,6 +781,15 @@ function Invoke-HuntSMBShares
             $ShareName = $_.name
             Write-Output "$ShareCount $ShareName <br>"   
         }  
+
+        $CommonShareOwnersTop5String = $CommonShareOwnersTop5 |
+        foreach {
+            $ShareCount = $_.count
+            $ShareOwner = $_.name
+            Write-Output "$ShareCount $ShareOwner<br>"   
+        } 
+
+        
 $NewHtmlReport = @" 
 <html>
 <head>
@@ -1249,7 +1282,7 @@ $NewHtmlReport = @"
       <br>
       <span class="dashboardsub">5 MOST COMMON SHARE OWNERS</span>
       <br>
-      <span class="scansum">$CommonShareNamesTopString</span>
+      <span class="scansum">$CommonShareOwnersTop5String</span>
       <br>
       </td> 	  
     </tr>				
