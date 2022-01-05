@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.11
+# Version: v1.3.12
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1204,13 +1204,13 @@ $NewHtmlReport = @"
       <td style="text-align:left">
 	  <span class="dashboardsub">SCAN SUMMARY</span><br>
 	  <span class="scansum">
-	  START TIME &nbsp;&nbsp;&nbsp;            : &nbsp;$StartTime<br>
-	  STOP TIME  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: &nbsp;$EndTime<br> 
-	  DURATION   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: &nbsp;$RunTime<br>
-	  TEST HOST  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: &nbsp;$SourceHost<BR>
-	  TEST USER  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : &nbsp;$username<br> 
-	  DOMAIN     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : &nbsp;$TargetDomain<br> 
-      DC         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : &nbsp;$DomainController
+	  START TIME &nbsp;: &nbsp;$StartTime<br>
+	  STOP TIME  &nbsp;&nbsp;: &nbsp;$EndTime<br> 
+	  DURATION   &nbsp;&nbsp;: &nbsp;$RunTime<br>
+	  TEST HOST  &nbsp;&nbsp;: &nbsp;$SourceHost<BR>
+	  TEST USER  &nbsp;&nbsp;&nbsp;: &nbsp;$username<br> 
+	  DOMAIN     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : &nbsp;$TargetDomain<br> 
+      DC         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: &nbsp;$DomainController
 	  </span>
 	  </td> 	  
     </tr>	
@@ -1505,7 +1505,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
       <td>HIGH RISK</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclHighRiskBarVal;"></div></div></td>     
 	  <td>$PercentAclHighRiskP</td>
-	  <td>$AclHighRiskCount $PercentAclHighRiskBarVal</td>	  	 
+	  <td>$AclHighRiskCount</td>	  	 
 	  <td>Open File</td>
     </tr>	
   </tbody>
