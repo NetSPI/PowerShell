@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.12
+# Version: v1.3.13
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1124,6 +1124,18 @@ $NewHtmlReport = @"
 		color:#666;
 		margin: 10px;
 	}
+
+	.ScanSummarywrapper {
+		width: 300px;
+		overflow: hidden; /* add this to contain floated children */
+	}
+	.ScanSummaryfirst {
+		width: 75px;
+		float:left; /* add this */
+	}
+	.ScanSummarysecond {
+		float: left; /* add this */
+	}
   </style>
 </head>
 <body>
@@ -1204,13 +1216,26 @@ $NewHtmlReport = @"
       <td style="text-align:left">
 	  <span class="dashboardsub">SCAN SUMMARY</span><br>
 	  <span class="scansum">
-	  START TIME &nbsp;: &nbsp;$StartTime<br>
-	  STOP TIME  &nbsp;&nbsp;: &nbsp;$EndTime<br> 
-	  DURATION   &nbsp;&nbsp;: &nbsp;$RunTime<br>
-	  TEST HOST  &nbsp;&nbsp;: &nbsp;$SourceHost<BR>
-	  TEST USER  &nbsp;&nbsp;&nbsp;: &nbsp;$username<br> 
-	  DOMAIN     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : &nbsp;$TargetDomain<br> 
-      DC         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: &nbsp;$DomainController
+		  <div class="ScanSummarywrapper">
+			<div class="ScanSummaryfirst">
+			START TIME<br> 
+			STOP TIME<br> 
+			DURATION<br> 
+			TEST HOST<br> 
+			TEST USER<br> 
+			DOMAIN<br> 
+            DC <br>
+			</div>
+			<div class="ScanSummarysecond">
+			 : $StartTime<br> 
+			 : $EndTime<br>
+			 : $RunTime<br>
+			 : $SourceHost<BR>
+			 : $username<br>
+			 : $TargetDomain<br>
+             : $DomainController
+			</div>
+		  </div>
 	  </span>
 	  </td> 	  
     </tr>	
