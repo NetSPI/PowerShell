@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.18
+# Version: v1.3.19
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1349,63 +1349,63 @@ $NewHtmlReport = @"
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
 	  <td>100%</td>
 	  <td>$ComputerCount</td>
-      <td>Open File</td>	  
+      <td><a href="UPDATEME">Download</a></td>	  
     </tr>
     <tr>
       <td>PING RESPONSE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerPingBarVal;"></div></div></td>
       <td>$PercentComputerPingP</td>	
 	  <td>$ComputerPingableCount</td>  
-      <td>Open File</td>	  
+      <td><a href="UPDATEME">Download</a></td>	  
     </tr>
     <tr>
       <td>PORT 445 OPEN</td>
       <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerPortBarVal;"></div></div></td>
 	  <td>$PercentComputerPortP</td>
 	  <td>$Computers445OpenCount</td>
-      <td>Open File</td>	  
+      <td><a href="UPDATEME">Download</a></td>	  
     </tr>
     <tr>
       <td>HOST SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWitShareBarVal ;"></div></div></td>
       <td>$PercentComputerWitShareP</td>	
 	  <td>$AllComputersWithSharesCount</td>  
-      <td>Open File</td>	  
+      <td><a href="UPDATEME">Download</a></td>	  
     </tr>
     <tr>
       <td>HOST NON-DEFAULT SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerNonDefaultBarVal;"></div></div></td>
       <td>$PercentComputerNonDefaultP</td>	
 	  <td>$ComputerwithNonDefaultCount</td>  
-      <td>Open File</td>	  
+      <td><a href="UPDATEME">Download</a></td>	  
     </tr>	
     <tr>
       <td>HOST POTENITIALLY INSECURE SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width:$PercentComputerExPrivBarVal;"></div></div></td>
       <td>$PercentComputerExPrivP</td>	
 	  <td>$ComputerWithExcessive</td>  
-      <td>Open File</td>	  
+      <td><a href="UPDATEME">Download</a></td>	  
     </tr>	
     <tr>
       <td>HOST READABLE SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerReadBarVal;"></div></div></td>
       <td>$PercentComputerReadP</td>	  
 	  <td>$ComputerWithReadCount</td>	  
-      <td>Open File</td>	  
+      <td><a href="UPDATEME">Download</a></td>	  
     </tr>
 	<tr>
       <td>HOST WRITEABLE SHARE</td>
       <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWriteBarVal;"></div></div></td>
 	  <td>$PercentComputerWriteP</td>
 	  <td>$ComputerWithWriteCount</td>	  	  
-	  <td>Open File</td>	  
+	  <td><a href="UPDATEME">Download</a></td>	  
     </tr>
 	<tr>
       <td>HOST HIGH RISK SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerHighRiskBarVal;"></div></div></td>     
 	  <td>$PercentComputerHighRiskP</td>
 	  <td>$ComputerwithHighRisk</td>	  	 
-	  <td>Open File</td>
+	  <td><a href="UPDATEME">Download</a></td>
     </tr>	
   </tbody>
 </table>
@@ -1435,42 +1435,42 @@ $NewHtmlReport = @"
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
 	  <td>100%</td>
 	  <td>$AllSMBSharesCount</td>
-      <td>Open File</td>	  
+      <td><a href="UPDATEME">Download</a></td>	  
     </tr>
     <tr>
       <td>NON-DEFAULT</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesNonDefaultBarVal;"></div></div></td>
       <td>$PercentSharesNonDefaultP</td>	
 	  <td>$SharesNonDefaultCount</td>  
-      <td>Open File</td>	  
+      <td><a href="UPDATEME">Download</a></td>	  
     </tr>	
     <tr>
       <td>POTENTIALLY EXCESSIVE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesExPrivBarVal;"></div></div></td>
       <td>$PercentSharesExPrivP</td>	
 	  <td>$ExcessiveSharesCount</td>  
-      <td>Open File</td>	  
+      <td><a href="UPDATEME">Download</a></td>	  
     </tr>
     <tr>
       <td>READ ACCESS</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesReadBarVal;"></div></div></td>
       <td>$PercentSharesReadP</td>	  
 	  <td>$SharesWithReadCount</td>	  
-      <td>Open File</td>	  
+      <td><a href="UPDATEME">Download</a></td>	  
     </tr>
 	<tr>
       <td>WRITE ACCESS</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesWriteBarVal;"></div></div></td>     
 	  <td>$PercentSharesWriteP</td>
 	  <td>$SharesWithWriteCount</td>	  	 
-	  <td>Open File</td>	  
+	  <td><a href="UPDATEME">Download</a></td>	  
     </tr>
 	<tr>
       <td>HIGH RISK</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesHighRiskBarVal;"></div></div></td>     
 	  <td>$PercentSharesHighRiskP</td>
 	  <td>$SharesHighRiskCount</td>	  	 
-	  <td>Open File</td>
+	  <td><a href="UPDATEME">Download</a></td>
     </tr>	
   </tbody>
 </table>
@@ -1500,42 +1500,42 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
 	  <td>100%</td>
 	  <td>$ShareACLsCount</td>
-      <td>Open File</td>	  
+      <td><a href="UPDATEME">Download</a></td>	  
     </tr>	
     <tr>
       <td>NON-DEFAULT</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclNonDefaultBarVal;"></div></div></td>
       <td>$PercentAclNonDefaultP</td>	
 	  <td>$AclNonDefaultCount</td>  
-      <td>Open File</td>	  
+      <td><a href="UPDATEME">Download</a></td>	  
     </tr>		
     <tr>
       <td>POTENTIALLY EXCESSIVE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclExPrivBarVal;"></div></div></td>
       <td>$PercentAclExPrivP</td>	
 	  <td>$ExcessiveSharePrivsCount</td>  
-      <td>Open File</td>	  
+      <td><a href="UPDATEME">Download</a></td>	  
     </tr>
     <tr>
       <td>READ ACCESS</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclReadBarVal;"></div></div></td>
       <td>$PercentAclReadP</td>	  
 	  <td>$AclWithReadCount</td>	  
-      <td>Open File</td>	  
+      <td><a href="UPDATEME">Download</a></td>	  
     </tr>
 	<tr>
       <td>WRITE ACCESS</td>
       <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclWriteBarVal;"></div></div></td>
 	  <td>$PercentAclWriteP</td>
 	  <td>$AclWithWriteCount</td>	  	  
-	  <td>Open File</td>	  
+	  <td><a href="UPDATEME">Download</a></td>	  
     </tr>
 	<tr>
       <td>HIGH RISK</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclHighRiskBarVal;"></div></div></td>     
 	  <td>$PercentAclHighRiskP</td>
 	  <td>$AclHighRiskCount</td>	  	 
-	  <td>Open File</td>
+	  <td><a href="UPDATEME">Download</a></td>
     </tr>	
   </tbody>
 </table>
@@ -1573,7 +1573,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  <div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)
 	  </td>     
 	  
-	  <td>Open File</td>	  
+	  <td><a href="UPDATEME">Download</a></td>	  
     </tr>
   <tr>
       <td>
@@ -1589,7 +1589,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  </td>		  
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)</td>     	 
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)</td>           
-	  <td>Open File</td>	  
+	  <td><a href="UPDATEME">Download</a></td>	  
     </tr>
   <tr>
       <td>
@@ -1607,7 +1607,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  </td>		  
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100) PENDING</td>     	 
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     
-	  <td>Open File</td>	  
+	  <td><a href="UPDATEME">Download</a></td>	  
     </tr>	
 	
 <tr>
@@ -1617,7 +1617,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  <td>Everyone</td>		  
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     
-	  <td>Open File</td>	  
+	  <td><a href="UPDATEME">Download</a></td>	  
     </tr>	
 <tr>
   <tr>
@@ -1627,7 +1627,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  <td>Users</td>		  
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     	
-	  <td>Open File</td>	  
+	  <td><a href="UPDATEME">Download</a></td>	  
     </tr>	
 <tr>
       <td>ACL Assingment<br>
@@ -1636,7 +1636,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  <td>Authenticated Users</td>		  
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     
-	  <td>Open File</td>	  
+	  <td><a href="UPDATEME">Download</a></td>	  
     </tr>	
 <tr>
       <td>ACL Assingment<br>
@@ -1645,7 +1645,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  <td>Domain Users</td>		  
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     	  
-	  <td>Open File</td>	  
+	  <td><a href="UPDATEME">Download</a></td>	  
     </tr>
 <tr>
       <td>ACL Assingment<br>
@@ -1654,7 +1654,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  <td>Domain Computers</td>		  
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     
-	  <td>Open File</td>	  
+	  <td><a href="UPDATEME">Download</a></td>	  
     </tr>	
   </tbody>
 </table>
