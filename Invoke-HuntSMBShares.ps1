@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.17
+# Version: v1.3.18
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -454,6 +454,7 @@ function Invoke-HuntSMBShares
         if($ExcessiveSharesCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
             $ExcessiveSharePrivs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
+            $ExcessiveSharePrivsFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
         }else{
             break
         }
@@ -949,10 +950,13 @@ $NewHtmlReport = @"
 	
 	a,a:visited{
 		text-decoration:none;
-		color:#0275d8
+		font-size: 14;
+		color: gray;
+		font-weight: bold;
 	}
 	
 	a:hover{
+		color:#9B3722;
 		text-decoration:underline
 	}
 	
@@ -1159,7 +1163,7 @@ $NewHtmlReport = @"
 		<input class="tabInput"  name="tabs" type="radio" id="dashboard"/>
 		<label class="tabLabel" onClick="updateTab('dashboard',false)" for="dashboard">Dashboard</label>
 		<div id="tabPanel" class="tabPanel">
-			<p class="pageDescription">Below is a summary of share discovery scan and the results.</p>
+			<p class="pageDescription">Below is a summary of share discovery scan and the results. <a href="$ExcessiveSharePrivsFile">Download Details</a></p>
 <table class="table table-striped table-hover">
   <thead>
     <tr>	  
