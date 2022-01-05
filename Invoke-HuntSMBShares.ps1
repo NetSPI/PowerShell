@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.15
+# Version: v1.3.16
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1305,7 +1305,7 @@ $NewHtmlReport = @"
 			<span class="dashboardsub">HIGH RISK</span><br>
 			<span class="dashboardsub2">$PercentAclHighRiskP ($AclHighRiskCount of $ShareACLsCount)</span>
 			<div class="divbarDomain">
-				<div class="divbarDomainInside" style="width: $PercentAclWriteBarVal;"></div>
+				<div class="divbarDomainInside" style="width: $PercentAclHighRiskBarVal;"></div>
 			</div>	
 			
 	    </td>  
