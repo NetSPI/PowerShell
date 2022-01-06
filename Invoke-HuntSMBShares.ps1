@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.23
+# Version: v1.3.24
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1561,9 +1561,9 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
     <tr>
       <th>Description</th>
       <th align="left">Names</th>
+      <th align="left">Affected Computers</th>
 	  <th align="left">Affected Shares</th>
 	  <th align="left">Affected ACLs</th>	 	 
-	  <th align="left">Details</th>
     </tr>
   </thead>
   <tbody>
@@ -1576,12 +1576,14 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  $CommonShareNamesTopString
 	  </td>		  
 	  <td>
-	  <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)</td>     	 
-	  <td>	  
-	  <div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)
-	  </td>     
-	  
-	  <td><a href="UPDATEME">Download</a></td>	  
+	  20% (20 of 100)<br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>     	 
+	  <td>
+	  20% (20 of 100)<br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td> 
+	  <td>
+	  20% (20 of 100)<br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>            	  
     </tr>
   <tr>
       <td>
@@ -1592,8 +1594,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
       $CommonShareOwnersTop5String
 	  </td>		  
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)</td>     	 
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)</td>           
-	  <td><a href="UPDATEME">Download</a></td>	  
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)</td>           	  
     </tr>
   <tr>
       <td>
@@ -1610,8 +1611,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 		  List here PENDING <br>
 	  </td>		  
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100) PENDING</td>     	 
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     
-	  <td><a href="UPDATEME">Download</a></td>	  
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>       
     </tr>	
 	
 <tr>
@@ -1620,8 +1620,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  </td>
 	  <td>Everyone</td>		  
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     
-	  <td><a href="UPDATEME">Download</a></td>	  
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     	  
     </tr>	
 <tr>
   <tr>
@@ -1630,8 +1629,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  </td>
 	  <td>Users</td>		  
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     	
-	  <td><a href="UPDATEME">Download</a></td>	  
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     		  
     </tr>	
 <tr>
       <td>ACL Assingment<br>
@@ -1639,8 +1637,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  </td>
 	  <td>Authenticated Users</td>		  
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     
-	  <td><a href="UPDATEME">Download</a></td>	  
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     	  	  
     </tr>	
 <tr>
       <td>ACL Assingment<br>
@@ -1648,8 +1645,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  </td>
 	  <td>Domain Users</td>		  
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     	  
-	  <td><a href="UPDATEME">Download</a></td>	  
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     	  	  
     </tr>
 <tr>
       <td>ACL Assingment<br>
@@ -1657,8 +1653,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  </td>
 	  <td>Domain Computers</td>		  
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     
-	  <td><a href="UPDATEME">Download</a></td>	  
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     	  
     </tr>	
   </tbody>
 </table>
