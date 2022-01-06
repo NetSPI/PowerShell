@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.19
+# Version: v1.3.20
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -208,6 +208,7 @@ function Invoke-HuntSMBShares
         # Save results
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers.csv"
         $DomainComputers | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Domain-Computers.csv"
+        $DomainComputersFile = "$OutputDirectory\$TargetDomain-Domain-Computers.csv"
 
         # ----------------------------------------------------------------------
         # Identify computers that respond to ping reqeusts
@@ -247,6 +248,7 @@ function Invoke-HuntSMBShares
         # Save results
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers-Pingable.csv"
         $ComputersPingable | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Domain-Computers-Pingable.csv"
+        $ComputersPingableFile = "$OutputDirectory\$TargetDomain-Domain-Computers-Pingable.csv"
 
         # ----------------------------------------------------------------------
         # Identify computers that have TCP 445 open and accessible
@@ -303,8 +305,9 @@ function Invoke-HuntSMBShares
         }
 
         # Save results
-        Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers-Open445.csv"
+        Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers-Open445.csv"        
         $Computers445Open | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Domain-Computers-Open445.csv"
+        $Computers445OpenFile = "$OutputDirectory\$TargetDomain-Domain-Computers-Open445.csv"
 
         # ----------------------------------------------------------------------
         # Enumerate computer SMB shares
@@ -339,6 +342,7 @@ function Invoke-HuntSMBShares
         # Save results
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-All.csv"
         $AllSMBShares | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-All.csv"
+        $AllSMBSharesFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-All.csv"
 
         # ----------------------------------------------------------------------
         # Enumerate computer SMB share permissions 
@@ -417,7 +421,7 @@ function Invoke-HuntSMBShares
         # Save results
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"
         $ShareACLs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"
-
+        $ShareACLsFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"
         # ----------------------------------------------------------------------
         # Get potentially excessive share permissions 
         # ----------------------------------------------------------------------
@@ -444,15 +448,15 @@ function Invoke-HuntSMBShares
 
         # Status user
         $ExcessiveAclCount = $ExcessiveSharePrivs.count
-	$ExcessiveShares = $ExcessiveSharePrivs | Select-Object ComputerName,ShareName -unique
-	$ExcessiveSharesCount = $ExcessiveShares.count
+        $ExcessiveShares = $ExcessiveSharePrivs | Select-Object ComputerName,ShareName -unique
+        $ExcessiveSharesCount = $ExcessiveShares.count
         $ExcessiveSharePrivsCount = $ExcessiveSharePrivs.count
         $ComputerWithExcessive = $ExcessiveSharePrivs | Select-Object ComputerName -Unique | Measure-Object | select count -ExpandProperty count
         Write-Output " [*] - $ExcessiveSharePrivsCount potentially excessive privileges were found across $ComputerWithExcessive systems."
 
         # Save results
         if($ExcessiveSharesCount -ne 0){
-            Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
+            Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"            
             $ExcessiveSharePrivs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
             $ExcessiveSharePrivsFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
         }else{
@@ -483,6 +487,7 @@ function Invoke-HuntSMBShares
         if($SharesWithReadCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
             $SharesWithRead | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
+            $SharesWithReadFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
         }
 
         # ----------------------------------------------------------------------
@@ -509,6 +514,7 @@ function Invoke-HuntSMBShares
         if($SharesWithWriteCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"
             $SharesWithWrite | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"
+            $SharesWithWriteFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"
         }
 
         # ----------------------------------------------------------------------
@@ -535,6 +541,7 @@ function Invoke-HuntSMBShares
         if($SharesNonDefaultCount-ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
             $SharesNonDefault | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
+            $SharesNonDefaultFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
         }
 
         # ----------------------------------------------------------------------
@@ -561,6 +568,7 @@ function Invoke-HuntSMBShares
         if($SharesHighRiskCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"
             $SharesHighRisk | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"
+            $SharesHighRiskFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"
         }
 
 
@@ -1349,35 +1357,35 @@ $NewHtmlReport = @"
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
 	  <td>100%</td>
 	  <td>$ComputerCount</td>
-      <td><a href="UPDATEME">Download</a></td>	  
+      <td><a href="$DomainComputersFile">Download</a></td>	  
     </tr>
     <tr>
       <td>PING RESPONSE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerPingBarVal;"></div></div></td>
       <td>$PercentComputerPingP</td>	
 	  <td>$ComputerPingableCount</td>  
-      <td><a href="UPDATEME">Download</a></td>	  
+      <td><a href="$ComputersPingableFile">Download</a></td>	  
     </tr>
     <tr>
       <td>PORT 445 OPEN</td>
       <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerPortBarVal;"></div></div></td>
 	  <td>$PercentComputerPortP</td>
 	  <td>$Computers445OpenCount</td>
-      <td><a href="UPDATEME">Download</a></td>	  
+      <td><a href="$Computers445OpenFile">Download</a></td>	  
     </tr>
     <tr>
       <td>HOST SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWitShareBarVal ;"></div></div></td>
       <td>$PercentComputerWitShareP</td>	
 	  <td>$AllComputersWithSharesCount</td>  
-      <td><a href="UPDATEME">Download</a></td>	  
+      <td><a href="$SharesAllFile">Download</a></td>	  
     </tr>
     <tr>
       <td>HOST NON-DEFAULT SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerNonDefaultBarVal;"></div></div></td>
       <td>$PercentComputerNonDefaultP</td>	
 	  <td>$ComputerwithNonDefaultCount</td>  
-      <td><a href="UPDATEME">Download</a></td>	  
+      <td><a href="$SharesNonDefaultFile">Download</a></td>	  
     </tr>	
     <tr>
       <td>HOST POTENITIALLY INSECURE SHARE</td>
@@ -1391,21 +1399,21 @@ $NewHtmlReport = @"
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerReadBarVal;"></div></div></td>
       <td>$PercentComputerReadP</td>	  
 	  <td>$ComputerWithReadCount</td>	  
-      <td><a href="UPDATEME">Download</a></td>	  
+      <td><a href="$SharesWithReadFile">Download</a></td>	  
     </tr>
 	<tr>
       <td>HOST WRITEABLE SHARE</td>
       <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWriteBarVal;"></div></div></td>
 	  <td>$PercentComputerWriteP</td>
 	  <td>$ComputerWithWriteCount</td>	  	  
-	  <td><a href="UPDATEME">Download</a></td>	  
+	  <td><a href="$SharesWithWriteFile">Download</a></td>	  
     </tr>
 	<tr>
       <td>HOST HIGH RISK SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerHighRiskBarVal;"></div></div></td>     
 	  <td>$PercentComputerHighRiskP</td>
 	  <td>$ComputerwithHighRisk</td>	  	 
-	  <td><a href="UPDATEME">Download</a></td>
+	  <td><a href="$SharesHighRiskFile">Download</a></td>
     </tr>	
   </tbody>
 </table>
@@ -1435,42 +1443,42 @@ $NewHtmlReport = @"
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
 	  <td>100%</td>
 	  <td>$AllSMBSharesCount</td>
-      <td><a href="UPDATEME">Download</a></td>	  
+      <td><a href="$SharesAllFile">Download</a></td>	  
     </tr>
     <tr>
       <td>NON-DEFAULT</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesNonDefaultBarVal;"></div></div></td>
       <td>$PercentSharesNonDefaultP</td>	
 	  <td>$SharesNonDefaultCount</td>  
-      <td><a href="UPDATEME">Download</a></td>	  
+      <td><a href="$SharesNonDefaultFile">Download</a></td>	  
     </tr>	
     <tr>
       <td>POTENTIALLY EXCESSIVE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesExPrivBarVal;"></div></div></td>
       <td>$PercentSharesExPrivP</td>	
 	  <td>$ExcessiveSharesCount</td>  
-      <td><a href="UPDATEME">Download</a></td>	  
+      <td><a href="$ExcessiveSharePrivsFile">Download</a></td>	  
     </tr>
     <tr>
       <td>READ ACCESS</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesReadBarVal;"></div></div></td>
       <td>$PercentSharesReadP</td>	  
 	  <td>$SharesWithReadCount</td>	  
-      <td><a href="UPDATEME">Download</a></td>	  
+      <td><a href="$SharesWithReadFile">Download</a></td>	  
     </tr>
 	<tr>
       <td>WRITE ACCESS</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesWriteBarVal;"></div></div></td>     
 	  <td>$PercentSharesWriteP</td>
 	  <td>$SharesWithWriteCount</td>	  	 
-	  <td><a href="UPDATEME">Download</a></td>	  
+	  <td><a href="$SharesWithWriteFile">Download</a></td>	  
     </tr>
 	<tr>
       <td>HIGH RISK</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesHighRiskBarVal;"></div></div></td>     
 	  <td>$PercentSharesHighRiskP</td>
 	  <td>$SharesHighRiskCount</td>	  	 
-	  <td><a href="UPDATEME">Download</a></td>
+	  <td><a href="$SharesHighRiskFile">Download</a></td>
     </tr>	
   </tbody>
 </table>
@@ -1500,42 +1508,42 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
 	  <td>100%</td>
 	  <td>$ShareACLsCount</td>
-      <td><a href="UPDATEME">Download</a></td>	  
+      <td><a href="$ShareACLsFile">Download</a></td>	  
     </tr>	
     <tr>
       <td>NON-DEFAULT</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclNonDefaultBarVal;"></div></div></td>
       <td>$PercentAclNonDefaultP</td>	
 	  <td>$AclNonDefaultCount</td>  
-      <td><a href="UPDATEME">Download</a></td>	  
+      <td><a href="$SharesNonDefaultFile">Download</a></td>	  
     </tr>		
     <tr>
       <td>POTENTIALLY EXCESSIVE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclExPrivBarVal;"></div></div></td>
       <td>$PercentAclExPrivP</td>	
 	  <td>$ExcessiveSharePrivsCount</td>  
-      <td><a href="UPDATEME">Download</a></td>	  
+      <td><a href="$ExcessiveSharePrivsFile">Download</a></td>	  
     </tr>
     <tr>
       <td>READ ACCESS</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclReadBarVal;"></div></div></td>
       <td>$PercentAclReadP</td>	  
 	  <td>$AclWithReadCount</td>	  
-      <td><a href="UPDATEME">Download</a></td>	  
+      <td><a href="$SharesWithReadFile">Download</a></td>	  
     </tr>
 	<tr>
       <td>WRITE ACCESS</td>
       <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclWriteBarVal;"></div></div></td>
 	  <td>$PercentAclWriteP</td>
 	  <td>$AclWithWriteCount</td>	  	  
-	  <td><a href="UPDATEME">Download</a></td>	  
+	  <td><a href="$SharesWithWriteFile">Download</a></td>	  
     </tr>
 	<tr>
       <td>HIGH RISK</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclHighRiskBarVal;"></div></div></td>     
 	  <td>$PercentAclHighRiskP</td>
 	  <td>$AclHighRiskCount</td>	  	 
-	  <td><a href="UPDATEME">Download</a></td>
+	  <td><a href="$SharesHighRiskFile">Download</a></td>
     </tr>	
   </tbody>
 </table>
