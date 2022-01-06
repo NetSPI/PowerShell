@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.20
+# Version: v1.3.21
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1378,7 +1378,7 @@ $NewHtmlReport = @"
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWitShareBarVal ;"></div></div></td>
       <td>$PercentComputerWitShareP</td>	
 	  <td>$AllComputersWithSharesCount</td>  
-      <td><a href="$SharesAllFile">Download</a></td>	  
+      <td><a href="$AllSMBSharesFile">Download</a></td>	  
     </tr>
     <tr>
       <td>HOST NON-DEFAULT SHARE</td>
@@ -1443,7 +1443,7 @@ $NewHtmlReport = @"
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
 	  <td>100%</td>
 	  <td>$AllSMBSharesCount</td>
-      <td><a href="$SharesAllFile">Download</a></td>	  
+      <td><a href="$AllSMBSharesFile">Download</a></td>	  
     </tr>
     <tr>
       <td>NON-DEFAULT</td>
