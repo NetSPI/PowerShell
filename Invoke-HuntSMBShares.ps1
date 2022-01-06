@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.22
+# Version: v1.3.23
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -457,11 +457,12 @@ function Invoke-HuntSMBShares
         # Save results
         if($ExcessiveSharesCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"            
-            $ExcessiveSharePrivs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
-            $ExcessiveSharePrivsFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
+            $ExcessiveSharePrivs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"            
         }else{
             break
         }
+
+        $ExcessiveSharePrivsFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
 
         # ----------------------------------------------------------------------
         # Identify shares that provide read access
@@ -486,9 +487,10 @@ function Invoke-HuntSMBShares
         # Save results
         if($SharesWithReadCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
-            $SharesWithRead | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
-            $SharesWithReadFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
+            $SharesWithRead | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"           
         }
+
+        $SharesWithReadFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
 
         # ----------------------------------------------------------------------
         # Identify shares that provide write access
@@ -513,9 +515,10 @@ function Invoke-HuntSMBShares
         # Save results
         if($SharesWithWriteCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"
-            $SharesWithWrite | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"
-            $SharesWithWriteFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"
+            $SharesWithWrite | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"            
         }
+
+        $SharesWithWriteFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"
 
         # ----------------------------------------------------------------------
         # Identify shares that are non-default
@@ -540,9 +543,10 @@ function Invoke-HuntSMBShares
         # Save results
         if($SharesNonDefaultCount-ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
-            $SharesNonDefault | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
-            $SharesNonDefaultFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
+            $SharesNonDefault | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"           
         }
+
+        $SharesNonDefaultFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
 
         # ----------------------------------------------------------------------
         # Identify shares that are high risk
@@ -567,10 +571,10 @@ function Invoke-HuntSMBShares
         # Save results
         if($SharesHighRiskCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"
-            $SharesHighRisk | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"
-            $SharesHighRiskFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"
+            $SharesHighRisk | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"            
         }
 
+        $SharesHighRiskFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"
 
         # ----------------------------------------------------------------------
         # Identify common excessive share owners
@@ -617,7 +621,6 @@ function Invoke-HuntSMBShares
         # Get top five share name
         $CommonShareNamesCount = $CommonShareNames.count
         $CommonShareNamesTop5 = $CommonShareNames | Select-Object count,name -First 5 
-
         
         # Get count of share name if in the top 5
         $Top5ShareCountTotal = 0
@@ -1569,11 +1572,8 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  Top 5 Share Names<br>
 	  <span style="font-size:10">account for n shares and n ACLs across n computers.</span>
 	  </td>
-	  <td>List here<br>
-		  List here<br>
-	      List here<br>
-		  List here<br>
-		  List here<br>
+	  <td>
+	  $CommonShareNamesTopString
 	  </td>		  
 	  <td>
 	  <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)</td>     	 
@@ -1589,11 +1589,7 @@ Note: All Windows systems have a c$ and admin$ share configured by default.  A a
 	  <span style="font-size:10">account for n shares and n ACLs across n computers.</span>
 	  </td>
 	  <td>
-          List here PENDING <br>
-		  List here PENDING <br>
-	      List here PENDING <br>
-		  List here PENDING <br>
-		  List here PENDING <br>
+      $CommonShareOwnersTop5String
 	  </td>		  
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)</td>     	 
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)</td>           
