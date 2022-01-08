@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.27
+# Version: v1.3.29
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1576,91 +1576,164 @@ $NewHtmlReport = @"
   <tbody>
   <tr>
       <td>
-	  Top 5 Share Names<br>
-	  <span style="font-size:10">account for n shares and n ACLs across n computers.</span>
+	  5 Most Common Share Names<br>	 
 	  </td>
 	  <td>
 	  $CommonShareNamesTopString
 	  </td>		  
 	  <td>
-	  20% (20 of 100)<br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
       </td>     	 
+	  </td>		  
 	  <td>
-	  20% (20 of 100)<br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td> 
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>  
+	  </td>		  
 	  <td>
-	  20% (20 of 100)<br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>            	  
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>                    	  
     </tr>
   <tr>
       <td>
-	  Top 5 Share Owners<br>
-	  <span style="font-size:10">account for n shares and n ACLs across n computers.</span>
+	  5 Most Common Share Owners<br>
 	  </td>
 	  <td>
       $CommonShareOwnersTop5String
 	  </td>		  
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)</td>     	 
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)</td>           	  
-    </tr>
-  <tr>
-      <td>
-	  Top 5 Share Groups<br>
-	  <span style="font-size:10">account for n shares and n ACLs across n computers.</span>
-	  <br>
-	  <span style="font-size:10">Shares are grouped by a Hashed list of non-default files found in the share.</span>
-	  </td>
 	  <td>
-          List here PENDING <br>
-		  List here PENDING <br>
-	      List here PENDING <br>
-		  List here PENDING <br>
-		  List here PENDING <br>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>     	 
 	  </td>		  
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100) PENDING</td>     	 
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>       
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>  
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>          	  
     </tr>	
-	
-<tr>
-      <td>ACL Assingment<br>
-	  <span style="font-size:10">Everyone is associated with n computers, n shares, and n ACLs.</span>	        
+	<tr>
+      <td>Access Control Entry User<br>        
 	  </td>
 	  <td>Everyone</td>		  
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     	  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>     	 
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>  
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>    	  
     </tr>	
 <tr>
   <tr>
-      <td>ACL Assingment<br>
-	  <span style="font-size:10">Users is associated with n computers, n shares, and n ACLs.</span>	       
+      <td>Access Control Entry User<br>       
 	  </td>
 	  <td>Users</td>		  
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>     	 
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>  
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>     		  
     </tr>	
 <tr>
-      <td>ACL Assingment<br>
-	  <span style="font-size:10">Authenticated Users is associated with n computers, n shares, and n ACLs.</span>	    	    
+      <td>Access Control Entry User<br>    	    
 	  </td>
 	  <td>Authenticated Users</td>		  
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     	  	  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>     	 
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>  
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>    	  	  
     </tr>	
 <tr>
-      <td>ACL Assingment<br>
-	  <span style="font-size:10">Domain Users is associated with n computers, n shares, and n ACLs.</span>	     
+      <td>Access Control Entry User<br>     
 	  </td>
 	  <td>Domain Users</td>		  
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     	  	  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>     	 
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>  
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>     	  	  
     </tr>
 <tr>
-      <td>ACL Assingment<br>
-	  <span style="font-size:10">Domain Computer is associated with n computers, n shares, and n ACLs.</span>	    
+      <td>Access Control Entry User<br>	    
 	  </td>
 	  <td>Domain Computers</td>		  
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>20% (20 of 100)PENDING</td>     	 
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 120px;"></div></div>60% (60 of 100)PENDING</td>     	  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>     	 
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>  
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>    	  
     </tr>	
   </tbody>
 </table>
