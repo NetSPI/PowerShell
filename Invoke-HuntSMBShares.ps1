@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.25
+# Version: v1.3.27
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1492,9 +1492,9 @@ $NewHtmlReport = @"
     </tr>	
   </tbody>
 </table>
-<span style="font-size:12">
-Note: All Windows systems have a c$ and admin$ share configured by default.  A a result, the number of visible shares should be (at a minimum) double the number of the computers found with port 445 open. In this case, $Computers445OpenCount computers were found with port 445 open, so we would expect to discover approximetly $MinExpectedShareCount or more shares.
-</span>
+    <div class="pageDescription">
+    Note: All Windows systems have a c$ and admin$ share configured by default.  A a result, the number of visible shares should be (at a minimum) double the number of the computers found with port 445 open. In this case, $Computers445OpenCount computers were found with port 445 open, so we would expect to discover approximetly $MinExpectedShareCount or more shares.
+    </div>
 </div>
 
 <input class="tabInput"  name="tabs" type="radio" id="ACLsum"/>
