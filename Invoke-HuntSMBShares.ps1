@@ -1,9 +1,9 @@
 #--------------------------------------
 # Function: Invoke-HuntSMBShares
 #--------------------------------------
-# Author: Scott Sutherland, 2020 NetSPI
+# Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.31
+# Version: v1.3.33
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -133,9 +133,9 @@ function Invoke-HuntSMBShares
     
     Begin
     {
-        $TheVersion = "v1.2.10"
+        $TheVersion = "1.3.33"
         Write-Output "  ---------------------------------------------------------------" 
-        Write-Output " | Invoke-HuntSMBShares $TheVersion                             |"
+        Write-Output " | Invoke-HuntSMBShares                                          |"
         Write-Output "  ---------------------------------------------------------------"         
         Write-Output " | This function automates the following tasks:                  |"
         Write-Output " |                                                               |"
@@ -1155,6 +1155,14 @@ $NewHtmlReport = @"
 		font-weight: bold;	
 		margin: 10px;
 	}
+
+	.landingheader2	{
+		font-size: 16;		
+		color:white;
+		background-color:#9B3722; 
+		font-weight: bold;	
+		padding-left: 10px
+	}	
 	
 	.landingtext {
 		font-size: 14;
@@ -1759,7 +1767,7 @@ $NewHtmlReport = @"
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">Below are some tips for getting started on exploiting share access, prioritizing remediation, and detecting related attacks.</p>
 
-<span class="landingheader">Exploitation Tips</span>
+<div class="landingheader2">Exploitation Tips</div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>	  
@@ -1792,7 +1800,10 @@ $NewHtmlReport = @"
    <tr>
 	  <td>wwwroot,inetpub,webroot</td>
 	  <td>READ</td>
-	  <td>Read connection strings and escalation through database.</td>    
+	  <td>Read connection strings and escalation through database. <br>
+	  <span class="code">Code - search for file types</span><br>
+	  <span class="code">Code - search for file contents</span><br>
+     </td>    
    </tr>
    <tr>
 	  <td>wwwroot,inetpub,webroot</td>
@@ -1805,38 +1816,47 @@ $NewHtmlReport = @"
   </tbody>
 </table>
 
-<span class="landingheader">Remediation Prioritzation Tips</span>
+<div class="landingheader2">Remediation Prioritzation Tips</div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>	  
-	  <th align="left">Item</th>
-	  <th align="left">Description</th>	  
+	  <th align="left">Share Access</th>
+	  <th align="left">Impact</th>	  
+	  <th align="left">Detection</th>
     </tr>
   </thead>
   <tbody>  	
     <tr>
 	  <td>High Risk Shares</td>
+	  <td>Confidentiality, Integrity, Availability, Code Execution<br>
+	   High likelihood.
+	  </td>
 	  <td>Remediate high risk shares. In the context of this report, high risk shares have been defined as shares that provide unauthorized remote access to systems or applications. By default, that includes wwwroot, inetpub, c$, and admin$ shares. However, additional exposures may exist that are not called out beyond that.</td>  
     </tr>	
     <tr>
 	  <td>Write Access Shares</td>
+	  <td>Confidentiality, Integrity, Availability, Code Execution</td>
 	  <td>Remediate shares with write access. Write access to shares may allow an attacker to modify data, insert their own users into configuration files to access applications, or leverage write access to execute code on remote systems.  Folders that provide write access could also fall victem to ransomware attacks.</td>  
     </tr>		
     <tr>
 	  <td>Read Access Shares</td>
+	  <td>Confidentiality,Code Execution</td>
 	  <td>Remediate shares with read access. Read access may provide an attacker with unauthorized access to sensitive data and stored secrets such as passwords and private keys that could be used to gain unauthorized access to systems, applications, and databases.</td>  
     </tr>
     <tr>
 	  <td>Top Share Names</td>
+	  <td>NA</td>
 	  <td>Sub prioritize remediation based on top groups of share names(most common share names). When a large number of systems are configured with the same share, they often represent weak configurations associated with applications and processes.</td>  	  
     </tr>
    <tr>
 	  <td>Top Share Groups</td>
+	  <td>NA</td>
 	  <td>Sub prioritize remediation based on top share groups that have the same list of files in their directory.  This is another way to identify systems that are configured with the same share are associated with the same insecure application deployment or process.
 	  </td>  	  
     </tr>		
       <tr>	
 	  <td>Sub Prioritzation Tips</td>
+	  <td>NA</td>
 	  <td>
 	  Use the detailed .csv files to:<br><br>
 	  1. Identify share owners with the ShareOwner field. Filter out "BUILTIN\Administrators", "NT AUTHORITY\SYSTEM", and "NT SERVICE\TrustedInstaller" to identify potential asset owners.<br><br> 
@@ -1848,12 +1868,12 @@ $NewHtmlReport = @"
   </tbody>
 </table>
 
-<span class="landingheader">Detection Tips</span>
+<div class="landingheader2">Detection Tips</div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>	  
-	  <th align="left">Item</th>
-	  <th align="left">Description</th>	  
+	  <th align="left">Action</th>
+	  <th align="left">Detection Guidance</th>	  
     </tr>
   </thead>
   <tbody>  	    
