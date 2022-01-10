@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2020 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.30
+# Version: v1.3.31
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1754,12 +1754,58 @@ $NewHtmlReport = @"
   </tbody>
 </table>
 </div>
-
 <input class="tabInput"  name="tabs" type="radio" id="recsum"/>
 <label class="tabLabel" onClick="updateTab('recsum',false)" for="recsum">Recommendations</label>
 <div id="tabPanel" class="tabPanel">
-<p class="pageDescription">Below is a list of recommendations for consideration when trying to prioritize remediation and build attack detections.</p>
+<p class="pageDescription">Below are some tips for getting started on exploiting share access, prioritizing remediation, and detecting related attacks.</p>
 
+<span class="landingheader">Exploitation Tips</span>
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>	  
+	  <th align="left">Share</th>
+	  <th align="left">Access</th>	  
+	  <th align="left">Instructions</th>	
+    </tr>
+  </thead>
+  <tbody>  			
+    <tr>	
+	  <td>C$, admin$</td>
+	  <td>READ</td>
+	  <td>
+	  Read OS and Application password files and log in.<br>
+	  Identify non-public information disclosure.
+	  </td>  
+    </tr>	
+    <tr>	
+	  <td>C$, admin$</td>
+	  <td>WRITE</td>
+	  <td>Read OS and Application password files and log in.<br>
+	  Identify non-public information disclosure.<br>
+	  Execute arbitrary code by writing files to autorun locations:<br>
+	  DLL Hijacking<br>
+	  All Users folders<br>
+	  Other file based autoruns<br>
+	  EXE Replacement<br>
+	  </td>  
+    </tr>	
+   <tr>
+	  <td>wwwroot,inetpub,webroot</td>
+	  <td>READ</td>
+	  <td>Read connection strings and escalation through database.</td>    
+   </tr>
+   <tr>
+	  <td>wwwroot,inetpub,webroot</td>
+	  <td>Write</td>
+	  <td>
+	  Read connection strings and escalation through database.<br>
+	  Upload webshell to execute as web server service account.
+	  </td> 	  
+    </tr>				
+  </tbody>
+</table>
+
+<span class="landingheader">Remediation Prioritzation Tips</span>
 <table class="table table-striped table-hover">
   <thead>
     <tr>	  
@@ -1798,8 +1844,19 @@ $NewHtmlReport = @"
 	  3. Sort shares by LastModifiedDate.<br><br> 
 	  4. Filter for keywords in the FileList.<br><br>
 	  For example, simple keywords like sql, database, backup, password, etc can help identify additional high risk exposures quickly. <br>
-	  </td>  
-    </tr>	
+	  </td>  				
+  </tbody>
+</table>
+
+<span class="landingheader">Detection Tips</span>
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>	  
+	  <th align="left">Item</th>
+	  <th align="left">Description</th>	  
+    </tr>
+  </thead>
+  <tbody>  	    
    <tr>
 	  <td>Detect Share Scanning</td>
 	  <td>Build detections for authenticated share scanning.  event 1 and event 2. At min frequency of x y z.
@@ -1813,7 +1870,6 @@ $NewHtmlReport = @"
   </tbody>
 </table>
 </div>
-
 </div>
 <div style="border-bottom: 2px solid red; background-color:#f0f3f5;">
 <div class="bottomone"></div>
@@ -1841,6 +1897,7 @@ In the context of this report, high risk shares have been defined as shares that
     </tr>
        <tr>
       <td>	  
+	  <br>
 Script: Invoke-HuntSMBShares.ps1<br>
 Author: Scott Sutherland<br>
 License: 3-clause BSD
