@@ -293,6 +293,7 @@ function Invoke-HuntSQLServers
         if($CheckForPowerUpSQL -eq $false)
         {
             Write-Output " [-] This function requires PowerUpSQL: www.powerupsql.com"
+	    Write-Output " [-] IEX(New-Object System.Net.WebClient).DownloadString(`"https://raw.githubusercontent.com/NetSPI/PowerUpSQL/master/PowerUpSQL.ps1`")"
             Write-Output " [!] Aborting execution."
             break
         }
