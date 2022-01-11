@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.33
+# Version: v1.3.35
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1389,7 +1389,7 @@ $NewHtmlReport = @"
     <tr>
       <td>DISCOVERED</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
-	  <td>100%</td>
+	  <td>100.00%</td>
 	  <td>$ComputerCount</td>
       <td><a href="$DomainComputersFile">Download</a></td>	  
     </tr>
@@ -1475,7 +1475,7 @@ $NewHtmlReport = @"
     <tr>
       <td>DISCOVERED</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
-	  <td>100%</td>
+	  <td>100.00%</td>
 	  <td>$AllSMBSharesCount</td>
       <td><a href="$AllSMBSharesFile">Download</a></td>	  
     </tr>
@@ -1540,7 +1540,7 @@ $NewHtmlReport = @"
     <tr>
       <td>DISCOVERED</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
-	  <td>100%</td>
+	  <td>100.00%</td>
 	  <td>$ShareACLsCount</td>
       <td><a href="$ShareACLsFile">Download</a></td>	  
     </tr>	
@@ -1587,6 +1587,7 @@ $NewHtmlReport = @"
 <label class="tabLabel" onClick="updateTab('datainsights',false)" for="datainsights">Data Insights</label>
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">This section contains data insights that could be helpful when planning a prioritizing remediation efforts.</p>
+<div class="landingheader2">Share Grouping Summary</div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>
@@ -1648,117 +1649,129 @@ $NewHtmlReport = @"
       <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
       </td>          	  
     </tr>	
+    </tbody>
+	</table>
+	<div class="landingheader2">Access Control Entry Summary</div>
+	<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th align="left">Name</th>
+      <th align="left">Affected Computers</th>
+	  <th align="left">Affected Shares</th>
+	  <th align="left">Affected ACLs</th>	 	 
+    </tr>
+  </thead>
+  <tbody>
 	<tr>
-      <td>Access Control Entry User<br>        
-	  </td>
 	  <td>Everyone</td>		  
 	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>     	 
-	  </td>		  
+		  <span class="dashboardsub2">20% (20 of 100)</span>
+		  <br>
+		  <div class="divbarDomain">
+			<div class="divbarDomainInside" style="width: 40px;"></div>
+		  </div>
+      </td>     	 	  
 	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>  
-	  </td>		  
+		<span class="dashboardsub2">20% (20 of 100)</span>
+		<br>
+		<div class="divbarDomain">
+			<div class="divbarDomainInside" style="width: 40px;"></div>
+		</div>
+      </td>  	  
 	  <td>
 	  <span class="dashboardsub2">20% (20 of 100)</span>
       <br>
       <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
       </td>    	  
     </tr>	
-<tr>
-  <tr>
-      <td>Access Control Entry User<br>       
-	  </td>
+	<tr>
 	  <td>Users</td>		  
 	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>     	 
-	  </td>		  
+		  <span class="dashboardsub2">20% (20 of 100)</span>
+		  <br>
+		  <div class="divbarDomain">
+			<div class="divbarDomainInside" style="width: 40px;"></div>
+		  </div>
+      </td>     	 	  
 	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>  
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>     		  
-    </tr>	
-<tr>
-      <td>Access Control Entry User<br>    	    
-	  </td>
-	  <td>Authenticated Users</td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>     	 
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>  
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>    	  	  
-    </tr>	
-<tr>
-      <td>Access Control Entry User<br>     
-	  </td>
-	  <td>Domain Users</td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>     	 
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>  
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>     	  	  
-    </tr>
-<tr>
-      <td>Access Control Entry User<br>	    
-	  </td>
-	  <td>Domain Computers</td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>     	 
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>  
-	  </td>		  
+		<span class="dashboardsub2">20% (20 of 100)</span>
+		<br>
+		<div class="divbarDomain">
+			<div class="divbarDomainInside" style="width: 40px;"></div>
+		</div>
+      </td>  	  
 	  <td>
 	  <span class="dashboardsub2">20% (20 of 100)</span>
       <br>
       <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
       </td>    	  
     </tr>	
+	<tr>
+	  <td>Authenticated Users</td>		  
+	  <td>
+		  <span class="dashboardsub2">20% (20 of 100)</span>
+		  <br>
+		  <div class="divbarDomain">
+			<div class="divbarDomainInside" style="width: 40px;"></div>
+		  </div>
+      </td>     	 	  
+	  <td>
+		<span class="dashboardsub2">20% (20 of 100)</span>
+		<br>
+		<div class="divbarDomain">
+			<div class="divbarDomainInside" style="width: 40px;"></div>
+		</div>
+      </td>  	  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>    	  
+    </tr>	
+	<tr>
+	  <td>Domain Users</td>		  
+	  <td>
+		  <span class="dashboardsub2">20% (20 of 100)</span>
+		  <br>
+		  <div class="divbarDomain">
+			<div class="divbarDomainInside" style="width: 40px;"></div>
+		  </div>
+      </td>     	 	  
+	  <td>
+		<span class="dashboardsub2">20% (20 of 100)</span>
+		<br>
+		<div class="divbarDomain">
+			<div class="divbarDomainInside" style="width: 40px;"></div>
+		</div>
+      </td>  	  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>    	  
+    </tr>
+	<tr>
+	  <td>Domain Computers</td>		  
+	  <td>
+		  <span class="dashboardsub2">20% (20 of 100)</span>
+		  <br>
+		  <div class="divbarDomain">
+			<div class="divbarDomainInside" style="width: 40px;"></div>
+		  </div>
+      </td>     	 	  
+	  <td>
+		<span class="dashboardsub2">20% (20 of 100)</span>
+		<br>
+		<div class="divbarDomain">
+			<div class="divbarDomainInside" style="width: 40px;"></div>
+		</div>
+      </td>  	  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>    	  
+    </tr>
   </tbody>
 </table>
 </div>
@@ -1822,7 +1835,7 @@ $NewHtmlReport = @"
     <tr>	  
 	  <th align="left">Share Access</th>
 	  <th align="left">Impact</th>	  
-	  <th align="left">Detection</th>
+	  <th align="left">Description</th>
     </tr>
   </thead>
   <tbody>  	
@@ -1893,6 +1906,7 @@ $NewHtmlReport = @"
 </div>
 <div style="border-bottom: 2px solid red; background-color:#f0f3f5;">
 <div class="bottomone"></div>
+<div class="landingheader2">General Information</div>
 <br>
 <span class="landingheader">Overview</span><br>
 <div class="landingtext">
@@ -1917,7 +1931,6 @@ In the context of this report, high risk shares have been defined as shares that
     </tr>
        <tr>
       <td>	  
-	  <br>
 Script: Invoke-HuntSMBShares.ps1<br>
 Author: Scott Sutherland<br>
 License: 3-clause BSD
