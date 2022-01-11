@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.35
+# Version: v1.3.40
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -378,7 +378,11 @@ function Invoke-HuntSMBShares
                       $FileCount = $FullFileList.Count 
 
                       # Get top 5 files list
-                      $FileList = $FullFileList | Select-Object -First 5 | Select-Object Name -ExpandProperty Name | Out-String
+                      $FileList = $FullFileList | Select-Object Name -ExpandProperty Name | Out-String
+
+                      # Get File listing hash
+                      $FileListGroup = Get-FolderGroupMd5 -FolderList $FileList
+                      $FileListGroup
 
                       # Last modified date
                       $TargetPath = $_.Path
@@ -400,6 +404,7 @@ function Invoke-HuntSMBShares
                       $aclObject | add-member  Noteproperty LastModifiedDate     $LastModifiedDate
                       $aclObject | add-member  Noteproperty FileCount            $FileCount
                       $aclObject | add-member  Noteproperty FileList             $FileList
+                      $aclObject | add-member  Noteproperty FileListGroup        $FileListGroup
                       $aclObject                             
                 }
          }   
@@ -1034,13 +1039,6 @@ $NewHtmlReport = @"
 	
 	.topone{background:#999999}
   
-	.bottomone{
-		background:#666666
-		height: 100px;
-		width: 100%;
-		border-top: 2px solid #eceeef
-	}
-  
 	.divbarDomain{
 		background:#d9d7d7;
 		width:200px;
@@ -1157,11 +1155,12 @@ $NewHtmlReport = @"
 	}
 
 	.landingheader2	{
-		font-size: 16;		
-		color:white;
-		background-color:#9B3722; 
-		font-weight: bold;	
-		padding-left: 10px
+		font-size: 16;	
+		font-weight: bold;		
+		color:9B3722;
+		--background-color: #ccc;		
+		border-bottom: 2px solid #999;		
+		padding-left: 10px;
 	}	
 	
 	.landingtext {
@@ -1185,7 +1184,7 @@ $NewHtmlReport = @"
   </style>
 </head>
 <body>
-<div style="border-bottom: 2px solid red; background-color:#f0f3f5; height:110px ">
+<div style="border-bottom: 2px solid #9B3722; background-color:#f0f3f5; height:110px ">
 	  <img style="vertical-align:middle;float: left;clear:both; margin: 5px;margin-right: 15px;" src="data:image/png;base64, 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"/>
       <div style="font-size: 14; margin-left: 0px;overflow:auto;display:block;height: 100px">
 	  <Br>
@@ -1210,19 +1209,19 @@ $NewHtmlReport = @"
   <thead>
     <tr>	  
 	  <th style="text-align:left;">
-		  COMPUTERS <br>
+		  Computers <br>
 		  <span style="font-size:12">$ComputerCount</span>
 		  <br>
 		  <span style="color:#9B3722;font-size:12">$ComputerWithExcessive affected</span>
 	  </th>
 	  <th style="text-align:left">
-		SHARES <br>
+		Shares <br>
 		<span style="font-size:12">$AllSMBSharesCount</span>
 		<br>
 		<span style="color:#9B3722;font-size:12">$ExcessiveSharesCount affected</span>
 	 </th>	
 	<th style="text-align:left">
-		ACLS <br><span style="font-size:12">$ShareACLsCount</span><br>
+		ACLs <br><span style="font-size:12">$ShareACLsCount</span><br>
 		<span style="color:#9B3722;font-size:12">$ExcessiveSharePrivsCount affected</span>
 	 </th>
 	  <th style="vertical-align: top;">
@@ -1587,72 +1586,8 @@ $NewHtmlReport = @"
 <label class="tabLabel" onClick="updateTab('datainsights',false)" for="datainsights">Data Insights</label>
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">This section contains data insights that could be helpful when planning a prioritizing remediation efforts.</p>
-<div class="landingheader2">Share Grouping Summary</div>
+<div class="landingheader2">Excessive ACE Summary</div>
 <table class="table table-striped table-hover">
-  <thead>
-    <tr>
-      <th>Description</th>
-      <th align="left">Names</th>
-      <th align="left">Affected Computers</th>
-	  <th align="left">Affected Shares</th>
-	  <th align="left">Affected ACLs</th>	 	 
-    </tr>
-  </thead>
-  <tbody>
-  <tr>
-      <td>
-	  5 Most Common Share Names<br>	 
-	  </td>
-	  <td>
-	  $CommonShareNamesTopString
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>     	 
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>  
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>                    	  
-    </tr>
-  <tr>
-      <td>
-	  5 Most Common Share Owners<br>
-	  </td>
-	  <td>
-      $CommonShareOwnersTop5String
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>     	 
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>  
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>          	  
-    </tr>	
-    </tbody>
-	</table>
-	<div class="landingheader2">Access Control Entry Summary</div>
-	<table class="table table-striped table-hover">
   <thead>
     <tr>
       <th align="left">Name</th>
@@ -1774,6 +1709,114 @@ $NewHtmlReport = @"
     </tr>
   </tbody>
 </table>
+<div class="landingheader2">5 Most Common Share Names</div>
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>      
+      <th align="left">Name</th>
+      <th align="left">Affected Computers</th>
+	  <th align="left">Affected Shares</th>
+	  <th align="left">Affected ACLs</th>	 	 
+    </tr>
+  </thead>
+  <tbody>
+  <tr>
+	  <td>
+	  $CommonShareNamesTopString
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>     	 
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>  
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>                    	  
+    </tr>
+    </tbody>
+	</table>	
+
+<div class="landingheader2">5 Most Common Share Groups</div>
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th align="left">Name</th>
+      <th align="left">Affected Computers</th>
+	  <th align="left">Affected Shares</th>
+	  <th align="left">Affected ACLs</th>	 	 
+    </tr>
+  </thead>
+  <tbody>
+  <tr>
+	  <td>
+	  $CommonShareNamesTopString
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>     	 
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>  
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>                    	  
+    </tr>	
+    </tbody>
+	</table>
+
+<div class="landingheader2"> 5 Most Common Owners</div>
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th align="left">Name</th>
+      <th align="left">Affected Computers</th>
+	  <th align="left">Affected Shares</th>
+	  <th align="left">Affected ACLs</th>	 	 
+    </tr>
+  </thead>
+  <tbody>
+  <tr>
+	  <td>
+      $CommonShareOwnersTop5String
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>     	 
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>  
+	  </td>		  
+	  <td>
+	  <span class="dashboardsub2">20% (20 of 100)</span>
+      <br>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
+      </td>          	  
+    </tr>	
+    </tbody>
+	</table>
+	
 </div>
 <input class="tabInput"  name="tabs" type="radio" id="recsum"/>
 <label class="tabLabel" onClick="updateTab('recsum',false)" for="recsum">Recommendations</label>
@@ -1905,9 +1948,7 @@ $NewHtmlReport = @"
 </div>
 </div>
 <div style="border-bottom: 2px solid red; background-color:#f0f3f5;">
-<div class="bottomone"></div>
-<div class="landingheader2">General Information</div>
-<br>
+<div style="border-top: 2px solid #999;"><br></div>
 <span class="landingheader">Overview</span><br>
 <div class="landingtext">
 This report is the output of the Invoke-HuntSMBShares.ps1 audit script. 
@@ -2260,6 +2301,24 @@ The 5 most common share names are:
 # //////////////////////////////////////////////////////////////////////////
 # Functions used by Get-SmbShareInventory
 # //////////////////////////////////////////////////////////////////////////
+
+# -------------------------------------------
+# Function: Get-FolderGroupMd5
+# -------------------------------------------
+function Get-FolderGroupMd5{
+    
+    param (
+        [string]$FolderList
+    )
+
+    $stringAsStream = [System.IO.MemoryStream]::new()
+    $writer = [System.IO.StreamWriter]::new($stringAsStream)
+    $writer.write($FolderList)
+    $writer.Flush()
+    $stringAsStream.Position = 0
+    Get-FileHash -InputStream $stringAsStream -Algorithm MD5 | Select-Object Hash
+
+}
 
 # -------------------------------------------
 # Function: Get-LdapQuery
