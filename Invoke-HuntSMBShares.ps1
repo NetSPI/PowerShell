@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.47
+# Version: v1.3.48
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1345,7 +1345,7 @@ $NewHtmlReport = @"
 
 	.landingheader2	{
 		font-size: 16;	
-		font-weight: bold;		
+		--font-weight: bold;		
 		color:White;
 		--color:9B3722;
 		--background-color: #ccc;		
@@ -1354,7 +1354,8 @@ $NewHtmlReport = @"
 	}	
 	
 	.landingheader2a	{
-		background-color: #999;		
+        background-color: 9B3722;
+		--background-color: #999;		
 		padding-left: 5px;
 		padding-right: 5px;
 	}	
