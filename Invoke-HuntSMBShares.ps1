@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.46
+# Version: v1.3.47
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1346,10 +1346,17 @@ $NewHtmlReport = @"
 	.landingheader2	{
 		font-size: 16;	
 		font-weight: bold;		
-		color:9B3722;
+		color:White;
+		--color:9B3722;
 		--background-color: #ccc;		
 		border-bottom: 2px solid #999;		
 		padding-left: 10px;
+	}	
+	
+	.landingheader2a	{
+		background-color: #999;		
+		padding-left: 5px;
+		padding-right: 5px;
 	}	
 	
 	.landingtext {
@@ -1775,7 +1782,7 @@ $NewHtmlReport = @"
 <label class="tabLabel" onClick="updateTab('datainsights',false)" for="datainsights">Data Insights</label>
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">This section contains data insights that could be helpful when planning a prioritizing remediation efforts.</p>
-<div class="landingheader2">Excessive ACE Summary</div>
+<div class="landingheader2"><span class="landingheader2a">Excessive ACE Summary</span></div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>
@@ -1898,7 +1905,7 @@ $NewHtmlReport = @"
     </tr>
   </tbody>
 </table>
-<div class="landingheader2">5 Most Common Share Names</div>
+<div class="landingheader2"><span class="landingheader2a">5 Most Common Share Names</span></div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>      
@@ -1914,7 +1921,7 @@ $NewHtmlReport = @"
     </tbody>
 	</table>	
 
-<div class="landingheader2">5 Most Common Share Groups</div>
+<div class="landingheader2"><span class="landingheader2a">5 Most Common Share Groups</span></div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>
@@ -1930,7 +1937,7 @@ $NewHtmlReport = @"
   </tbody>
 </table>
 
-<div class="landingheader2"> 5 Most Common Owners</div>
+<div class="landingheader2"><span class="landingheader2a">5 Most Common Owners</span></div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>
@@ -1952,7 +1959,7 @@ $NewHtmlReport = @"
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">Below are some tips for getting started on exploiting share access, prioritizing remediation, and detecting related attacks.</p>
 
-<div class="landingheader2">Exploitation Tips</div>
+<div class="landingheader2"><span class="landingheader2a">Exploitation Tips</span></div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>	  
@@ -2001,7 +2008,7 @@ $NewHtmlReport = @"
   </tbody>
 </table>
 
-<div class="landingheader2">Remediation Prioritzation Tips</div>
+<div class="landingheader2"><span class="landingheader2a">Remediation Prioritzation Tips</span></div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>	  
@@ -2053,7 +2060,7 @@ $NewHtmlReport = @"
   </tbody>
 </table>
 
-<div class="landingheader2">Detection Tips</div>
+<div class="landingheader2"><span class="landingheader2a">Detection Tips</span></div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>	  
