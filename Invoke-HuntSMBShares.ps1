@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.43
+# Version: v1.3.44
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -761,16 +761,38 @@ function Invoke-HuntSMBShares
         # Top 5 Share Owners
 
         # Top 5 Share Names
+
+        # Top 5 Share Groups
         
         # ACE User: Everyone
+        $AceEveryone = Get-UserAceCounts -DataTable $ExcessiveSharePrivs -UserName "everyone"
+        $AceEveryoneAclCount = $AceEveryone.UserAclsCount 
+        $AceEveryoneShareCount = $AceEveryone.UserShareCount 
+        $AceEveryoneComputerCount = $AceEveryone.UserComputerCount 
 
         # ACE User: Users
+        $AceUsers = Get-UserAceCounts -DataTable $ExcessiveSharePrivs -UserName "BUILTIN\Users"
+        $AceUsersAclCount = $AceUsers.UserAclsCount 
+        $AceUsersShareCount = $AceUsers.UserShareCount 
+        $AceUsersComputerCount = $AceUsers.UserComputerCount 
 
         # ACE User: Authenticated Users
+        $AceAuthenticatedUsers = Get-UserAceCounts -DataTable $ExcessiveSharePrivs -UserName "NT AUTHORITY\Authenticated Users"
+        $AceAuthenticatedUsersAclCount = $AceAuthenticatedUsers.UserAclsCount 
+        $AceAuthenticatedUsersShareCount = $AceAuthenticatedUsers.UserShareCount 
+        $AceAuthenticatedUsersComputerCount = $AceAuthenticatedUsers.UserComputerCount 
 
         # ACE User: Domain Users
+        $AceDomainUsers = Get-UserAceCounts -DataTable $ExcessiveSharePrivs -UserName "Domain Users"
+        $AceDomainUsersAclCount = $AceDomainUsers.UserAclsCount 
+        $AceDomainUsersShareCount = $AceDomainUsers.UserShareCount 
+        $AceDomainUsersComputerCount = $AceDomainUsers.UserComputerCount 
 
         # ACE User: Domain Computers
+        $AceDomainComputers = Get-UserAceCounts -DataTable $ExcessiveSharePrivs -UserName "Domain Computers"
+        $AceDomainComputersAclCount = $AceDomainComputers.UserAclsCount 
+        $AceDomainComputersShareCount = $AceDomainComputers.UserShareCount 
+        $AceDomainComputersComputerCount = $AceDomainComputers.UserComputerCount 
         
         Write-Output " [*] - $Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names."
 
@@ -1704,21 +1726,21 @@ $NewHtmlReport = @"
 	<tr>
 	  <td>Everyone</td>		  
 	  <td>
-		  <span class="dashboardsub2">20% (20 of 100)</span>
+		  <span class="dashboardsub2">20% ($AceEveryoneShareCount of 100)</span>
 		  <br>
 		  <div class="divbarDomain">
 			<div class="divbarDomainInside" style="width: 40px;"></div>
 		  </div>
       </td>     	 	  
 	  <td>
-		<span class="dashboardsub2">20% (20 of 100)</span>
+		<span class="dashboardsub2">20% ($AceEveryoneShareCount of 100)</span>
 		<br>
 		<div class="divbarDomain">
 			<div class="divbarDomainInside" style="width: 40px;"></div>
 		</div>
       </td>  	  
 	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
+	  <span class="dashboardsub2">20% ($AceEveryoneAclCount of 100)</span>
       <br>
       <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
       </td>    	  
@@ -1726,21 +1748,21 @@ $NewHtmlReport = @"
 	<tr>
 	  <td>Users</td>		  
 	  <td>
-		  <span class="dashboardsub2">20% (20 of 100)</span>
+		  <span class="dashboardsub2">20% ($AceUsersComputerCount of 100)</span>
 		  <br>
 		  <div class="divbarDomain">
 			<div class="divbarDomainInside" style="width: 40px;"></div>
 		  </div>
       </td>     	 	  
 	  <td>
-		<span class="dashboardsub2">20% (20 of 100)</span>
+		<span class="dashboardsub2">20% ($AceUsersShareCount of 100)</span>
 		<br>
 		<div class="divbarDomain">
 			<div class="divbarDomainInside" style="width: 40px;"></div>
 		</div>
       </td>  	  
 	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
+	  <span class="dashboardsub2">20% ($AceUsersAclCount of 100)</span>
       <br>
       <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
       </td>    	  
@@ -1748,21 +1770,21 @@ $NewHtmlReport = @"
 	<tr>
 	  <td>Authenticated Users</td>		  
 	  <td>
-		  <span class="dashboardsub2">20% (20 of 100)</span>
+		  <span class="dashboardsub2">20% ($AceAuthenticatedUsersComputerCount of 100)</span>
 		  <br>
 		  <div class="divbarDomain">
 			<div class="divbarDomainInside" style="width: 40px;"></div>
 		  </div>
       </td>     	 	  
 	  <td>
-		<span class="dashboardsub2">20% (20 of 100)</span>
+		<span class="dashboardsub2">20% ($AceAuthenticatedUsersShareCount of 100)</span>
 		<br>
 		<div class="divbarDomain">
 			<div class="divbarDomainInside" style="width: 40px;"></div>
 		</div>
       </td>  	  
 	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
+	  <span class="dashboardsub2">20% ($AceAuthenticatedUsersAclCount of 100)</span>
       <br>
       <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
       </td>    	  
@@ -1770,21 +1792,21 @@ $NewHtmlReport = @"
 	<tr>
 	  <td>Domain Users</td>		  
 	  <td>
-		  <span class="dashboardsub2">20% (20 of 100)</span>
+		  <span class="dashboardsub2">20% ($AceDomainUsersComputerCount of 100)</span>
 		  <br>
 		  <div class="divbarDomain">
 			<div class="divbarDomainInside" style="width: 40px;"></div>
 		  </div>
       </td>     	 	  
 	  <td>
-		<span class="dashboardsub2">20% (20 of 100)</span>
+		<span class="dashboardsub2">20% ($AceDomainUsersShareCount of 100)</span>
 		<br>
 		<div class="divbarDomain">
 			<div class="divbarDomainInside" style="width: 40px;"></div>
 		</div>
       </td>  	  
 	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
+	  <span class="dashboardsub2">20% ($AceDomainUsersAclCount of 100)</span>
       <br>
       <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
       </td>    	  
@@ -1792,21 +1814,21 @@ $NewHtmlReport = @"
 	<tr>
 	  <td>Domain Computers</td>		  
 	  <td>
-		  <span class="dashboardsub2">20% (20 of 100)</span>
+		  <span class="dashboardsub2">20% ($AceDomainComputersComputerCount of 100)</span>
 		  <br>
 		  <div class="divbarDomain">
 			<div class="divbarDomainInside" style="width: 40px;"></div>
 		  </div>
       </td>     	 	  
 	  <td>
-		<span class="dashboardsub2">20% (20 of 100)</span>
+		<span class="dashboardsub2">20% ($AceDomainComputersShareCount of 100)</span>
 		<br>
 		<div class="divbarDomain">
 			<div class="divbarDomainInside" style="width: 40px;"></div>
 		</div>
       </td>  	  
 	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
+	  <span class="dashboardsub2">20% ($AceDomainComputersAclCount of 100)</span>
       <br>
       <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
       </td>    	  
@@ -2345,6 +2367,36 @@ The 5 most common share names are:
 # //////////////////////////////////////////////////////////////////////////
 # Functions used by Get-SmbShareInventory
 # //////////////////////////////////////////////////////////////////////////
+
+# -------------------------------------------
+# Function: Get-UserAceCounts
+# -------------------------------------------
+function Get-UserAceCounts
+{
+    param (
+        $DataTable,
+        $UserName
+    )
+
+    # Get acl counts
+    $UserAcls = $DataTable | Where IdentityReference -like "$UserName" | Select-Object ComputerName, ShareName, SharePath, FileSystemRights
+    $UserAclsCount = $UserAcls.count
+
+    # Get share counts
+    $UserShare = $UserAcls | Select-Object SharePath -Unique
+    $UserShareCount = $UserShare.count
+
+    # Get computer counts
+    $UserComputer = $UserAcls | Select-Object ComputerName -Unique
+    $UserComputerCount = $UserComputer.count
+
+    # Return object with all counts
+    $TheCounts = new-object psobject            
+    $TheCounts | add-member  Noteproperty UserAclsCount          $UserAclsCount
+    $TheCounts | add-member  Noteproperty UserShareCount         $UserShareCount
+    $TheCounts | add-member  Noteproperty UserComputerCount      $UserComputerCount
+    $TheCounts
+}
 
 # -------------------------------------------
 # Function: Get-FolderGroupMd5
