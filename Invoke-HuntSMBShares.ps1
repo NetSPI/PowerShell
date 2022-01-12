@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.41
+# Version: v1.3.43
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -605,6 +605,24 @@ function Invoke-HuntSMBShares
         $CommonShareOwnersTop5 = $CommonShareOwners | Select-Object count,name -First 5
 
         # ----------------------------------------------------------------------
+        # Identify common excessive share groups (group by file list)
+        # ----------------------------------------------------------------------
+        
+        # Get share owner list
+        $CommonShareFileGroup = $ExcessiveSharePrivs | 
+        Select-Object FileListGroup | 
+        Group-Object FileListGroup| 
+        Select-Object count,name |
+        Sort-Object Count -Descending
+
+        # Save list
+        $CommonShareFileGroup | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Common-FileGroups.csv"
+        $CommonShareFileGroupCount = $CommonShareFileGroup.count 
+
+        # Get top  5
+        $CommonShareFileGroupTop5 = $CommonShareFileGroup | Select-Object count,name,filecount -First 5
+
+        # ----------------------------------------------------------------------
         # Identify common share names
         # ----------------------------------------------------------------------
 
@@ -816,6 +834,37 @@ function Invoke-HuntSMBShares
 		if($username -like ""){$username = whoami}
 		$SourceIps = (Get-NetIPAddress | where AddressState -like "*Pref*" | where AddressFamily -like "ipv4" | where ipaddress -notlike "127.0.0.1" | select IpAddress).ipaddress -join (",")
 		$SourceHost = (hostname) + " ($SourceIps)"
+
+        # Get share list string list
+       $CommonShareFileGroupTopString = $CommonShareFileGroupTop5 |
+        foreach {
+            $FileGroupCount = $_.count
+            $FileGroupName = $_.name  
+            $ThisFileList = $_.FileList           
+            $ThisFileCount = $_.FileCount
+            $ThisRow = @" 
+	          <tr>
+	          <td>
+              $FileGroupCount
+	          </td>	
+	          <td>
+              $FileGroupName
+	          </td>		  
+	          <td>
+	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          </td>		  
+	          <td>
+	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          </td>  
+	          <td>
+	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          </td>          	  
+	          </tr>
+"@              
+            $ThisRow
+        }
+
+        # Get share name string list
         $CommonShareNamesTopString = $CommonShareNamesTop5 |
         foreach {
             $ShareCount = $_.count
@@ -823,11 +872,66 @@ function Invoke-HuntSMBShares
             Write-Output "$ShareCount $ShareName <br>"   
         }  
 
+        # Get share name string list table
+        $CommonShareNamesTopStringT = $CommonShareNamesTop5 |
+        foreach {
+            $ShareCount = $_.count
+            $ShareName = $_.name
+            $ThisRow = @" 
+	          <tr>
+	          <td>
+              $ShareCount
+	          </td>	
+	          <td>
+              $ShareName
+	          </td>		  
+	          <td>
+	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          </td>		  
+	          <td>
+	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          </td>  
+	          <td>
+	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          </td>          	  
+	          </tr>
+"@              
+            $ThisRow  
+        } 
+
+        # Get owner string list 
         $CommonShareOwnersTop5String = $CommonShareOwnersTop5 |
         foreach {
             $ShareCount = $_.count
             $ShareOwner = $_.name
             Write-Output "$ShareCount $ShareOwner<br>"   
+        } 
+
+        # Get owner string list table
+        $CommonShareOwnersTop5StringT = $CommonShareOwnersTop5 |
+        foreach {
+            $ShareCount = $_.count
+            $ShareOwner = $_.name
+            $ThisRow = @" 
+	          <tr>
+	          <td>
+              $ShareCount
+	          </td>	
+	          <td>
+              $ShareOwner
+	          </td>		  
+	          <td>
+	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          </td>		  
+	          <td>
+	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          </td>  
+	          <td>
+	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          </td>          	  
+	          </tr>
+"@              
+            $ThisRow    
         } 
 
         
@@ -1225,7 +1329,7 @@ $NewHtmlReport = @"
 		<span style="color:#9B3722;font-size:12">$ExcessiveSharePrivsCount affected</span>
 	 </th>
 	  <th style="vertical-align: top;">
-	   KEY<br>
+	   Key<br>
 	   <span class = "dotkey" style="vertical-align:middle"></span>	   
 	   <span style="font-size:12;vertical-align:middle">Excessive Share Privileges</span>
 	   <br>
@@ -1713,35 +1817,15 @@ $NewHtmlReport = @"
 <table class="table table-striped table-hover">
   <thead>
     <tr>      
+      <th align="left">Count</th> 
       <th align="left">Name</th>
       <th align="left">Affected Computers</th>
 	  <th align="left">Affected Shares</th>
 	  <th align="left">Affected ACLs</th>	 	 
     </tr>
   </thead>
-  <tbody>
-  <tr>
-	  <td>
-	  $CommonShareNamesTopString
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>     	 
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>  
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>                    	  
-    </tr>
+    <tbody>
+    $CommonShareNamesTopStringT
     </tbody>
 	</table>	
 
@@ -1749,6 +1833,7 @@ $NewHtmlReport = @"
 <table class="table table-striped table-hover">
   <thead>
     <tr>
+      <th align="left">Count</th>  
       <th align="left">Name</th>
       <th align="left">Affected Computers</th>
 	  <th align="left">Affected Shares</th>
@@ -1756,35 +1841,15 @@ $NewHtmlReport = @"
     </tr>
   </thead>
   <tbody>
-  <tr>
-	  <td>
-	  $CommonShareNamesTopString
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>     	 
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>  
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>                    	  
-    </tr>	
-    </tbody>
-	</table>
+  $CommonShareFileGroupTopString	
+  </tbody>
+</table>
 
 <div class="landingheader2"> 5 Most Common Owners</div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>
+      <th align="left">Count</th> 
       <th align="left">Name</th>
       <th align="left">Affected Computers</th>
 	  <th align="left">Affected Shares</th>
@@ -1792,30 +1857,9 @@ $NewHtmlReport = @"
     </tr>
   </thead>
   <tbody>
-  <tr>
-	  <td>
-      $CommonShareOwnersTop5String
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>     	 
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>  
-	  </td>		  
-	  <td>
-	  <span class="dashboardsub2">20% (20 of 100)</span>
-      <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>
-      </td>          	  
-    </tr>	
-    </tbody>
-	</table>
+  $CommonShareOwnersTop5StringT	
+  </tbody>
+  </table>
 	
 </div>
 <input class="tabInput"  name="tabs" type="radio" id="recsum"/>
