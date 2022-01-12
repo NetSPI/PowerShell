@@ -770,9 +770,6 @@ function Invoke-HuntSMBShares
         $AceEveryoneShareCount = $AceEveryone.UserShareCount 
         $AceEveryoneComputerCount = $AceEveryone.UserComputerCount 
 
-        write-output "Everyone comnputer count: $AceEveryoneComputerCount"
-        write-output "Everyone share count: $AceEveryoneShareCount"
-
 	    $AceEveryoneAclP = Get-PercentDisplay -TargetCount $AceEveryoneComputerCount -FullCount $ComputerCount 
         $AceEveryoneAclPS = $AceEveryoneAclP.PercentString
         $AceEveryoneAclPB = $AceEveryoneAclP.PercentBarVal
