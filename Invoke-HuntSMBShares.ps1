@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.48
+# Version: v1.3.49
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -781,6 +781,10 @@ function Invoke-HuntSMBShares
         $AceEveryoneComputerCountP = Get-PercentDisplay -TargetCount $AceEveryoneAclCount -FullCount $ShareACLsCount
         $AceEveryoneComputerCountPS = $AceEveryoneComputerCountP.PercentString
         $AceEveryoneComputerCountPB = $AceEveryoneComputerCountP.PercentBarVal
+
+        # $AclEveryoneRead = Select SharePath,FileSystemRights,IdentityReference from allexcessiveprivs where IdentityReference like "everyone" and FileSystemRights like "read"
+        # $AclEveryoneWrite = Select SharePath,FileSystemRights,IdentityReference from writetable where IdentityReference like "everyone" 
+        # $AclEveryoneHighRisk = Select SharePath,FileSystemRights,IdentityReference from highrisktable where IdentityReference like "everyone" 
 
         # ACE User: Users
         $AceUsers = Get-UserAceCounts -DataTable $ExcessiveSharePrivs -UserName "BUILTIN\Users"
@@ -1785,6 +1789,7 @@ $NewHtmlReport = @"
   <thead>
     <tr>
       <th align="left">Name</th>
+      <th align="left">Exposure Summary</th>
       <th align="left">Affected Computers</th>
 	  <th align="left">Affected Shares</th>
 	  <th align="left">Affected ACLs</th>	 	 
@@ -1792,7 +1797,12 @@ $NewHtmlReport = @"
   </thead>
   <tbody>
 	<tr>
-	  <td>Everyone</td>		  
+	  <td>Everyone</td>	
+      <td>
+      READ     : 0.96% (2 of 251)<br>
+      WRITE    : 0.96% (2 of 251)<br>
+      HIGH RISK: 0.96% (2 of 251)<br>
+      </td>		  
 	  <td>
 		  <span class="dashboardsub2">$AceEveryoneComputerCountPS ($AceEveryoneComputerCount of $ComputerCount)</span>
 		  <br>
@@ -1814,7 +1824,12 @@ $NewHtmlReport = @"
       </td>    	  
     </tr>	
 	<tr>
-	  <td>BUILTIN\Users</td>		  
+	  <td>BUILTIN\Users</td>		
+      <td>
+      READ     : 0.96% (2 of 251)<br>
+      WRITE    : 0.96% (2 of 251)<br>
+      HIGH RISK: 0.96% (2 of 251)<br>
+      </td>  
 	  <td>
 		  <span class="dashboardsub2">$AceUsersComputerCountPS ($AceUsersComputerCount of $ComputerCount)</span>
 		  <br>
@@ -1836,7 +1851,12 @@ $NewHtmlReport = @"
       </td>    	  
     </tr>	
 	<tr>
-	  <td>NT AUTHORITY\Authenticated Users</td>		  
+	  <td>NT AUTHORITY\Authenticated Users</td>
+      <td>
+      READ     : 0.96% (2 of 251)<br>
+      WRITE    : 0.96% (2 of 251)<br>
+      HIGH RISK: 0.96% (2 of 251)<br>
+      </td>		  
 	  <td>
 		  <span class="dashboardsub2">$AceAuthenticatedUsersComputerCountPS ($AceAuthenticatedUsersComputerCount of $ComputerCount)</span>
 		  <br>
@@ -1858,7 +1878,12 @@ $NewHtmlReport = @"
       </td>    	  
     </tr>	
 	<tr>
-	  <td>Domain Users</td>		  
+	  <td>Domain Users</td>	
+      <td>
+      READ     : 0.96% (2 of 251)<br>
+      WRITE    : 0.96% (2 of 251)<br>
+      HIGH RISK: 0.96% (2 of 251)<br>
+      </td>	  
 	  <td>
 		  <span class="dashboardsub2">$AceDomainUsersComputerCountPS ($AceDomainUsersComputerCount of $ComputerCount)</span>
 		  <br>
@@ -1880,7 +1905,12 @@ $NewHtmlReport = @"
       </td>    	  
     </tr>
 	<tr>
-	  <td>Domain Computers</td>		  
+	  <td>Domain Computers</td>	
+      <td>
+      READ     : 0.96% (2 of 251)<br>
+      WRITE    : 0.96% (2 of 251)<br>
+      HIGH RISK: 0.96% (2 of 251)<br>
+      </td>	  
 	  <td>
 		  <span class="dashboardsub2">$AceDomainComputersComputerCountPS ($AceDomainComputersComputerCount of $ComputerCount)</span>
 		  <br>
