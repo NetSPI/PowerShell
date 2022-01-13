@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.64
+# Version: v1.3.65
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -2730,15 +2730,15 @@ function Get-UserAceCounts
 
     # Get acl counts
     $UserAcls = $DataTable | Where IdentityReference -like "$UserName" | Select-Object ComputerName, ShareName, SharePath, FileSystemRights
-    $UserAclsCount = $UserAcls.count
+    $UserAclsCount = $UserAcls | measure | select count -ExpandProperty count
 
     # Get share counts
     $UserShare = $UserAcls | Select-Object SharePath -Unique
-    $UserShareCount = $UserShare.count
+    $UserShareCount = $UserShare  | measure | select count -ExpandProperty count
 
     # Get computer counts
     $UserComputer = $UserAcls | Select-Object ComputerName -Unique
-    $UserComputerCount = $UserComputer.count
+    $UserComputerCount = $UserComputer | measure | select count -ExpandProperty count
 
     # Get read counts 
     $UserReadAcl = $UserAcls | 
