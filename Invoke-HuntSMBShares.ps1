@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.55
+# Version: v1.3.56
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -774,8 +774,8 @@ function Invoke-HuntSMBShares
         $AceEveryoneShareCount = $AceEveryone.UserShareCount 
         $AceEveryoneComputerCount = $AceEveryone.UserComputerCount 
         $AceEveryoneAclReadCount = $AceEveryone.UserReadAclCount
-        $AceEveryoneAclWriteCount = $AceEveryone.UserWriteCount
-        $AceEveryoneAclHRCount = $AceEveryone.UserHighRiskCount
+        $AceEveryoneAclWriteCount = $AceEveryone.UserWriteAclCount
+        $AceEveryoneAclHRCount = $AceEveryone.UserHighRiskAclCount
 
 	    $AceEveryoneAclP = Get-PercentDisplay -TargetCount $AceEveryoneComputerCount -FullCount $ComputerCount 
         $AceEveryoneAclPS = $AceEveryoneAclP.PercentString
@@ -795,8 +795,8 @@ function Invoke-HuntSMBShares
         $AceUsersShareCount = $AceUsers.UserShareCount 
         $AceUsersComputerCount = $AceUsers.UserComputerCount         
         $AceUsersAclReadCount = $AceUsers.UserReadAclCount
-        $AceUsersAclWriteCount = $AceUsers.UserWriteCount
-        $AceUsersAclHRCount = $AceUsers.UserHighRiskCount
+        $AceUsersAclWriteCount = $AceUsers.UserWriteACLCount
+        $AceUsersAclHRCount = $AceUsers.UserHighRiskACLCount
 
         $AceUsersAclP = Get-PercentDisplay -TargetCount $AceUsersComputerCount -FullCount $ComputerCount 
         $AceUsersAclPS = $AceUsersAclP.PercentString
@@ -816,8 +816,8 @@ function Invoke-HuntSMBShares
         $AceAuthenticatedUsersShareCount    = $AceAuthenticatedUsers.UserShareCount 
         $AceAuthenticatedUsersAclCount      = $AceAuthenticatedUsers.UserAclsCount 
         $AceAuthenticatedUsersAclReadCount  = $AceAuthenticatedUsers.UserReadAclCount
-        $AceAuthenticatedUsersAclWriteCount = $AceAuthenticatedUsers.UserWriteCount
-        $AceAuthenticatedUsersAclHRCount    = $AceAuthenticatedUsers.UserHighRiskCount
+        $AceAuthenticatedUsersAclWriteCount = $AceAuthenticatedUsers.UserWriteACLCount
+        $AceAuthenticatedUsersAclHRCount    = $AceAuthenticatedUsers.UserHighRiskACLCount
 
         $AceAuthenticatedUsersAclP = Get-PercentDisplay -TargetCount $AceAuthenticatedUsersComputerCount -FullCount $ComputerCount 
         $AceAuthenticatedUsersAclPS = $AceAuthenticatedUsersAclP.PercentString
@@ -837,8 +837,8 @@ function Invoke-HuntSMBShares
         $AceDomainUsersShareCount    = $AceDomainUsers.UserShareCount 
         $AceDomainUsersComputerCount = $AceDomainUsers.UserComputerCount 
         $AceDomainUsersAclReadCount  = $AceDomainUsers.UserReadAclCount
-        $AceDomainUsersAclWriteCount = $AceDomainUsers.UserWriteCount
-        $AceDomainUsersAclHRCount    = $AceDomainUsers.UserHighRiskCount
+        $AceDomainUsersAclWriteCount = $AceDomainUsers.UserWriteACLCount
+        $AceDomainUsersAclHRCount    = $AceDomainUsers.UserHighRiskACLCount
 
 	    $AceDomainUsersAclP = Get-PercentDisplay -TargetCount $AceDomainUsersComputerCount -FullCount $ComputerCount 
         $AceDomainUsersAclPS = $AceDomainUsersAclP.PercentString
@@ -858,8 +858,8 @@ function Invoke-HuntSMBShares
         $AceDomainComputersShareCount = $AceDomainComputers.UserShareCount 
         $AceDomainComputersComputerCount = $AceDomainComputers.UserComputerCount
         $AceDomainComputersAclReadCount = $AceDomainComputers.UserReadAclCount
-        $AceDomainComputersAclWriteCount = $AceDomainComputers.UserWriteCount
-        $AceDomainComputersAclHRCount = $AceDomainComputers.UserHighRiskCount
+        $AceDomainComputersAclWriteCount = $AceDomainComputers.UserWriteACLCount
+        $AceDomainComputersAclHRCount = $AceDomainComputers.UserHighRiskACLCount
         
 	    $AceDomainComputersAclP = Get-PercentDisplay -TargetCount $AceDomainComputersComputerCount -FullCount $ComputerCount 
         $AceDomainComputersAclPS = $AceDomainComputersAclP.PercentString
@@ -2624,8 +2624,8 @@ function Get-UserAceCounts
     $TheCounts | add-member  Noteproperty UserShareCount         $UserShareCount
     $TheCounts | add-member  Noteproperty UserComputerCount      $UserComputerCount
     $TheCounts | add-member  Noteproperty UserReadAclCount       $UserReadAclCount
-    $TheCounts | add-member  Noteproperty UserWriteCount         $UserWriteAclCount
-    $TheCounts | add-member  Noteproperty UserHighRiskCount      $UserHighRiskAclCount
+    $TheCounts | add-member  Noteproperty UserWriteAclCount      $UserWriteAclCount
+    $TheCounts | add-member  Noteproperty UserHighRiskAclCount   $UserHighRiskAclCount
     $TheCounts
 }
 
