@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.50
+# Version: v1.3.52
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1784,12 +1784,12 @@ $NewHtmlReport = @"
 <label class="tabLabel" onClick="updateTab('datainsights',false)" for="datainsights">Data Insights</label>
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">This section contains data insights that could be helpful when planning a prioritizing remediation efforts.</p>
-<div class="landingheader2"><span class="landingheader2a">Excessive ACE Summary</span></div>
+<div class="landingheader2"><span class="landingheader2a">Excessive Access Summary by Group</span></div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>
       <th align="left">Name</th>
-      <th align="left">Exposure Summary</th>
+      <th align="left">Excessive Access</th>
       <th align="left">Affected Computers</th>
 	  <th align="left">Affected Shares</th>
 	  <th align="left">Affected ACLs</th>	 	 
@@ -1807,9 +1807,9 @@ $NewHtmlReport = @"
 			High Risk<br> 
 			</div>
 			<div class="ScanSummarysecond">
-			 : 0.96% (2 of 251)<br> 
-			 : 0.96% (2 of 251)<br>
-			 : 0.96% (2 of 251)
+			 : 2 <br> 
+			 : 1 <br>
+			 : 0 
 			</div>
 		  </div>
 	  </span>
@@ -1837,9 +1837,20 @@ $NewHtmlReport = @"
 	<tr>
 	  <td>BUILTIN\Users</td>		
       <td>
-      READ     : 0.96% (2 of 251)<br>
-      WRITE    : 0.96% (2 of 251)<br>
-      HIGH RISK: 0.96% (2 of 251)<br>
+ 	  <span class="scansum">
+		  <div class="ScanSummarywrapper">
+			<div class="ScanSummaryfirst">
+			Read<br> 
+			Write<br> 
+			High Risk<br> 
+			</div>
+			<div class="ScanSummarysecond">
+			 : 2 <br> 
+			 : 1 <br>
+			 : 0 
+			</div>
+		  </div>
+	  </span>
       </td>  
 	  <td>
 		  <span class="dashboardsub2">$AceUsersComputerCountPS ($AceUsersComputerCount of $ComputerCount)</span>
@@ -1864,9 +1875,20 @@ $NewHtmlReport = @"
 	<tr>
 	  <td>NT AUTHORITY\Authenticated Users</td>
       <td>
-      READ     : 0.96% (2 of 251)<br>
-      WRITE    : 0.96% (2 of 251)<br>
-      HIGH RISK: 0.96% (2 of 251)<br>
+ 	  <span class="scansum">
+		  <div class="ScanSummarywrapper">
+			<div class="ScanSummaryfirst">
+			Read<br> 
+			Write<br> 
+			High Risk<br> 
+			</div>
+			<div class="ScanSummarysecond">
+			 : 2 <br> 
+			 : 1 <br>
+			 : 0 
+			</div>
+		  </div>
+	  </span>
       </td>		  
 	  <td>
 		  <span class="dashboardsub2">$AceAuthenticatedUsersComputerCountPS ($AceAuthenticatedUsersComputerCount of $ComputerCount)</span>
@@ -1891,9 +1913,20 @@ $NewHtmlReport = @"
 	<tr>
 	  <td>Domain Users</td>	
       <td>
-      READ     : 0.96% (2 of 251)<br>
-      WRITE    : 0.96% (2 of 251)<br>
-      HIGH RISK: 0.96% (2 of 251)<br>
+ 	  <span class="scansum">
+		  <div class="ScanSummarywrapper">
+			<div class="ScanSummaryfirst">
+			Read<br> 
+			Write<br> 
+			High Risk<br> 
+			</div>
+			<div class="ScanSummarysecond">
+			 : 2 <br> 
+			 : 1 <br>
+			 : 0 
+			</div>
+		  </div>
+	  </span>
       </td>	  
 	  <td>
 		  <span class="dashboardsub2">$AceDomainUsersComputerCountPS ($AceDomainUsersComputerCount of $ComputerCount)</span>
@@ -1918,9 +1951,20 @@ $NewHtmlReport = @"
 	<tr>
 	  <td>Domain Computers</td>	
       <td>
-      READ     : 0.96% (2 of 251)<br>
-      WRITE    : 0.96% (2 of 251)<br>
-      HIGH RISK: 0.96% (2 of 251)<br>
+ 	  <span class="scansum">
+		  <div class="ScanSummarywrapper">
+			<div class="ScanSummaryfirst">
+			Read<br> 
+			Write<br> 
+			High Risk<br> 
+			</div>
+			<div class="ScanSummarysecond">
+			 : 2 <br> 
+			 : 1 <br>
+			 : 0 
+			</div>
+		  </div>
+	  </span>
       </td>	  
 	  <td>
 		  <span class="dashboardsub2">$AceDomainComputersComputerCountPS ($AceDomainComputersComputerCount of $ComputerCount)</span>
