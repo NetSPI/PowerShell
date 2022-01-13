@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.56
+# Version: v1.3.58
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -761,12 +761,6 @@ function Invoke-HuntSMBShares
         $PercentAclHighRisk = [math]::Round($AclHighRiskCount/$ShareACLsCount,4)
         $PercentAclHighRiskP = $PercentAclHighRisk.tostring("P") -replace(" ","")
         $PercentAclHighRiskBarVal = ($PercentAclHighRisk *2).tostring("P") -replace(" %","px")
-
-        # Top 5 Share Owners
-
-        # Top 5 Share Names
-
-        # Top 5 Share Groups
         
         # ACE User: Everyone
         $AceEveryone = Get-UserAceCounts -DataTable $ExcessiveSharePrivs -UserName "everyone"
@@ -978,6 +972,10 @@ function Invoke-HuntSMBShares
         foreach {
             $ShareCount = $_.count
             $ShareName = $_.name
+            $ShareNameBars = Get-GroupNameBar -DataTable $ExcessiveSharePrivs -Name $ShareName -AllComputerCount $ComputerCount -AllShareCount $AllSMBSharesCount -AllAclCount $ShareACLsCount
+            $ComputerBar = $ShareNameBars.ComputerBar
+            $ShareBar = $ShareNameBars.ShareBar
+            $AclBar = $ShareNameBars.AclBar
             $ThisRow = @" 
 	          <tr>
 	          <td>
@@ -987,13 +985,13 @@ function Invoke-HuntSMBShares
               $ShareName
 	          </td>		  
 	          <td>
-	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          $ComputerBar     	 
 	          </td>		  
 	          <td>
-	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          $ShareBar    	 
 	          </td>  
 	          <td>
-	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          $AclBar     	 
 	          </td>          	  
 	          </tr>
 "@              
@@ -1013,6 +1011,7 @@ function Invoke-HuntSMBShares
         foreach {
             $ShareCount = $_.count
             $ShareOwner = $_.name
+            #get bars here
             $ThisRow = @" 
 	          <tr>
 	          <td>
@@ -2560,6 +2559,51 @@ function Get-PercentDisplay
     $TheCounts = new-object psobject            
     $TheCounts | add-member  Noteproperty PercentString         $PercentString
     $TheCounts | add-member  Noteproperty PercentBarVal         $PercentBarVal    
+    $TheCounts
+}
+
+# -------------------------------------------
+# Function: Get-GroupNameCounts
+# -------------------------------------------
+function Get-GroupNameBar
+{
+    param (
+        $DataTable,
+        $Name,
+        $AllComputerCount,
+        $AllShareCount,
+        $AllAclCount
+    )
+
+    # Get acl counts
+    $UserAcls = $DataTable | Where ShareName -like "$Name" | Select-Object ComputerName, ShareName, SharePath, FileSystemRights
+    $UserAclsCount = $UserAcls.count
+    $UserAclsPercent = [math]::Round($UserAclsCount/$AllAclCount,4)
+    $UserAclsPercentString = $UserAclsPercent.tostring("P") -replace(" ","")
+    $UserAclsPercentBarVal = ($UserAclsPercent *2).tostring("P") -replace(" %","px")
+    $UserAclsPercentBarCode = "<span class=`"dashboardsub2`">$UserAclsPercentString ($UserAclsCount of $AllAclCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserAclsPercentBarVal;`"></div></div>"
+
+    # Get share counts
+    $UserShare = $UserAcls | Select-Object SharePath -Unique
+    $UserShareCount = $UserShare.count
+    $UserSharePercent = [math]::Round($UserShareCount/$AllShareCount,4)
+    $UserSharePercentString = $UserSharePercent.tostring("P") -replace(" ","")
+    $UserSharePercentBarVal = ($UserSharePercent *2).tostring("P") -replace(" %","px")
+    $UserSharePercentBarCode = "<span class=`"dashboardsub2`">$UserSharePercentString ($UserShareCount of $AllShareCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserSharePercentBarVal;`"></div></div>"
+
+    # Get computer counts
+    $UserComputer = $UserAcls | Select-Object ComputerName -Unique
+    $UserComputerCount = $UserComputer.count    
+    $UserComputerPercent = [math]::Round($UserComputerCount/$AllComputerCount,4)
+    $UserComputerPercentString = $UserComputerPercent.tostring("P") -replace(" ","")
+    $UserComputerPercentBarVal = ($UserComputerPercent *2).tostring("P") -replace(" %","px")
+    $UserComputerPercentBarCode = "<span class=`"dashboardsub2`">$UserComputerPercentString ($UserComputerCount of $AllComputerCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserComputerPercentBarVal;`"></div></div>"
+
+    # Return object with all counts
+    $TheCounts = new-object psobject            
+    $TheCounts | add-member  Noteproperty ComputerBar   $UserComputerPercentBarCode
+    $TheCounts | add-member  Noteproperty ShareBar      $UserSharePercentBarCode    
+    $TheCounts | add-member  Noteproperty AclBar        $UserAclsPercentBarCode
     $TheCounts
 }
 
