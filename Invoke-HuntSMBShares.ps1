@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.49
+# Version: v1.3.50
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1799,9 +1799,20 @@ $NewHtmlReport = @"
 	<tr>
 	  <td>Everyone</td>	
       <td>
-      READ     : 0.96% (2 of 251)<br>
-      WRITE    : 0.96% (2 of 251)<br>
-      HIGH RISK: 0.96% (2 of 251)<br>
+ 	  <span class="scansum">
+		  <div class="ScanSummarywrapper">
+			<div class="ScanSummaryfirst">
+			Read<br> 
+			Write<br> 
+			High Risk<br> 
+			</div>
+			<div class="ScanSummarysecond">
+			 : 0.96% (2 of 251)<br> 
+			 : 0.96% (2 of 251)<br>
+			 : 0.96% (2 of 251)
+			</div>
+		  </div>
+	  </span>
       </td>		  
 	  <td>
 		  <span class="dashboardsub2">$AceEveryoneComputerCountPS ($AceEveryoneComputerCount of $ComputerCount)</span>
