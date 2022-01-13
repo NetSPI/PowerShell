@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.59
+# Version: v1.3.61
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -590,23 +590,24 @@ function Invoke-HuntSMBShares
         # ----------------------------------------------------------------------
         
         # Get share owner list
-        $CommonShareOwners = $ExcessiveSharePrivs | 
+        $CommonShareOwners = $ExcessiveSharePrivs | Select SharePath,ShareOwner -Unique |
         Select-Object ShareOwner | 
         <#
         where ShareOwner -notlike "BUILTIN\Administrators" |
         where ShareOwner -notlike "NT AUTHORITY\SYSTEM" |
         where ShareOwner -notlike "NT SERVICE\TrustedInstaller" |
         #>
-        Group-Object ShareOwner | 
+        Group-Object ShareOwner |
+        Sort-Object ShareOwner | 
         Select-Object count,name |
         Sort-Object Count -Descending
 
         # Save list
         $CommonShareOwners | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Common-Owners.csv"
-        $CommonShareOwnersCount = $CommonShareOwners.count 
+        $CommonShareOwnersCount = $CommonShareOwners | measure | select count -ExpandProperty count
 
         # Get top  5
-        $CommonShareOwnersTop5 = $CommonShareOwners | Select-Object count,name -First $SampleSum
+        $CommonShareOwnersTop5 = $CommonShareOwners | Select-Object count,name -First $SampleSum 
 
         # ----------------------------------------------------------------------
         # Identify common excessive share groups (group by file list)
@@ -624,7 +625,7 @@ function Invoke-HuntSMBShares
         $CommonShareFileGroupCount = $CommonShareFileGroup.count 
 
         # Get top  5
-        $CommonShareFileGroupTop5 = $CommonShareFileGroup | Select-Object count,name,filecount -First $SampleSum
+        $CommonShareFileGroupTop5 = $CommonShareFileGroup | Select-Object count,name,filecount -First $SampleSum 
 
         # ----------------------------------------------------------------------
         # Identify common share names
@@ -633,7 +634,7 @@ function Invoke-HuntSMBShares
         # Status user
         Write-Output " [*] Generating summary data"
         Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Common-Names.csv"
-        $CommonShareNames = $ExcessiveSharePrivs | Select-Object ComputerName,ShareName -Unique | Group-Object ShareName | Sort Count -Descending | select count,name | 
+        $CommonShareNames = $ExcessiveSharePrivs | Select-Object ComputerName,ShareName -Unique | Group-Object ShareName |Sort Count -Descending | select count,name | 
         foreach{
             if( ($_.name -ne 'SYSVOL') -and ($_.name -ne 'NETLOGON'))
             {
@@ -1011,7 +1012,10 @@ function Invoke-HuntSMBShares
         foreach {
             $ShareCount = $_.count
             $ShareOwner = $_.name
-            #get bars here
+            $ShareOwnerBars = Get-GroupOwnerBar -DataTable $ExcessiveSharePrivs -Name $ShareOwner -AllComputerCount $ComputerCount -AllShareCount $AllSMBSharesCount -AllAclCount $ShareACLsCount
+            $ComputerBarO = $ShareOwnerBars.ComputerBar
+            $ShareBarO = $ShareOwnerBars.ShareBar
+            $AclBarO = $ShareOwnerBars.AclBar
             $ThisRow = @" 
 	          <tr>
 	          <td>
@@ -1021,13 +1025,13 @@ function Invoke-HuntSMBShares
               $ShareOwner
 	          </td>		  
 	          <td>
-	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          $ComputerBarO
 	          </td>		  
 	          <td>
-	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          $ShareBarO
 	          </td>  
 	          <td>
-	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          $AclBarO
 	          </td>          	  
 	          </tr>
 "@              
@@ -2012,8 +2016,8 @@ $NewHtmlReport = @"
 <table class="table table-striped table-hover">
   <thead>
     <tr>      
-      <th align="left">Count</th> 
-      <th align="left">Name</th>
+      <th align="left">Share Count</th> 
+      <th align="left">Share Name</th>
       <th align="left">Affected Computers</th>
 	  <th align="left">Affected Shares</th>
 	  <th align="left">Affected ACLs</th>	 	 
@@ -2028,8 +2032,8 @@ $NewHtmlReport = @"
 <table class="table table-striped table-hover">
   <thead>
     <tr>
-      <th align="left">Count</th>  
-      <th align="left">Name</th>
+      <th align="left">Share Count</th>  
+      <th align="left">File Group</th>
       <th align="left">Affected Computers</th>
 	  <th align="left">Affected Shares</th>
 	  <th align="left">Affected ACLs</th>	 	 
@@ -2044,8 +2048,8 @@ $NewHtmlReport = @"
 <table class="table table-striped table-hover">
   <thead>
     <tr>
-      <th align="left">Count</th> 
-      <th align="left">Name</th>
+      <th align="left">Share Count</th> 
+      <th align="left">Owner</th>
       <th align="left">Affected Computers</th>
 	  <th align="left">Affected Shares</th>
 	  <th align="left">Affected ACLs</th>	 	 
@@ -2559,6 +2563,51 @@ function Get-PercentDisplay
     $TheCounts = new-object psobject            
     $TheCounts | add-member  Noteproperty PercentString         $PercentString
     $TheCounts | add-member  Noteproperty PercentBarVal         $PercentBarVal    
+    $TheCounts
+}
+
+# -------------------------------------------
+# Function: Get-GroupOwnerCounts
+# -------------------------------------------
+function Get-GroupOwnerBar
+{
+    param (
+        $DataTable,
+        $Name,
+        $AllComputerCount,
+        $AllShareCount,
+        $AllAclCount
+    )
+
+    # Get acl counts
+    $UserAcls = $DataTable | Where ShareOwner -like "$Name" | Select-Object ComputerName,ShareOwner,SharePath,FileSystemRights
+    $UserAclsCount = $UserAcls | measure | select count -ExpandProperty count
+    $UserAclsPercent = [math]::Round($UserAclsCount/$AllAclCount,4)
+    $UserAclsPercentString = $UserAclsPercent.tostring("P") -replace(" ","")
+    $UserAclsPercentBarVal = ($UserAclsPercent *2).tostring("P") -replace(" %","px")
+    $UserAclsPercentBarCode = "<span class=`"dashboardsub2`">$UserAclsPercentString ($UserAclsCount of $AllAclCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserAclsPercentBarVal;`"></div></div>"
+
+    # Get share counts
+    $UserShare = $UserAcls | Select-Object SharePath -Unique
+    $UserShareCount = $UserShare | measure | select count -ExpandProperty count
+    $UserSharePercent = [math]::Round($UserShareCount/$AllShareCount,4)
+    $UserSharePercentString = $UserSharePercent.tostring("P") -replace(" ","")
+    $UserSharePercentBarVal = ($UserSharePercent *2).tostring("P") -replace(" %","px")
+    $UserSharePercentBarCode = "<span class=`"dashboardsub2`">$UserSharePercentString ($UserShareCount of $AllShareCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserSharePercentBarVal;`"></div></div>"
+
+    # Get computer counts
+    $UserComputer = $UserAcls | Select-Object ComputerName -Unique
+    $UserComputerCount = $UserComputer | measure | select count -ExpandProperty count   
+    $UserComputerPercent = [math]::Round($UserComputerCount/$AllComputerCount,4)
+    $UserComputerPercentString = $UserComputerPercent.tostring("P") -replace(" ","")
+    $UserComputerPercentBarVal = ($UserComputerPercent *2).tostring("P") -replace(" %","px")
+    $UserComputerPercentBarCode = "<span class=`"dashboardsub2`">$UserComputerPercentString ($UserComputerCount of $AllComputerCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserComputerPercentBarVal;`"></div></div>"
+
+    # Return object with all counts
+    $TheCounts = new-object psobject            
+    $TheCounts | add-member  Noteproperty ComputerBar   $UserComputerPercentBarCode
+    $TheCounts | add-member  Noteproperty ShareBar      $UserSharePercentBarCode    
+    $TheCounts | add-member  Noteproperty AclBar        $UserAclsPercentBarCode
     $TheCounts
 }
 
