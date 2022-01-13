@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.65
+# Version: v1.3.66
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -934,7 +934,6 @@ function Invoke-HuntSMBShares
         # Get share list string list
        $CommonShareFileGroupTopString = $CommonShareFileGroupTop5 |
         foreach {
-            $FileGroupCount = $_.count
             $FileGroupName = $_.name              
             $ThisFileBars = Get-GroupFileBar -DataTable $ExcessiveSharePrivs -Name $FileGroupName -AllComputerCount $ComputerCount -AllShareCount $AllSMBSharesCount -AllAclCount $ShareACLsCount
             $ComputerBarF = $ThisFileBars.ComputerBar
@@ -942,10 +941,11 @@ function Invoke-HuntSMBShares
             $AclBarF = $ThisFileBars.AclBar
             $ThisFileList = $ThisFileBars.FileList           
             $ThisFileCount = $ThisFileBars.FileCount
+            $ThisFileShareCount = $ThisFileBars.Sharecount
             $ThisRow = @" 
 	          <tr>
 	          <td>
-              $FileGroupCount
+              $ThisFileShareCount
 	          </td>	
 	          <td>
               $FileGroupName
@@ -2713,8 +2713,9 @@ function Get-GroupFileBar
     $TheCounts | add-member  Noteproperty ComputerBar   $UserComputerPercentBarCode
     $TheCounts | add-member  Noteproperty ShareBar      $UserSharePercentBarCode    
     $TheCounts | add-member  Noteproperty AclBar        $UserAclsPercentBarCode
-    $TheCounts | add-member  Noteproperty FileCount              $FileCount
-    $TheCounts | add-member  Noteproperty FileList               $FileList
+    $TheCounts | add-member  Noteproperty FileCount     $FileCount
+    $TheCounts | add-member  Noteproperty FileList      $FileList
+    $TheCounts | add-member  Noteproperty ShareCount    $UserShareCount
     $TheCounts
 }
 
