@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.58
+# Version: v1.3.59
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -2577,7 +2577,7 @@ function Get-GroupNameBar
 
     # Get acl counts
     $UserAcls = $DataTable | Where ShareName -like "$Name" | Select-Object ComputerName, ShareName, SharePath, FileSystemRights
-    $UserAclsCount = $UserAcls.count
+    $UserAclsCount = $UserAcls | measure | select count -ExpandProperty count
     $UserAclsPercent = [math]::Round($UserAclsCount/$AllAclCount,4)
     $UserAclsPercentString = $UserAclsPercent.tostring("P") -replace(" ","")
     $UserAclsPercentBarVal = ($UserAclsPercent *2).tostring("P") -replace(" %","px")
@@ -2585,7 +2585,7 @@ function Get-GroupNameBar
 
     # Get share counts
     $UserShare = $UserAcls | Select-Object SharePath -Unique
-    $UserShareCount = $UserShare.count
+    $UserShareCount = $UserShare | measure | select count -ExpandProperty count
     $UserSharePercent = [math]::Round($UserShareCount/$AllShareCount,4)
     $UserSharePercentString = $UserSharePercent.tostring("P") -replace(" ","")
     $UserSharePercentBarVal = ($UserSharePercent *2).tostring("P") -replace(" %","px")
@@ -2593,7 +2593,7 @@ function Get-GroupNameBar
 
     # Get computer counts
     $UserComputer = $UserAcls | Select-Object ComputerName -Unique
-    $UserComputerCount = $UserComputer.count    
+    $UserComputerCount = $UserComputer | measure | select count -ExpandProperty count   
     $UserComputerPercent = [math]::Round($UserComputerCount/$AllComputerCount,4)
     $UserComputerPercentString = $UserComputerPercent.tostring("P") -replace(" ","")
     $UserComputerPercentBarVal = ($UserComputerPercent *2).tostring("P") -replace(" %","px")
@@ -2638,7 +2638,7 @@ function Get-UserAceCounts
             $_ 
         }
     }
-    $UserReadAclCount = $UserReadAcl.count
+    $UserReadAclCount = $UserReadAcl | measure | select count -ExpandProperty count
 
     # Get write counts
     $UserWriteAcl = $UserAcls | 
@@ -2649,7 +2649,7 @@ function Get-UserAceCounts
             $_ 
         }
     }
-    $UserWriteAclCount = $UserWriteAcl.count
+    $UserWriteAclCount = $UserWriteAcl | measure | select count -ExpandProperty count
 
     # Get high risk counts
     $UserHighRiskAcl = $UserAcls | 
@@ -2660,7 +2660,7 @@ function Get-UserAceCounts
             $_ 
         }
     }
-    $UserHighRiskAclCount = $UserHighRiskAcl.count
+    $UserHighRiskAclCount = $UserHighRiskAcl | measure | select count -ExpandProperty count
 
     # Return object with all counts
     $TheCounts = new-object psobject            
