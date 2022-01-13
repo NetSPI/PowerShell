@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.61
+# Version: v1.3.64
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -935,9 +935,13 @@ function Invoke-HuntSMBShares
        $CommonShareFileGroupTopString = $CommonShareFileGroupTop5 |
         foreach {
             $FileGroupCount = $_.count
-            $FileGroupName = $_.name  
-            $ThisFileList = $_.FileList           
-            $ThisFileCount = $_.FileCount
+            $FileGroupName = $_.name              
+            $ThisFileBars = Get-GroupFileBar -DataTable $ExcessiveSharePrivs -Name $FileGroupName -AllComputerCount $ComputerCount -AllShareCount $AllSMBSharesCount -AllAclCount $ShareACLsCount
+            $ComputerBarF = $ThisFileBars.ComputerBar
+            $ShareBarF = $ThisFileBars.ShareBar
+            $AclBarF = $ThisFileBars.AclBar
+            $ThisFileList = $ThisFileBars.FileList           
+            $ThisFileCount = $ThisFileBars.FileCount
             $ThisRow = @" 
 	          <tr>
 	          <td>
@@ -945,15 +949,21 @@ function Invoke-HuntSMBShares
 	          </td>	
 	          <td>
               $FileGroupName
+	          </td>	
+	          <td>
+              $ThisFileCount
 	          </td>		  
 	          <td>
-	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+              $ThisFileList
+	          </td>
+	          <td>
+	          $ComputerBarF
 	          </td>		  
 	          <td>
-	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          $ShareBarF
 	          </td>  
 	          <td>
-	          <span class="dashboardsub2">20% (20 of 100)</span><br><div class="divbarDomain"><div class="divbarDomainInside" style="width: 40px;"></div></div>     	 
+	          $AclBarF
 	          </td>          	  
 	          </tr>
 "@              
@@ -2034,6 +2044,8 @@ $NewHtmlReport = @"
     <tr>
       <th align="left">Share Count</th>  
       <th align="left">File Group</th>
+      <th align="left">File Count</th>
+      <th align="left">File List</th>
       <th align="left">Affected Computers</th>
 	  <th align="left">Affected Shares</th>
 	  <th align="left">Affected ACLs</th>	 	 
@@ -2567,7 +2579,7 @@ function Get-PercentDisplay
 }
 
 # -------------------------------------------
-# Function: Get-GroupOwnerCounts
+# Function: Get-GroupOwnerBar
 # -------------------------------------------
 function Get-GroupOwnerBar
 {
@@ -2612,7 +2624,7 @@ function Get-GroupOwnerBar
 }
 
 # -------------------------------------------
-# Function: Get-GroupNameCounts
+# Function: Get-GroupNameBar
 # -------------------------------------------
 function Get-GroupNameBar
 {
@@ -2653,6 +2665,56 @@ function Get-GroupNameBar
     $TheCounts | add-member  Noteproperty ComputerBar   $UserComputerPercentBarCode
     $TheCounts | add-member  Noteproperty ShareBar      $UserSharePercentBarCode    
     $TheCounts | add-member  Noteproperty AclBar        $UserAclsPercentBarCode
+    $TheCounts
+}
+
+# -------------------------------------------
+# Function: Get-GroupFileBar
+# -------------------------------------------
+function Get-GroupFileBar
+{
+    param (
+        $DataTable,
+        $Name,
+        $AllComputerCount,
+        $AllShareCount,
+        $AllAclCount
+    )
+
+    # Get acl counts
+    $UserAcls = $DataTable | Where FileListGroup -like "$Name" | Select-Object ComputerName, ShareName, SharePath, FileSystemRights, FileCount, FileList
+    $FolderInfo = $UserAcls | select FileCount, FileList -First 1
+    $FileCount = $FolderInfo.FileCount 
+    $FileList = $FolderInfo.FileList 
+    $UserAclsCount = $UserAcls | measure | select count -ExpandProperty count
+    $UserAclsPercent = [math]::Round($UserAclsCount/$AllAclCount,4)
+    $UserAclsPercentString = $UserAclsPercent.tostring("P") -replace(" ","")
+    $UserAclsPercentBarVal = ($UserAclsPercent *2).tostring("P") -replace(" %","px")
+    $UserAclsPercentBarCode = "<span class=`"dashboardsub2`">$UserAclsPercentString ($UserAclsCount of $AllAclCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserAclsPercentBarVal;`"></div></div>"
+
+    # Get share counts
+    $UserShare = $UserAcls | Select-Object SharePath -Unique
+    $UserShareCount = $UserShare | measure | select count -ExpandProperty count
+    $UserSharePercent = [math]::Round($UserShareCount/$AllShareCount,4)
+    $UserSharePercentString = $UserSharePercent.tostring("P") -replace(" ","")
+    $UserSharePercentBarVal = ($UserSharePercent *2).tostring("P") -replace(" %","px")
+    $UserSharePercentBarCode = "<span class=`"dashboardsub2`">$UserSharePercentString ($UserShareCount of $AllShareCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserSharePercentBarVal;`"></div></div>"
+
+    # Get computer counts
+    $UserComputer = $UserAcls | Select-Object ComputerName -Unique
+    $UserComputerCount = $UserComputer | measure | select count -ExpandProperty count   
+    $UserComputerPercent = [math]::Round($UserComputerCount/$AllComputerCount,4)
+    $UserComputerPercentString = $UserComputerPercent.tostring("P") -replace(" ","")
+    $UserComputerPercentBarVal = ($UserComputerPercent *2).tostring("P") -replace(" %","px")
+    $UserComputerPercentBarCode = "<span class=`"dashboardsub2`">$UserComputerPercentString ($UserComputerCount of $AllComputerCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserComputerPercentBarVal;`"></div></div>"
+
+    # Return object with all counts
+    $TheCounts = new-object psobject            
+    $TheCounts | add-member  Noteproperty ComputerBar   $UserComputerPercentBarCode
+    $TheCounts | add-member  Noteproperty ShareBar      $UserSharePercentBarCode    
+    $TheCounts | add-member  Noteproperty AclBar        $UserAclsPercentBarCode
+    $TheCounts | add-member  Noteproperty FileCount              $FileCount
+    $TheCounts | add-member  Noteproperty FileList               $FileList
     $TheCounts
 }
 
