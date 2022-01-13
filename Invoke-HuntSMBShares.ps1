@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.52
+# Version: v1.3.54
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -769,6 +769,9 @@ function Invoke-HuntSMBShares
         $AceEveryoneAclCount = $AceEveryone.UserAclsCount 
         $AceEveryoneShareCount = $AceEveryone.UserShareCount 
         $AceEveryoneComputerCount = $AceEveryone.UserComputerCount 
+        $AceEveryoneAclReadCount = $AceEveryone.UserReadAclCount
+        $AceEveryoneAclWriteCount = $AceEveryone.UserWriteCount
+        $AceEveryoneAclHRCount = $AceEveryone.UserHighRiskCount
 
 	    $AceEveryoneAclP = Get-PercentDisplay -TargetCount $AceEveryoneComputerCount -FullCount $ComputerCount 
         $AceEveryoneAclPS = $AceEveryoneAclP.PercentString
@@ -780,17 +783,16 @@ function Invoke-HuntSMBShares
     
         $AceEveryoneComputerCountP = Get-PercentDisplay -TargetCount $AceEveryoneAclCount -FullCount $ShareACLsCount
         $AceEveryoneComputerCountPS = $AceEveryoneComputerCountP.PercentString
-        $AceEveryoneComputerCountPB = $AceEveryoneComputerCountP.PercentBarVal
-
-        # $AclEveryoneRead = Select SharePath,FileSystemRights,IdentityReference from allexcessiveprivs where IdentityReference like "everyone" and FileSystemRights like "read"
-        # $AclEveryoneWrite = Select SharePath,FileSystemRights,IdentityReference from writetable where IdentityReference like "everyone" 
-        # $AclEveryoneHighRisk = Select SharePath,FileSystemRights,IdentityReference from highrisktable where IdentityReference like "everyone" 
+        $AceEveryoneComputerCountPB = $AceEveryoneComputerCountP.PercentBarVal 
 
         # ACE User: Users
         $AceUsers = Get-UserAceCounts -DataTable $ExcessiveSharePrivs -UserName "BUILTIN\Users"
         $AceUsersAclCount = $AceUsers.UserAclsCount 
         $AceUsersShareCount = $AceUsers.UserShareCount 
-        $AceUsersComputerCount = $AceUsers.UserComputerCount 
+        $AceUsersComputerCount = $AceUsers.UserComputerCount         
+        $AceUsersAclReadCount = $AceUsers.UserReadAclCount
+        $AceUsersAclWriteCount = $AceUsers.UserWriteCount
+        $AceUsersAclHRCount = $AceUsers.UserHighRiskCount
 
         $AceUsersAclP = Get-PercentDisplay -TargetCount $AceUsersComputerCount -FullCount $ComputerCount 
         $AceUsersAclPS = $AceUsersAclP.PercentString
@@ -807,8 +809,11 @@ function Invoke-HuntSMBShares
         # ACE User: Authenticated Users
         $AceAuthenticatedUsers = Get-UserAceCounts -DataTable $ExcessiveSharePrivs -UserName "NT AUTHORITY\Authenticated Users"        
         $AceAuthenticatedUsersComputerCount = $AceAuthenticatedUsers.UserComputerCount 
-        $AceAuthenticatedUsersShareCount = $AceAuthenticatedUsers.UserShareCount 
-        $AceAuthenticatedUsersAclCount = $AceAuthenticatedUsers.UserAclsCount 
+        $AceAuthenticatedUsersShareCount    = $AceAuthenticatedUsers.UserShareCount 
+        $AceAuthenticatedUsersAclCount      = $AceAuthenticatedUsers.UserAclsCount 
+        $AceAuthenticatedUsersAclReadCount  = $AceAuthenticatedUsers.UserReadAclCount
+        $AceAuthenticatedUsersAclWriteCount = $AceAuthenticatedUsers.UserWriteCount
+        $AceAuthenticatedUsersAclHRCount    = $AceAuthenticatedUsers.UserHighRiskCount
 
         $AceAuthenticatedUsersAclP = Get-PercentDisplay -TargetCount $AceAuthenticatedUsersComputerCount -FullCount $ComputerCount 
         $AceAuthenticatedUsersAclPS = $AceAuthenticatedUsersAclP.PercentString
@@ -824,9 +829,12 @@ function Invoke-HuntSMBShares
 
         # ACE User: Domain Users
         $AceDomainUsers = Get-UserAceCounts -DataTable $ExcessiveSharePrivs -UserName "Domain Users"
-        $AceDomainUsersAclCount = $AceDomainUsers.UserAclsCount 
-        $AceDomainUsersShareCount = $AceDomainUsers.UserShareCount 
+        $AceDomainUsersAclCount      = $AceDomainUsers.UserAclsCount 
+        $AceDomainUsersShareCount    = $AceDomainUsers.UserShareCount 
         $AceDomainUsersComputerCount = $AceDomainUsers.UserComputerCount 
+        $AceDomainUsersAclReadCount  = $AceDomainUsers.UserReadAclCount
+        $AceDomainUsersAclWriteCount = $AceDomainUsers.UserWriteCount
+        $AceDomainUsersAclHRCount    = $AceDomainUsers.UserHighRiskCount
 
 	    $AceDomainUsersAclP = Get-PercentDisplay -TargetCount $AceDomainUsersComputerCount -FullCount $ComputerCount 
         $AceDomainUsersAclPS = $AceDomainUsersAclP.PercentString
@@ -845,6 +853,9 @@ function Invoke-HuntSMBShares
         $AceDomainComputersAclCount = $AceDomainComputers.UserAclsCount 
         $AceDomainComputersShareCount = $AceDomainComputers.UserShareCount 
         $AceDomainComputersComputerCount = $AceDomainComputers.UserComputerCount
+        $AceDomainComputersAclReadCount = $AceDomainComputers.UserReadAclCount
+        $AceDomainComputersAclWriteCount = $AceDomainComputers.UserWriteCount
+        $AceDomainComputersAclHRCount = $AceDomainComputers.UserHighRiskCount
         
 	    $AceDomainComputersAclP = Get-PercentDisplay -TargetCount $AceDomainComputersComputerCount -FullCount $ComputerCount 
         $AceDomainComputersAclPS = $AceDomainComputersAclP.PercentString
@@ -1370,14 +1381,14 @@ $NewHtmlReport = @"
 
 	.ScanSummarywrapper {
 		width: 300px;
-		overflow: hidden; /* add this to contain floated children */
+		overflow: hidden; 
 	}
 	.ScanSummaryfirst {
 		width: 75px;
-		float:left; /* add this */
+		float:left; 
 	}
 	.ScanSummarysecond {
-		float: left; /* add this */
+		float: left; 
 	}
   </style>
 </head>
@@ -1807,9 +1818,9 @@ $NewHtmlReport = @"
 			High Risk<br> 
 			</div>
 			<div class="ScanSummarysecond">
-			 : 2 <br> 
-			 : 1 <br>
-			 : 0 
+			 : $AceEveryoneAclReadCount <br> 
+			 : $AceEveryoneAclWriteCount <br>
+			 : $AceEveryoneAclHRCount 
 			</div>
 		  </div>
 	  </span>
@@ -1845,9 +1856,9 @@ $NewHtmlReport = @"
 			High Risk<br> 
 			</div>
 			<div class="ScanSummarysecond">
-			 : 2 <br> 
-			 : 1 <br>
-			 : 0 
+			 : $AceUsersAclReadCount <br> 
+			 : $AceUsersAclWriteCount <br>
+			 : $AceUsersAclHRCount 
 			</div>
 		  </div>
 	  </span>
@@ -1883,9 +1894,9 @@ $NewHtmlReport = @"
 			High Risk<br> 
 			</div>
 			<div class="ScanSummarysecond">
-			 : 2 <br> 
-			 : 1 <br>
-			 : 0 
+			 : $AceAuthenticatedUsersAclReadCount <br> 
+			 : $AceAuthenticatedUsersAclWriteCount <br>
+			 : $AceAuthenticatedUsersAclHRCount 
 			</div>
 		  </div>
 	  </span>
@@ -1921,9 +1932,9 @@ $NewHtmlReport = @"
 			High Risk<br> 
 			</div>
 			<div class="ScanSummarysecond">
-			 : 2 <br> 
-			 : 1 <br>
-			 : 0 
+			 : $AceDomainUsersAclReadCount <br> 
+			 : $AceDomainUsersAclWriteCount <br>
+			 : $AceDomainUsersAclHRCount 
 			</div>
 		  </div>
 	  </span>
@@ -1959,9 +1970,9 @@ $NewHtmlReport = @"
 			High Risk<br> 
 			</div>
 			<div class="ScanSummarysecond">
-			 : 2 <br> 
-			 : 1 <br>
-			 : 0 
+			 : $AceDomainComputersAclReadCount <br> 
+			 : $AceDomainComputersAclWriteCount <br>
+			 : $AceDomainComputersAclHRCount 
 			</div>
 		  </div>
 	  </span>
@@ -1988,7 +1999,7 @@ $NewHtmlReport = @"
     </tr>
   </tbody>
 </table>
-<div class="landingheader2"><span class="landingheader2a">5 Most Common Share Names</span></div>
+<div class="landingheader2"><span class="landingheader2a">5 Most Common Share Name Groups</span></div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>      
@@ -2004,7 +2015,7 @@ $NewHtmlReport = @"
     </tbody>
 	</table>	
 
-<div class="landingheader2"><span class="landingheader2a">5 Most Common Share Groups</span></div>
+<div class="landingheader2"><span class="landingheader2a">5 Most Common Share File Groups</span></div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>
@@ -2564,11 +2575,47 @@ function Get-UserAceCounts
     $UserComputer = $UserAcls | Select-Object ComputerName -Unique
     $UserComputerCount = $UserComputer.count
 
+    # Get read counts 
+    $UserReadAcl = $UserAcls | 
+    Foreach {
+
+        if(($_.FileSystemRights -like "*read*"))
+        {
+            $_ 
+        }
+    }
+    $UserReadAclCount = $UserReadAcl.count
+
+    # Get write counts
+    $UserWriteAcl = $UserAcls | 
+    Foreach {
+
+        if(($_.FileSystemRights -like "*GenericAll*") -or ($_.FileSystemRights -like "*Write*"))
+        {
+            $_ 
+        }
+    }
+    $UserWriteAclCount = $UserWriteAcl.count
+
+    # Get high risk counts
+    $UserHighRiskAcl = $UserAcls | 
+    Foreach {
+
+        if(($_.ShareName -like 'c$') -or ($_.ShareName -like 'admin$') -or ($_.ShareName -like "*wwwroot*") -or ($_.ShareName -like "*inetpub*") -or ($_.ShareName -like 'c') -or ($_.ShareName -like 'c_share'))
+        {
+            $_ 
+        }
+    }
+    $UserHighRiskAclCount = $UserHighRiskAcl.count
+
     # Return object with all counts
     $TheCounts = new-object psobject            
     $TheCounts | add-member  Noteproperty UserAclsCount          $UserAclsCount
     $TheCounts | add-member  Noteproperty UserShareCount         $UserShareCount
     $TheCounts | add-member  Noteproperty UserComputerCount      $UserComputerCount
+    $TheCounts | add-member  Noteproperty UserReadAclCount       $UserReadAclCount
+    $TheCounts | add-member  Noteproperty UserWriteCount         $UserWriteAclCount
+    $TheCounts | add-member  Noteproperty UserHighRiskCount      $UserHighRiskAclCount
     $TheCounts
 }
 
