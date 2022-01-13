@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.54
+# Version: v1.3.55
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -127,7 +127,11 @@ function Invoke-HuntSMBShares
 
         [Parameter(Mandatory = $false,
         HelpMessage = 'Creat exported csv for import into other tools.')]
-        [switch]$ExportFindings
+        [switch]$ExportFindings,
+
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'Number of items to sample for summary report.')]
+        [int]$SampleSum = 5
     )
 	
     
@@ -602,7 +606,7 @@ function Invoke-HuntSMBShares
         $CommonShareOwnersCount = $CommonShareOwners.count 
 
         # Get top  5
-        $CommonShareOwnersTop5 = $CommonShareOwners | Select-Object count,name -First 5
+        $CommonShareOwnersTop5 = $CommonShareOwners | Select-Object count,name -First $SampleSum
 
         # ----------------------------------------------------------------------
         # Identify common excessive share groups (group by file list)
@@ -620,7 +624,7 @@ function Invoke-HuntSMBShares
         $CommonShareFileGroupCount = $CommonShareFileGroup.count 
 
         # Get top  5
-        $CommonShareFileGroupTop5 = $CommonShareFileGroup | Select-Object count,name,filecount -First 5
+        $CommonShareFileGroupTop5 = $CommonShareFileGroup | Select-Object count,name,filecount -First $SampleSum
 
         # ----------------------------------------------------------------------
         # Identify common share names
@@ -644,7 +648,7 @@ function Invoke-HuntSMBShares
         
         # Get top five share name
         $CommonShareNamesCount = $CommonShareNames.count
-        $CommonShareNamesTop5 = $CommonShareNames | Select-Object count,name -First 5 
+        $CommonShareNamesTop5 = $CommonShareNames | Select-Object count,name -First $SampleSum 
         
         # Get count of share name if in the top 5
         $Top5ShareCountTotal = 0
@@ -1339,13 +1343,7 @@ $NewHtmlReport = @"
 		font-family:"Open Sans", sans-serif;
 		color:#666;		
 		text-align: right;
-	}
-	
-	.scansum {
-		font-size: 12;
-		font-family:"Open Sans", sans-serif;
-		color:#666;		
-	}
+	}	
 
 	.landingheader	{
 		font-size: 16;
@@ -1379,8 +1377,20 @@ $NewHtmlReport = @"
 		margin: 10px;
 	}
 
+	.tablecolinfo {
+		font-size: 14;
+		font-family:"Open Sans", sans-serif;
+		color:#666;		
+	}
+
+	.scansum {
+		font-size: 12;
+		font-family:"Open Sans", sans-serif;
+		color:#666;		
+	}
+
 	.ScanSummarywrapper {
-		width: 300px;
+		--width: 300px;
 		overflow: hidden; 
 	}
 	.ScanSummaryfirst {
@@ -1810,7 +1820,7 @@ $NewHtmlReport = @"
 	<tr>
 	  <td>Everyone</td>	
       <td>
- 	  <span class="scansum">
+ 	  <span class="tablecolinfo">
 		  <div class="ScanSummarywrapper">
 			<div class="ScanSummaryfirst">
 			Read<br> 
@@ -1848,7 +1858,7 @@ $NewHtmlReport = @"
 	<tr>
 	  <td>BUILTIN\Users</td>		
       <td>
- 	  <span class="scansum">
+ 	  <span class="tablecolinfo">
 		  <div class="ScanSummarywrapper">
 			<div class="ScanSummaryfirst">
 			Read<br> 
@@ -1886,7 +1896,7 @@ $NewHtmlReport = @"
 	<tr>
 	  <td>NT AUTHORITY\Authenticated Users</td>
       <td>
- 	  <span class="scansum">
+ 	  <span class="tablecolinfo">
 		  <div class="ScanSummarywrapper">
 			<div class="ScanSummaryfirst">
 			Read<br> 
@@ -1924,7 +1934,7 @@ $NewHtmlReport = @"
 	<tr>
 	  <td>Domain Users</td>	
       <td>
- 	  <span class="scansum">
+ 	  <span class="tablecolinfo">
 		  <div class="ScanSummarywrapper">
 			<div class="ScanSummaryfirst">
 			Read<br> 
@@ -1962,7 +1972,7 @@ $NewHtmlReport = @"
 	<tr>
 	  <td>Domain Computers</td>	
       <td>
- 	  <span class="scansum">
+ 	  <span class="tablecolinfo">
 		  <div class="ScanSummarywrapper">
 			<div class="ScanSummaryfirst">
 			Read<br> 
@@ -1999,7 +2009,7 @@ $NewHtmlReport = @"
     </tr>
   </tbody>
 </table>
-<div class="landingheader2"><span class="landingheader2a">5 Most Common Share Name Groups</span></div>
+<div class="landingheader2"><span class="landingheader2a">$SampleSum Most Common Share Name Groups</span></div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>      
@@ -2015,7 +2025,7 @@ $NewHtmlReport = @"
     </tbody>
 	</table>	
 
-<div class="landingheader2"><span class="landingheader2a">5 Most Common Share File Groups</span></div>
+<div class="landingheader2"><span class="landingheader2a">$SampleSum Most Common Share File Groups</span></div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>
@@ -2031,7 +2041,7 @@ $NewHtmlReport = @"
   </tbody>
 </table>
 
-<div class="landingheader2"><span class="landingheader2a">5 Most Common Owners</span></div>
+<div class="landingheader2"><span class="landingheader2a">$SampleSum Most Common Owners</span></div>
 <table class="table table-striped table-hover">
   <thead>
     <tr>
