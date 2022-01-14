@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.69
+# Version: v1.3.70
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -437,8 +437,7 @@ function Invoke-HuntSMBShares
 
         # Save results
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"
-        $ShareACLs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"
-        $null = Convert-DataTableToHtmlTable -DataTable $ShareACLs -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.html" -Title "Domain Share ACLs" -Description "This page shows the all enumerated share ACLs for the $TargetDomain Active Directory domain."
+        $ShareACLs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"        
         $ShareACLsFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"
         # ----------------------------------------------------------------------
         # Get potentially excessive share permissions 
@@ -475,8 +474,7 @@ function Invoke-HuntSMBShares
         # Save results
         if($ExcessiveSharesCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"            
-            $ExcessiveSharePrivs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"  
-            $null = Convert-DataTableToHtmlTable -DataTable $ExcessiveSharePrivs -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.html" -Title "Domain Share ACLs: Potentially Excessive Privileges" -Description "This page shows the all enumerated share ACLs that appeared to be configured with excessive privileges for the $TargetDomain Active Directory domain."          
+            $ExcessiveSharePrivs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"              
         }else{
             break
         }
@@ -506,7 +504,7 @@ function Invoke-HuntSMBShares
         # Save results
         if($SharesWithReadCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
-            $SharesWithRead | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"           
+            $SharesWithRead | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"               
         }
 
         $SharesWithReadFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
