@@ -53,7 +53,6 @@ function Convert-DataTableToHtmlTable
 		        sans-serif;font-weight:400;
 		        min-height:100%;;color:#3d3935;
 		        margin:1px;line-height:1.5;
-		        overflow-x:hidden
 	        }
 		
 	        table{
@@ -185,7 +184,7 @@ function Convert-DataTableToHtmlTable
         ForEach-Object{
             $GetValue = $CurrentRow | Select-Object $_ -ExpandProperty $_ 
             if($PrintRow -eq ""){
-                $PrintRow = "<td>$GetValue</td>"               
+                #$PrintRow = "<td>$GetValue</td>"               
             }else{         
                 $PrintRow = "<td>$GetValue</td>$PrintRow"
             }
