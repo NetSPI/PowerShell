@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.66
+# Version: v1.3.69
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -131,7 +131,11 @@ function Invoke-HuntSMBShares
 
         [Parameter(Mandatory = $false,
         HelpMessage = 'Number of items to sample for summary report.')]
-        [int]$SampleSum = 5
+        [int]$SampleSum = 5,
+
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'Runspace time out.')]
+        [int]$RunSpaceTimeOut = 5
     )
 	
     
@@ -212,6 +216,7 @@ function Invoke-HuntSMBShares
         # Save results
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers.csv"
         $DomainComputers | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Domain-Computers.csv"
+        $null = Convert-DataTableToHtmlTable -DataTable $DomainComputers -Outfile "$OutputDirectory\$TargetDomain-Domain-Computers.html" -Title "Domain Computers" -Description "This page shows the domain computers for the $TargetDomain Active Directory domain."
         $DomainComputersFile = "$OutputDirectory\$TargetDomain-Domain-Computers.csv"
 
         # ----------------------------------------------------------------------
@@ -252,6 +257,7 @@ function Invoke-HuntSMBShares
         # Save results
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers-Pingable.csv"
         $ComputersPingable | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Domain-Computers-Pingable.csv"
+        $null = Convert-DataTableToHtmlTable -DataTable $ComputersPingable -Outfile "$OutputDirectory\$TargetDomain-Domain-Computers-Pingable.html" -Title "Domain Computers: Ping Response" -Description "This page shows the domain computers for the $TargetDomain Active Directory domain that responded to ping requests."
         $ComputersPingableFile = "$OutputDirectory\$TargetDomain-Domain-Computers-Pingable.csv"
 
         # ----------------------------------------------------------------------
@@ -294,7 +300,7 @@ function Invoke-HuntSMBShares
         }
            
         # Perform port scan of tcp 445 threaded
-        $Computers445Open = $ComputersPingableClean | Invoke-Parallel -ScriptBlock $MyScriptBlock -ImportSessionFunctions -ImportVariables -Throttle $GlobalThreadCount -RunspaceTimeout 2 -ErrorAction SilentlyContinue
+        $Computers445Open = $ComputersPingableClean | Invoke-Parallel -ScriptBlock $MyScriptBlock -ImportSessionFunctions -ImportVariables -Throttle $GlobalThreadCount -RunspaceTimeout $RunSpaceTimeOut -ErrorAction SilentlyContinue
 
         # Status user
         $Computers445OpenCount = $Computers445Open.count
@@ -311,6 +317,7 @@ function Invoke-HuntSMBShares
         # Save results
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers-Open445.csv"        
         $Computers445Open | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Domain-Computers-Open445.csv"
+        $null = Convert-DataTableToHtmlTable -DataTable $Computers445Open -Outfile "$OutputDirectory\$TargetDomain-Domain-Computers-Open445.html" -Title "Domain Computers: Port 445 Open" -Description "This page shows the domain computers for the $TargetDomain Active Directory domain with port 445 open."
         $Computers445OpenFile = "$OutputDirectory\$TargetDomain-Domain-Computers-Open445.csv"
 
         # ----------------------------------------------------------------------
@@ -326,7 +333,7 @@ function Invoke-HuntSMBShares
         }
 
         # Get smb shares threaded
-        $AllSMBShares = $Computers445Open | Invoke-Parallel -ScriptBlock $MyScriptBlock -ImportSessionFunctions -ImportVariables -Throttle $GlobalThreadCount -RunspaceTimeout 2 -ErrorAction SilentlyContinue
+        $AllSMBShares = $Computers445Open | Invoke-Parallel -ScriptBlock $MyScriptBlock -ImportSessionFunctions -ImportVariables -Throttle $GlobalThreadCount -RunspaceTimeout $RunSpaceTimeOut -ErrorAction SilentlyContinue
 
         # Computer computers with shares
         $AllComputersWithShares = $AllSMBShares | Select-Object ComputerName -Unique
@@ -346,6 +353,7 @@ function Invoke-HuntSMBShares
         # Save results
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-All.csv"
         $AllSMBShares | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-All.csv"
+        $null = Convert-DataTableToHtmlTable -DataTable $AllSMBShares -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-All.html" -Title "Domain Shares" -Description "This page shows the all enumerated shares for the $TargetDomain Active Directory domain."
         $AllSMBSharesFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-All.csv"
 
         # ----------------------------------------------------------------------
@@ -414,7 +422,7 @@ function Invoke-HuntSMBShares
          }   
 
         # Get SMB permissions threaded
-        $ShareACLs = $AllSMBShares | Invoke-Parallel -ScriptBlock $MyScriptBlock -ImportSessionFunctions -ImportVariables -Throttle $GlobalThreadCount -RunspaceTimeout 2 -ErrorAction SilentlyContinue  -WarningAction SilentlyContinue 
+        $ShareACLs = $AllSMBShares | Invoke-Parallel -ScriptBlock $MyScriptBlock -ImportSessionFunctions -ImportVariables -Throttle $GlobalThreadCount -RunspaceTimeout $RunSpaceTimeOut -ErrorAction SilentlyContinue  -WarningAction SilentlyContinue 
 
         # Status user
         $ShareACLsCount = $ShareACLs.count
@@ -430,6 +438,7 @@ function Invoke-HuntSMBShares
         # Save results
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"
         $ShareACLs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"
+        $null = Convert-DataTableToHtmlTable -DataTable $ShareACLs -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.html" -Title "Domain Share ACLs" -Description "This page shows the all enumerated share ACLs for the $TargetDomain Active Directory domain."
         $ShareACLsFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"
         # ----------------------------------------------------------------------
         # Get potentially excessive share permissions 
@@ -466,7 +475,8 @@ function Invoke-HuntSMBShares
         # Save results
         if($ExcessiveSharesCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"            
-            $ExcessiveSharePrivs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"            
+            $ExcessiveSharePrivs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"  
+            $null = Convert-DataTableToHtmlTable -DataTable $ExcessiveSharePrivs -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.html" -Title "Domain Share ACLs: Potentially Excessive Privileges" -Description "This page shows the all enumerated share ACLs that appeared to be configured with excessive privileges for the $TargetDomain Active Directory domain."          
         }else{
             break
         }
@@ -2783,6 +2793,226 @@ function Get-UserAceCounts
     $TheCounts | add-member  Noteproperty UserWriteAclCount      $UserWriteAclCount
     $TheCounts | add-member  Noteproperty UserHighRiskAclCount   $UserHighRiskAclCount
     $TheCounts
+}
+
+# -------------------------------------------
+# Function: Convert-DataTableToHtmlTable
+# -------------------------------------------
+function Convert-DataTableToHtmlTable
+{
+    <#
+            .SYNOPSIS
+            This function can be used to convert a data table or ps object into a html table.
+            .PARAMETER $DataTable
+            The datatable to input.
+            .PARAMETER $Outfile
+            The output file path.
+            .PARAMETER $Title
+            Title of the page.
+            .PARAMETER $Description
+            Description of the page.
+            .EXAMPLE
+            $object = New-Object psobject
+            $Object | Add-Member Noteproperty Name "my name 1"
+            $Object | Add-Member Noteproperty Description "my description 1"
+            Convert-DataTableToHtmlTable -Verbose -DataTable $object -Outfile ".\MyPsDataTable.html" -Title "MyPage" -Description "My description" -DontExport
+            Convert-DataTableToHtmlTable -Verbose -DataTable $object -Outfile ".\MyPsDataTable.html" -Title "MyPage" -Description "My description"            
+            .\MyPsDataTable.html
+	        .NOTES
+	        Author: Scott Sutherland (@_nullbind)
+    #>
+    param (
+        [Parameter(Mandatory = $true,
+        HelpMessage = 'The datatable to input.')]
+        $DataTable,
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'The output file path.')]
+        [string]$Outfile = ".\MyPsDataTable.html",
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'Title of page.')]
+        [string]$Title = "HTML Table",
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'Description of page.')]
+        [string]$Description = "HTML Table",
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'Disable file save.')]
+        [switch]$DontExport
+    )
+
+    # Setup HTML begin
+    Write-Verbose "[+] Creating html top." 
+    $HTMLSTART = @"
+    <html>
+        <head>
+          <title>$Title</title>
+          <style> 	
+  
+	        {box-sizing:border-box}
+	        body,html{
+		        font-family:"Open Sans", 
+		        sans-serif;font-weight:400;
+		        min-height:100%;;color:#3d3935;
+		        margin:1px;line-height:1.5;
+		        overflow-x:hidden
+	        }
+		
+	        table{
+		        width:100%;
+		        max-width:100%;
+		        margin-bottom:1rem;
+		        border-collapse:collapse
+	        }
+	
+	        table thead th{
+		        vertical-align:bottom;
+		        border-bottom:2px solid #eceeef
+	        }
+	
+	        table tbody tr:nth-of-type(odd){
+		        background-color:#f9f9f9
+	        }
+	
+	        table tbody tr:hover{
+		        background-color:#f5f5f5
+	        }
+	
+	        table td,table th{
+		        padding:.75rem;
+		        line-height:1.5;
+		        text-align:left;
+		        font-size:1rem;
+		        vertical-align:top;
+		        border-top:1px solid #eceeef
+	        }
+
+	
+	        h1,h2,h3,h4,h5,h6{
+		        padding-left: 10px;
+		        font-family:inherit;
+		        font-weight:500;
+		        line-height:1.1;
+		        color:inherit
+	        }
+	
+	        code{
+		        padding:.2rem .4rem;
+		        font-size:1rem;
+		        color:#bd4147;
+		        background-color:#f7f7f9;
+		        border-radius:.25rem
+	        }
+	
+	        p{
+		        margin-top:0;
+		        margin-bottom:1rem
+	        }
+	
+	        a,a:visited{
+		        text-decoration:none;
+		        font-size: 14;
+		        color: gray;
+		        font-weight: bold;
+	        }
+	
+	        a:hover{
+		        color:#9B3722;
+		        text-decoration:underline
+	        }
+		
+	        .link:hover{
+		        text-decoration:underline
+	        }
+	
+	        li{
+		        list-style-type:none
+	        }	
+
+            .pageDescription {
+                margin: 10px;
+            }
+  
+	        .divbarDomain{
+		        background:#d9d7d7;
+		        width:200px;
+		        border: 1px solid #999999;
+		        height: 25px;
+		        text-align:center;
+	        }
+  
+	        .divbarDomainInside{
+		        background:#9B3722;
+		        width:100px;
+		        text-align:center;
+		        height: 25px;
+		        vertical-align:middle;
+            }
+            .pageDescription {
+                padding-left: 0px;
+            }				
+          </style>
+        </head>
+        <body>
+        <p class="pageDescription"><a href="javascript:history.back()">Back to Report</a></p>
+        <p class="pageDescription"><h3>$Title</h3></p>
+        <p class="pageDescription">$Description</p>
+            <table class="table table-striped table-hover">
+"@
+    
+    # Get list of columns
+    Write-Verbose "[+] Parsing data table columns."
+    $MyCsvColumns = $DataTable | Get-Member | Where-Object MemberType -like "NoteProperty" | Select-Object Name -ExpandProperty Name
+
+    # Print columns creation
+    Write-Verbose "[+] Creating html table columns."   
+    $HTMLTableHeadStart= "<thead><tr>" 
+    $MyCsvColumns |
+    ForEach-Object {
+
+        # Add column
+        $HTMLTableColumn = "<th>$_</th>$HTMLTableColumn"    
+    }
+    $HTMLTableColumn = "$HTMLTableHeadStart$HTMLTableColumn</tr></thead>" 
+
+     # Create table rows
+    Write-Verbose "[+] Creating html table rows."     
+    $HTMLTableRow = $DataTable |
+    ForEach-Object {
+    
+        # Create a value contain row data
+        $CurrentRow = $_
+        $PrintRow = ""
+        $MyCsvColumns | 
+        ForEach-Object{
+            $GetValue = $CurrentRow | Select-Object $_ -ExpandProperty $_ 
+            if($PrintRow -eq ""){
+                $PrintRow = "<td>$GetValue</td>"               
+            }else{         
+                $PrintRow = "<td>$GetValue</td>$PrintRow"
+            }
+        }
+        
+        # Return row
+        $HTMLTableHeadstart = "<tr>" 
+        $HTMLTableHeadend = "</tr>" 
+        "$HTMLTableHeadStart$PrintRow$HTMLTableHeadend"
+    }
+
+    # Setup HTML end
+    Write-Verbose "[+] Creating html bottom." 
+    $HTMLEND = @"
+  </tbody>
+</table>
+</body>
+</html>
+"@
+
+    # Return it
+    "$HTMLSTART $HTMLTableColumn $HTMLTableRow $HTMLEND" 
+
+    # Write file
+    if(-not $DontExport){
+        "$HTMLSTART $HTMLTableColumn $HTMLTableRow $HTMLEND"  | Out-File $Outfile
+    }
 }
 
 # -------------------------------------------
