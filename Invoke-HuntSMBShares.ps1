@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.70
+# Version: v1.3.71
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -937,7 +937,7 @@ function Invoke-HuntSMBShares
         # ----------------------------------------------------------------------
 		if($username -like ""){$username = whoami}
 		$SourceIps = (Get-NetIPAddress | where AddressState -like "*Pref*" | where AddressFamily -like "ipv4" | where ipaddress -notlike "127.0.0.1" | select IpAddress).ipaddress -join (",")
-		$SourceHost = (hostname) + " ($SourceIps)"
+		$SourceHost = (hostname) 
 
         # Get share list string list
        $CommonShareFileGroupTopString = $CommonShareFileGroupTop5 |
@@ -1062,7 +1062,6 @@ $NewHtmlReport = @"
 <head>
   <title>SMB Share Discovery Scan Report</title>
   <style> 
-  
 	.tabs{
 		display:-webkit-box;
 		display:-ms-flexbox;
@@ -1213,7 +1212,7 @@ $NewHtmlReport = @"
 	}
 	
 	a:hover{
-		color:#9B3722;
+		--color:#9B3722;
 		text-decoration:underline
 	}
 	
@@ -1280,55 +1279,31 @@ $NewHtmlReport = @"
 		height: 25px;
 		vertical-align:middle;
 	}
-
-	.dotoutter {
-	  height: 60px;
-	  width: 60px;
-	  background-color: #bbb;
-	  border-radius: 50%;
-	  display: inline-block;
-	}
-	
-	.dotinner{
-	  height: 40px;
-	  width: 40px;
-	  background-color: #9B3722;	  	  
-	  border-collapse: 50%;
-	  border-separate: 50%;
-	  border-radius: 50%;
-	  display: inline-block;
-	}	
-	
-	.dotkey{
-	  height: 12px;
-	  width: 12px;
-	  background-color: #9B3722;	  	  
-	  border-collapse: 50%;
-	  border-separate: 50%;
-	  border-radius: 50%;
-	  display: inline-block;
-	}
 	
 	.piechartComputers {    		
         display: block;
         width: 150px;
         height: 150px;
-        background: radial-gradient(white 40%, transparent 41%), 
-		conic-gradient(#9B3722 0% $PercentComputerExPrivP, 
-					   #d9d7d7 $PercentComputerExPrivP 100%);
+        background: radial-gradient(white 60%, transparent 41%), 
+		conic-gradient(#9B3722 0% 2.39%, 
+					   #d9d7d7 2.39% 100%);
 		border-radius: 50%;
 		text-align: center;
+		margin-top: 5px;
+		margin-bottom: 10px;
     }
 
 	.piechartShares {    
         display: block;
         width: 150px;
         height: 150px;
-        background: radial-gradient(white 40%, transparent 41%), 
-		conic-gradient(#9B3722 0% $PercentSharesExPrivP, 
-					   #d9d7d7 $PercentSharesExPrivP 100%);
+        background: radial-gradient(white 60%, transparent 41%), 
+		conic-gradient(#9B3722 0% 4.29%, 
+					   #d9d7d7 4.29% 100%);
 		border-radius: 50%;
 		text-align: center;
+		margin-top: 5px;
+		margin-bottom: 10px;
     }
 	
 	.piechartAcls {   
@@ -1336,20 +1311,29 @@ $NewHtmlReport = @"
 		display: block;
         width: 150px;
         height: 150px;
-        background: radial-gradient(white 40%, transparent 41%), 
-		conic-gradient(#9B3722 0% $PercentAclExPrivP, 
-					   #d9d7d7 $PercentAclExPrivP 100%);
+        background: radial-gradient(white 60%, transparent 41%), 
+		conic-gradient(#9B3722 0% 4.14%, 
+					   #d9d7d7 4.14% 100%);
 		border-radius: 50%;
 		text-align: center;
+		margin-top: 5px;
+		margin-bottom: 10px;
     }
 	
 	.percentagetext {
 		text-align: center;
-		font-size: 1.25em;
+		font-size: 2.25em;
 		font-weight: 700;
 		font-family:"Open Sans", sans-serif;
-		color:#666;
+		color:#9B3722;
 	}
+	
+	.percentagetext2 {
+		font-size: 10;
+		font-family:"Open Sans", sans-serif;
+		color:#666;			
+		text-align: center;
+	}	
 
 	.dashboardsub {
 		text-align: center;
@@ -1404,6 +1388,106 @@ $NewHtmlReport = @"
 		color:#666;		
 	}
 
+	.card {
+		width: 240px;
+		box-shadow: 0 2px 4px 0;	
+		transition:0.3s;
+		background-color: #cccc;
+		font-family:"Open Sans", sans-serif;
+		font-size: 12;
+		font-weight: 2;
+		font-color: black;
+		float: left;
+		--overflow:auto;
+		display:block;
+		margin:10px;
+		margin-bottom:20px;
+	}
+
+	.card:hover{	
+		box-shadow: 0 8px 16px 0;
+		
+	}	
+
+	.cardtitle{	
+		padding:5px;	
+		padding-left: 10px;
+		font-size:15;
+		color: black;
+		font-weight:bold;
+		font-family:"Open Sans", sans-serif;
+		border-bottom:1.5px solid transparent;
+		border-bottom-color:#9B3722;
+	}
+
+	.cardsubtitle {
+		font-size: 10;
+		font-family:"Open Sans", sans-serif;
+		color:#666;		
+		text-align: right;
+		font-weight: bold;
+	}	
+
+	.cardbartext {
+		font-size: 10;
+		font-family:"Open Sans", sans-serif;
+		color:#666;			
+		text-align: right;
+		margin-left: 10px;		
+		font-weight:bold;
+	}
+
+	.cardbartext2 {
+		font-size: 10;
+		font-family:"Open Sans", sans-serif;
+		color:#666;			
+		text-align: right;
+		margin-left: 10px;
+	}
+	
+	.cardtitlescan{	
+		padding:5px;	
+		padding-left: 10px;
+		font-size:15;
+		color: white;
+		font-weight:bold;
+		font-family:"Open Sans", sans-serif;
+		border-bottom:1.5px solid transparent;
+		border-bottom-color:#9B3722;
+		background-color:#85929E;
+	}
+
+	.cardtitlescansub {
+		font-size: 10;
+		font-family:"Open Sans", sans-serif;
+		color:black;			
+		text-align: center;
+	}
+
+	.cardcontainer {
+		background-color:white;
+		padding: 8px;
+		: center;
+		--padding-left: 10px;	
+	}		
+
+	.cardbarouter{
+		background:#d9d7d7;
+		width:102px;
+		--border: 1px solid #999999;
+		height: 15px;
+		margin-left: 10px;
+		text-align:center;
+	}
+	  
+	.cardbarinside{
+		background:#9B3722;
+		text-align:center;
+		height: 15px;
+		vertical-align:middle;
+        width: 0px;
+	}	
+
 	.scansum {
 		font-size: 12;
 		font-family:"Open Sans", sans-serif;
@@ -1420,7 +1504,7 @@ $NewHtmlReport = @"
 	}
 	.ScanSummarysecond {
 		float: left; 
-	}
+	}	  
   </style>
 </head>
 <body>
@@ -1443,171 +1527,181 @@ $NewHtmlReport = @"
 	 <div id="tabs" class="tabs" data-tabs-ignore-url="false">
 		<input class="tabInput"  name="tabs" type="radio" id="dashboard"/>
 		<label class="tabLabel" onClick="updateTab('dashboard',false)" for="dashboard">Dashboard</label>
-		<div id="tabPanel" class="tabPanel">
-			<p class="pageDescription">Below is a summary of share discovery scan and the results. <a href="$ExcessiveSharePrivsFile">Download Details</a></p>
-<table class="table table-striped table-hover">
-  <thead>
-    <tr>	  
-	  <th style="text-align:left;">
-		  Computers <br>
-		  <span style="font-size:12">$ComputerCount</span>
-		  <br>
-		  <span style="color:#9B3722;font-size:12">$ComputerWithExcessive affected</span>
-	  </th>
-	  <th style="text-align:left">
-		Shares <br>
-		<span style="font-size:12">$AllSMBSharesCount</span>
-		<br>
-		<span style="color:#9B3722;font-size:12">$ExcessiveSharesCount affected</span>
-	 </th>	
-	<th style="text-align:left">
-		ACLs <br><span style="font-size:12">$ShareACLsCount</span><br>
-		<span style="color:#9B3722;font-size:12">$ExcessiveSharePrivsCount affected</span>
-	 </th>
-	  <th style="vertical-align: top;">
-	   Key<br>
-	   <span class = "dotkey" style="vertical-align:middle"></span>	   
-	   <span style="font-size:12;vertical-align:middle">Excessive Share Privileges</span>
-	   <br>
-	   </th>	  
-    </tr>
-  </thead>
-  <tbody>  	
-   <tr>
-	  <td>
+		<div id="tabPanel" class="tabPanel">			
+			<p class="pageDescription">Below is a summary of the excessive share discovery scan results. <a href="$ExcessiveSharePrivsFile">Download Details</a></p></p>
+ <a href="#" id="DashLink" onClick="radiobtn = document.getElementById('dashboard');radiobtn.checked = true;">
+ <div class="card">	
+	<div class="cardtitlescan">
+		Scan Summary<br>
+		<span class="cardtitlescansub">Below is the scan summary</span>
+	</div>
+	<div class="cardcontainer" align="left">				  
+	  <span class="scansum">
+		  <div class="ScanSummarywrapper">
+			<div class="ScanSummaryfirst" align="left">
+			<span class="cardbartext">Start Time</span><br>
+			<span class="cardbartext">Stop Time</span><br> 
+			<span class="cardbartext">Duration</span><br> 
+			<span class="cardbartext">Host</span><br> 
+			<span class="cardbartext">User</span><br> 
+			<span class="cardbartext">Domain</span><br> 
+            <span class="cardbartext">DC</span><br>
+			</span>
+			</div>
+			<div class="ScanSummarysecond">
+			<span class="cardbartext2">&nbsp;$StartTime</span><br> 
+			<span class="cardbartext2">&nbsp;$EndTime</span><br>
+			<span class="cardbartext2">&nbsp;$RunTime</span><br>
+			<span class="cardbartext2">&nbsp;$SourceHost</span><BR>
+			<span class="cardbartext2">&nbsp;$username</span><br>
+			<span class="cardbartext2">&nbsp;$TargetDomain</span><br>
+ 			<span class="cardbartext2">&nbsp;$DomainController</span>
+			</span>
+			</div>
+		  </div>
+	  </span>		  
+	</div>
+ </div>
+ </a>
+<a href="#" id="DashLink" onClick="radiobtn = document.getElementById('computersummary');radiobtn.checked = true;">
+ <div class="card">	
+	<div class="cardtitle">
+		Computers<br>
+		<span class="percentagetext2">hosting shares with excessive privileges</span>
+	</div>
+	<div class="cardcontainer" align="center">	
 			<span class="piechartComputers">
 				<span class="percentagetext">
 					<div style="height: 38%;"></div>
-					$PercentComputerExPrivP
+					$PercentComputerExPrivP<br>
+					<span class="percentagetext2"><span style="color:#9B3722;font-size:12;">$ComputerWithExcessive</span> of $ComputerCount</span>
 				</span>
-			</span>
-	  </td>
-	  <td>
-			<span class="piechartshares">
+			</span>			
+	<table>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align: top; width:100px;">Read Access</td>
+			<td align="right">				
+				<div class="cardbarouter">
+					<div class="cardbarinside" style="width: $PercentComputerReadP;"></div>
+				</div>	
+				<span class="cardbartext">$PercentComputerReadP ($ComputerWithReadCount of $ComputerCount)</span>				
+			</td>
+		 </tr>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align:top">Write Access</td>
+			<td align="right">				
+				<div class="cardbarouter">
+					<div class="cardbarinside" style="width: $PercentComputerWriteP;"></div>
+				</div>
+				<span class="cardbartext">$PercentComputerWriteP ($ComputerWithWriteCount of $ComputerCount)</span>
+			</td>
+		 </tr>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align:top">High&nbsp;Risk</td>
+			<td align="right">
+				<div class="cardbarouter">
+					<div class="cardbarinside" style="width: $PercentComputerHighRiskP;"></div>
+				</div>
+				<span class="cardbartext">$PercentComputerHighRiskP ($ComputerwithHighRisk of $ComputerCount)</span>				
+			</td>
+		 </tr>		 
+		</table> 		  
+	</div>
+ </div>
+ </a>
+<a href="#" id="ShareLink" onClick="radiobtn = document.getElementById('sharesum');radiobtn.checked = true;">
+ <div class="card">	
+	<div class="cardtitle">
+		Shares<br>
+		<span class="percentagetext2">configured with excessive privileges</span>
+	</div>
+	<div class="cardcontainer" align="center">	
+			<span class="piechartComputers">
 				<span class="percentagetext">
 					<div style="height: 38%;"></div>
-					$PercentSharesExPrivP
+					$PercentSharesExPrivP<br>
+					<span class="percentagetext2"><span style="color:#9B3722;font-size:12;">$ExcessiveSharesCount</span> of $AllSMBSharesCount</span>
 				</span>
-			</span>
-	  </td> 
-	  <td>
-			<span class="piechartacls">
+			</span>					
+	<table>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align: top; width:100px;">Read Access</td>
+			<td align="right">				
+				<div class="cardbarouter">
+					<div class="cardbarinside" style="width: $PercentSharesReadP;"></div>
+				</div>	
+				<span class="cardbartext">$PercentSharesReadP ($SharesWithReadCount of $AllSMBSharesCount)</span>				
+			</td>
+		 </tr>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align:top">Write Access</td>
+			<td align="right">				
+				<div class="cardbarouter">
+					<div class="cardbarinside" style="width: $PercentSharesWriteP;"></div>
+				</div>
+				<span class="cardbartext">$PercentSharesWriteP ($SharesWithWriteCount of $AllSMBSharesCount)</span>
+			</td>
+		 </tr>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align:top">High&nbsp;Risk</td>
+			<td align="right">
+				<div class="cardbarouter">
+					<div class="cardbarinside" style="width: $PercentSharesHighRiskP;"></div>
+				</div>
+				<span class="cardbartext">$PercentSharesHighRiskP ($SharesHighRiskCount of $AllSMBSharesCount)</span>				
+			</td>
+		 </tr>		 
+		</table> 		  
+	</div>
+ </div>
+ </a>
+<a href="#" id="AclLink" onClick="radiobtn = document.getElementById('ACLsum');radiobtn.checked = true;">
+ <div class="card">	
+	<div class="cardtitle">
+		Share ACLs<br>
+		<span class="percentagetext2">configured with excessive privileges</span>
+	</div>
+	<div class="cardcontainer" align="center">	
+			<span class="piechartComputers">
 				<span class="percentagetext">
 					<div style="height: 38%;"></div>
-					$PercentAclExPrivP
+					$PercentAclExPrivP<br>
+					<span class="percentagetext2"><span style="color:#9B3722;font-size:12;">$ExcessiveSharePrivsCount</span> of $ShareACLsCount</span>
 				</span>
-			</span>
-	  </td> 
-      <td style="text-align:left">
-	  <span class="dashboardsub">SCAN SUMMARY</span><br>
-	  <span class="scansum">
-		  <div class="ScanSummarywrapper">
-			<div class="ScanSummaryfirst">
-			START TIME<br> 
-			STOP TIME<br> 
-			DURATION<br> 
-			TEST HOST<br> 
-			TEST USER<br> 
-			DOMAIN<br> 
-            DC <br>
-			</div>
-			<div class="ScanSummarysecond">
-			 : $StartTime<br> 
-			 : $EndTime<br>
-			 : $RunTime<br>
-			 : $SourceHost<BR>
-			 : $username<br>
-			 : $TargetDomain<br>
-             : $DomainController
-			</div>
-		  </div>
-	  </span>
-	  </td> 	  
-    </tr>	
-   <tr>
-		<td style="text-align:left">
-		
-			<span class="dashboardsub">READ</span><br>
-			<span class="dashboardsub2">$PercentComputerReadP ($ComputerWithReadCount of $ComputerCount)</span>
-			<div class="divbarDomain">
-				<div class="divbarDomainInside" style="width: $PercentComputerReadBarVal;"></div>
-			</div>
-			
-			<br>
-			<span class="dashboardsub">WRITE</span><br>
-			<span class="dashboardsub2">$PercentComputerWriteP ($ComputerWithWriteCount of $ComputerCount)</span>
-			<div class="divbarDomain">
-				<div class="divbarDomainInside" style="width: $PercentComputerWriteBarVal;"></div>
-			</div>
-			
-			<br>
-			<span class="dashboardsub">HIGH RISK</span><br>
-			<span class="dashboardsub2">$PercentComputerHighRiskP ($ComputerwithHighRisk of $ComputerCount)</span>
-			<div class="divbarDomain">
-				<div class="divbarDomainInside" style="width: $PercentComputerHighRiskBarVal;"></div>
-			</div>	
-			
-	    </td>   
-		<td style="text-align:left">
-		
-			<span class="dashboardsub">READ</span><br>
-			<span class="dashboardsub2">$PercentSharesReadP ($SharesWithReadCount of $AllSMBSharesCount)</span>
-			<div class="divbarDomain">
-				<div class="divbarDomainInside" style="width: $PercentSharesReadBarVal;"></div>
-			</div>
-			
-			<br>
-			<span class="dashboardsub">WRITE</span><br>
-			<span class="dashboardsub2">$PercentSharesWriteP ($SharesWithWriteCount of $AllSMBSharesCount)</span>
-			<div class="divbarDomain">
-				<div class="divbarDomainInside" style="width: $PercentSharesWriteBarVal;"></div>
-			</div>
-			
-			<br>
-			<span class="dashboardsub">HIGH RISK</span><br>
-			<span class="dashboardsub2">$PercentSharesHighRiskP ($SharesHighRiskCount of $AllSMBSharesCount)</span>
-			<div class="divbarDomain">
-				<div class="divbarDomainInside" style="width: $PercentSharesHighRiskBarVal;"></div>
-			</div>	
-			
-	    </td> 
-		<td style="text-align:left">
-		
-			<span class="dashboardsub">READ</span><br>
-			<span class="dashboardsub2">$PercentAclReadP  ($AclWithReadCount of $ShareACLsCount)</span>
-			<div class="divbarDomain">
-				<div class="divbarDomainInside" style="width: $PercentAclReadBarVal;"></div>
-			</div>
-			
-			<br>
-			<span class="dashboardsub">WRITE</span><br>
-			<span class="dashboardsub2">$PercentAclWriteP ($AclWithWriteCount of $ShareACLsCount)</span>
-			<div class="divbarDomain">
-				<div class="divbarDomainInside" style="width: $PercentAclWriteBarVal;"></div>
-			</div>
-			
-			<br>
-			<span class="dashboardsub">HIGH RISK</span><br>
-			<span class="dashboardsub2">$PercentAclHighRiskP ($AclHighRiskCount of $ShareACLsCount)</span>
-			<div class="divbarDomain">
-				<div class="divbarDomainInside" style="width: $PercentAclHighRiskBarVal;"></div>
-			</div>	
-			
-	    </td>  
-	  <td>
-	  <span class="dashboardsub">5 MOST COMMON SHARE NAMES</span>
-      <br>
-      <span class="scansum">$CommonShareNamesTopString</span>
-      <br>
-      <span class="dashboardsub">5 MOST COMMON SHARE OWNERS</span>
-      <br>
-      <span class="scansum">$CommonShareOwnersTop5String</span>
-      <br>
-      </td> 	  
-    </tr>				
-  </tbody>
-</table>
-		</div>
+			</span>		
+	<table>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align: top; width:100px;">Read Access</td>
+			<td align="right">				
+				<div class="cardbarouter">
+					<div class="cardbarinside" style="width: $PercentAclReadP;"></div>
+				</div>	
+				<span class="cardbartext">$PercentAclReadP  ($AclWithReadCount of $ShareACLsCount)</span>				
+			</td>
+		 </tr>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align:top">Write Access</td>
+			<td align="right">				
+				<div class="cardbarouter">
+					<div class="cardbarinside" style="width: $PercentAclWriteP;"></div>
+				</div>
+				<span class="cardbartext">$PercentAclWriteP ($AclWithWriteCount of $ShareACLsCount)</span>
+			</td>
+		 </tr>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align:top">High&nbsp;Risk</td>
+			<td align="right">
+				<div class="cardbarouter">
+					<div class="cardbarinside" style="width: $PercentAclHighRiskP;"></div>
+				</div>
+				<span class="cardbartext">$PercentAclHighRiskP ($AclHighRiskCount of $ShareACLsCount)</span>				
+			</td>
+		 </tr>		 
+		</table> 		  
+	</div>
+ </div>
+ </a>
+</div>
 
 <input class="tabInput"  name="tabs" type="radio" id="computersummary"/>
 <label class="tabLabel" onClick="updateTab('computersummary',false)" for="computersummary">Computer Summary</label>
