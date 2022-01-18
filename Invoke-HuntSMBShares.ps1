@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.72
+# Version: v1.3.74
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -218,7 +218,7 @@ function Invoke-HuntSMBShares
         $DomainComputers | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Domain-Computers.csv"
         $null = Convert-DataTableToHtmlTable -DataTable $DomainComputers -Outfile "$OutputDirectory\$TargetDomain-Domain-Computers.html" -Title "Domain Computers" -Description "This page shows the domain computers for the $TargetDomain Active Directory domain."
         $DomainComputersFile = "$TargetDomain-Domain-Computers.csv"
-        $DomainComputerFileH = "$TargetDomain-Domain-Computers.html"
+        $DomainComputersFileH = "$TargetDomain-Domain-Computers.html"
 
         # ----------------------------------------------------------------------
         # Identify computers that respond to ping reqeusts
@@ -1733,63 +1733,63 @@ $NewHtmlReport = @"
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
 	  <td>100.00%</td>
 	  <td>$ComputerCount</td>
-      <td class="cardtitlescansub"><a href="$DomainComputersFile">CSV</a> | <a href="$DomainComputersFileH">HTML</a></td>	  
+      <td><a href="$DomainComputersFile"><span class="cardsubtitle">CSV</a> | </span><a href="$DomainComputersFileH"><span class="cardsubtitle">HTML</span></a></td>	  
     </tr>
     <tr>
       <td>PING RESPONSE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerPingBarVal;"></div></div></td>
       <td>$PercentComputerPingP</td>	
 	  <td>$ComputerPingableCount</td>  
-      <td class="cardtitlescansub"><a href="$ComputersPingableFile">CSV</a> | <a href="$ComputersPingableFileH">HTML</a></td>		  
+      <td><a href="$ComputersPingableFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ComputersPingableFileH"><span class="cardsubtitle">HTML</span></a></td>		  
     </tr>
     <tr>
       <td>PORT 445 OPEN</td>
       <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerPortBarVal;"></div></div></td>
 	  <td>$PercentComputerPortP</td>
 	  <td>$Computers445OpenCount</td>
-      <td class="cardtitlescansub"><a href="$Computers445OpenFile">CSV</a> | <a href="$Computers445OpenFileH">HTML</a></td>  
+      <td><a href="$Computers445OpenFile"><span class="cardsubtitle">CSV</a> | </span><a href="$Computers445OpenFileH"><span class="cardsubtitle">HTML</span></a></td>  
     </tr>
     <tr>
       <td>HOST SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWitShareBarVal ;"></div></div></td>
       <td>$PercentComputerWitShareP</td>	
 	  <td>$AllComputersWithSharesCount</td>  
-      <td class="cardtitlescansub"><a href="$AllSMBSharesFile">CSV</a> | <a href="$AllSMBSharesFileH">HTML</a></td> 
+      <td><a href="$AllSMBSharesFile"><span class="cardsubtitle">CSV</a> | </span><a href="$AllSMBSharesFileH"><span class="cardsubtitle">HTML</span></a></td> 
     </tr>
     <tr>
       <td>HOST NON-DEFAULT SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerNonDefaultBarVal;"></div></div></td>
       <td>$PercentComputerNonDefaultP</td>	
 	  <td>$ComputerwithNonDefaultCount</td>  
-      <td class="cardtitlescansub"><a href="$SharesNonDefaultFile">CSV</a> | HTML</td>  
+      <td><a href="$SharesNonDefaultFile"><span class="cardsubtitle">CSV</a> | </span><span class="cardsubtitle">HTML</span></td>  
     </tr>	
     <tr>
       <td>HOST POTENITIALLY INSECURE SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width:$PercentComputerExPrivBarVal;"></div></div></td>
       <td>$PercentComputerExPrivP</td>	
 	  <td>$ComputerWithExcessive</td>  
-      <td class="cardtitlescansub"><a href="$ExcessiveSharePrivsFile">CSV</a> | HTML</td>  
+      <td><a href="$ExcessiveSharePrivsFile"><span class="cardsubtitle">CSV</a> | </span><span class="cardsubtitle">HTML</span></td>  
     </tr>	
     <tr>
       <td>HOST READABLE SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerReadBarVal;"></div></div></td>
       <td>$PercentComputerReadP</td>	  
 	  <td>$ComputerWithReadCount</td>	  
-      <td class="cardtitlescansub"><a href="$SharesWithReadFile">CSV</a> | HTML</td>	  
+      <td><a href="$SharesWithReadFile"><span class="cardsubtitle">CSV</a> | </span><span class="cardsubtitle">HTML</span></td>	  
     </tr>
 	<tr>
       <td>HOST WRITEABLE SHARE</td>
       <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWriteBarVal;"></div></div></td>
 	  <td>$PercentComputerWriteP</td>
 	  <td>$ComputerWithWriteCount</td>	  	  
-	  <td class="cardtitlescansub"><a href="$SharesWithWriteFile">CSV</a> | HTML</td>	  
+	  <td><a href="$SharesWithWriteFile"><span class="cardsubtitle">CSV</a> | </span><span class="cardsubtitle">HTML</span></td>	  
     </tr>
 	<tr>
       <td>HOST HIGH RISK SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerHighRiskBarVal;"></div></div></td>     
 	  <td>$PercentComputerHighRiskP</td>
 	  <td>$ComputerwithHighRisk</td>	  	 
-	  <td class="cardtitlescansub"><a href="$SharesHighRiskFile">CSV</a> | HTML</td>
+	  <td><a href="$SharesHighRiskFile"><span class="cardsubtitle">CSV</a> | </span><span class="cardsubtitle">HTML</span></td>
     </tr>	
   </tbody>
 </table>
