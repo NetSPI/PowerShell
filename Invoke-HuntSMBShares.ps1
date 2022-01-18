@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.71
+# Version: v1.3.72
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -217,7 +217,8 @@ function Invoke-HuntSMBShares
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers.csv"
         $DomainComputers | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Domain-Computers.csv"
         $null = Convert-DataTableToHtmlTable -DataTable $DomainComputers -Outfile "$OutputDirectory\$TargetDomain-Domain-Computers.html" -Title "Domain Computers" -Description "This page shows the domain computers for the $TargetDomain Active Directory domain."
-        $DomainComputersFile = "$OutputDirectory\$TargetDomain-Domain-Computers.csv"
+        $DomainComputersFile = "$TargetDomain-Domain-Computers.csv"
+        $DomainComputerFileH = "$TargetDomain-Domain-Computers.html"
 
         # ----------------------------------------------------------------------
         # Identify computers that respond to ping reqeusts
@@ -258,7 +259,8 @@ function Invoke-HuntSMBShares
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers-Pingable.csv"
         $ComputersPingable | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Domain-Computers-Pingable.csv"
         $null = Convert-DataTableToHtmlTable -DataTable $ComputersPingable -Outfile "$OutputDirectory\$TargetDomain-Domain-Computers-Pingable.html" -Title "Domain Computers: Ping Response" -Description "This page shows the domain computers for the $TargetDomain Active Directory domain that responded to ping requests."
-        $ComputersPingableFile = "$OutputDirectory\$TargetDomain-Domain-Computers-Pingable.csv"
+        $ComputersPingableFile = "$TargetDomain-Domain-Computers-Pingable.csv"
+        $ComputersPingableFileH =  "$TargetDomain-Domain-Computers-Pingable.html"
 
         # ----------------------------------------------------------------------
         # Identify computers that have TCP 445 open and accessible
@@ -318,7 +320,8 @@ function Invoke-HuntSMBShares
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers-Open445.csv"        
         $Computers445Open | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Domain-Computers-Open445.csv"
         $null = Convert-DataTableToHtmlTable -DataTable $Computers445Open -Outfile "$OutputDirectory\$TargetDomain-Domain-Computers-Open445.html" -Title "Domain Computers: Port 445 Open" -Description "This page shows the domain computers for the $TargetDomain Active Directory domain with port 445 open."
-        $Computers445OpenFile = "$OutputDirectory\$TargetDomain-Domain-Computers-Open445.csv"
+        $Computers445OpenFile = "$TargetDomain-Domain-Computers-Open445.csv"
+        $Computers445OpenFileH ="$TargetDomain-Domain-Computers-Open445.html"
 
         # ----------------------------------------------------------------------
         # Enumerate computer SMB shares
@@ -354,7 +357,8 @@ function Invoke-HuntSMBShares
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-All.csv"
         $AllSMBShares | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-All.csv"
         $null = Convert-DataTableToHtmlTable -DataTable $AllSMBShares -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-All.html" -Title "Domain Shares" -Description "This page shows the all enumerated shares for the $TargetDomain Active Directory domain."
-        $AllSMBSharesFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-All.csv"
+        $AllSMBSharesFile = "$TargetDomain-Shares-Inventory-All.csv"
+        $AllSMBSharesFileH = "$TargetDomain-Shares-Inventory-All.html"
 
         # ----------------------------------------------------------------------
         # Enumerate computer SMB share permissions 
@@ -479,7 +483,7 @@ function Invoke-HuntSMBShares
             break
         }
 
-        $ExcessiveSharePrivsFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
+        $ExcessiveSharePrivsFile = "$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
 
         # ----------------------------------------------------------------------
         # Identify shares that provide read access
@@ -1454,13 +1458,13 @@ $NewHtmlReport = @"
 		font-family:"Open Sans", sans-serif;
 		border-bottom:1.5px solid transparent;
 		border-bottom-color:#9B3722;
-		background-color:#85929E;
+		background-color: #444546;
 	}
 
 	.cardtitlescansub {
 		font-size: 10;
 		font-family:"Open Sans", sans-serif;
-		color:black;			
+		color: white;			
 		text-align: center;
 	}
 
@@ -1500,10 +1504,17 @@ $NewHtmlReport = @"
 	}
 	.ScanSummaryfirst {
 		width: 75px;
-		float:left; 
+		float:left;
+		font-size: 12;
+		font-family:"Open Sans", sans-serif;
+		color:#666;	
+        font-weight:bold;		
 	}
 	.ScanSummarysecond {
 		float: left; 
+		font-size: 12;
+		font-family:"Open Sans", sans-serif;
+		color:#666;			
 	}	  
   </style>
 </head>
@@ -1539,24 +1550,22 @@ $NewHtmlReport = @"
 	  <span class="scansum">
 		  <div class="ScanSummarywrapper">
 			<div class="ScanSummaryfirst" align="left">
-			<span class="cardbartext">Start Time</span><br>
-			<span class="cardbartext">Stop Time</span><br> 
-			<span class="cardbartext">Duration</span><br> 
-			<span class="cardbartext">Host</span><br> 
-			<span class="cardbartext">User</span><br> 
-			<span class="cardbartext">Domain</span><br> 
-            <span class="cardbartext">DC</span><br>
-			</span>
+			    <span>Start Time</span><br>
+			    <span>Stop Time</span><br> 
+			    <span>Duration</span><br> 
+			    <span>Host</span><br> 
+			    <span>User</span><br> 
+			    <span>Domain</span><br> 
+                <span>DC</span><br>
 			</div>
 			<div class="ScanSummarysecond">
-			<span class="cardbartext2">&nbsp;$StartTime</span><br> 
-			<span class="cardbartext2">&nbsp;$EndTime</span><br>
-			<span class="cardbartext2">&nbsp;$RunTime</span><br>
-			<span class="cardbartext2">&nbsp;$SourceHost</span><BR>
-			<span class="cardbartext2">&nbsp;$username</span><br>
-			<span class="cardbartext2">&nbsp;$TargetDomain</span><br>
- 			<span class="cardbartext2">&nbsp;$DomainController</span>
-			</span>
+			    <span>&nbsp;$StartTime</span><br> 
+			    <span>&nbsp;$EndTime</span><br>
+			    <span>&nbsp;$RunTime</span><br>
+			    <span>&nbsp;$SourceHost</span><BR>
+			    <span>&nbsp;$username</span><br>
+			    <span>&nbsp;$TargetDomain</span><br>
+ 			    <span>&nbsp;$DomainController</span>
 			</div>
 		  </div>
 	  </span>		  
@@ -1724,63 +1733,63 @@ $NewHtmlReport = @"
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
 	  <td>100.00%</td>
 	  <td>$ComputerCount</td>
-      <td><a href="$DomainComputersFile">Download</a></td>	  
+      <td class="cardtitlescansub"><a href="$DomainComputersFile">CSV</a> | <a href="$DomainComputersFileH">HTML</a></td>	  
     </tr>
     <tr>
       <td>PING RESPONSE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerPingBarVal;"></div></div></td>
       <td>$PercentComputerPingP</td>	
 	  <td>$ComputerPingableCount</td>  
-      <td><a href="$ComputersPingableFile">Download</a></td>	  
+      <td class="cardtitlescansub"><a href="$ComputersPingableFile">CSV</a> | <a href="$ComputersPingableFileH">HTML</a></td>		  
     </tr>
     <tr>
       <td>PORT 445 OPEN</td>
       <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerPortBarVal;"></div></div></td>
 	  <td>$PercentComputerPortP</td>
 	  <td>$Computers445OpenCount</td>
-      <td><a href="$Computers445OpenFile">Download</a></td>	  
+      <td class="cardtitlescansub"><a href="$Computers445OpenFile">CSV</a> | <a href="$Computers445OpenFileH">HTML</a></td>  
     </tr>
     <tr>
       <td>HOST SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWitShareBarVal ;"></div></div></td>
       <td>$PercentComputerWitShareP</td>	
 	  <td>$AllComputersWithSharesCount</td>  
-      <td><a href="$AllSMBSharesFile">Download</a></td>	  
+      <td class="cardtitlescansub"><a href="$AllSMBSharesFile">CSV</a> | <a href="$AllSMBSharesFileH">HTML</a></td> 
     </tr>
     <tr>
       <td>HOST NON-DEFAULT SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerNonDefaultBarVal;"></div></div></td>
       <td>$PercentComputerNonDefaultP</td>	
 	  <td>$ComputerwithNonDefaultCount</td>  
-      <td><a href="$SharesNonDefaultFile">Download</a></td>	  
+      <td class="cardtitlescansub"><a href="$SharesNonDefaultFile">CSV</a> | HTML</td>  
     </tr>	
     <tr>
       <td>HOST POTENITIALLY INSECURE SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width:$PercentComputerExPrivBarVal;"></div></div></td>
       <td>$PercentComputerExPrivP</td>	
 	  <td>$ComputerWithExcessive</td>  
-      <td><a href="$ExcessiveSharePrivsFile">Download</a></td>	  
+      <td class="cardtitlescansub"><a href="$ExcessiveSharePrivsFile">CSV</a> | HTML</td>  
     </tr>	
     <tr>
       <td>HOST READABLE SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerReadBarVal;"></div></div></td>
       <td>$PercentComputerReadP</td>	  
 	  <td>$ComputerWithReadCount</td>	  
-      <td><a href="$SharesWithReadFile">Download</a></td>	  
+      <td class="cardtitlescansub"><a href="$SharesWithReadFile">CSV</a> | HTML</td>	  
     </tr>
 	<tr>
       <td>HOST WRITEABLE SHARE</td>
       <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWriteBarVal;"></div></div></td>
 	  <td>$PercentComputerWriteP</td>
 	  <td>$ComputerWithWriteCount</td>	  	  
-	  <td><a href="$SharesWithWriteFile">Download</a></td>	  
+	  <td class="cardtitlescansub"><a href="$SharesWithWriteFile">CSV</a> | HTML</td>	  
     </tr>
 	<tr>
       <td>HOST HIGH RISK SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerHighRiskBarVal;"></div></div></td>     
 	  <td>$PercentComputerHighRiskP</td>
 	  <td>$ComputerwithHighRisk</td>	  	 
-	  <td><a href="$SharesHighRiskFile">Download</a></td>
+	  <td class="cardtitlescansub"><a href="$SharesHighRiskFile">CSV</a> | HTML</td>
     </tr>	
   </tbody>
 </table>
