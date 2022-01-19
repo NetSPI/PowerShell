@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.76
+# Version: v1.3.77
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1550,29 +1550,51 @@ $NewHtmlReport = @"
 		Scan Summary<br>
 		<span class="cardtitlescansub">Below is the scan summary</span>
 	</div>
-	<div class="cardcontainer" align="left">				  
-	  <span class="scansum">
-		  <div class="ScanSummarywrapper">
-			<div class="ScanSummaryfirst" align="left">
-			    <span>Start Time</span><br>
-			    <span>Stop Time</span><br> 
-			    <span>Duration</span><br> 
-			    <span>Host</span><br> 
-			    <span>User</span><br> 
-			    <span>Domain</span><br> 
-                <span>DC</span><br>
-			</div>
-			<div class="ScanSummarysecond">
-			    <span>&nbsp;$StartTime</span><br> 
-			    <span>&nbsp;$EndTime</span><br>
-			    <span>&nbsp;$RunTime</span><br>
-			    <span>&nbsp;$SourceHost</span><BR>
-			    <span>&nbsp;$username</span><br>
-			    <span>&nbsp;$TargetDomain</span><br>
- 			    <span>&nbsp;$DomainController</span>
-			</div>
-		  </div>
-	  </span>		  
+	<div class="cardcontainer" align="center">			
+	<table>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align: top;">Start Time</td>
+			<td>					
+				<span class="ScanSummarysecond">$StartTime</span>				
+			</td>
+		 </tr>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align:top">Stop Time</td>
+			<td >					
+				<span class="ScanSummarysecond">$EndTime</span>				
+			</td>
+		 </tr>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align:top">Duration</td>
+			<td >					
+				<span class="ScanSummarysecond">$RunTime</span>				
+			</td>
+		 </tr>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align:top">Host</td>
+			<td >					
+				<span class="ScanSummarysecond">$SourceHost</span>				
+			</td>
+		 </tr>		
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align:top">User</td>
+			<td >					
+				<span class="ScanSummarysecond">$username</span>				
+			</td>
+		 </tr>	
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align:top">Domain</td>
+			<td >					
+				<span class="ScanSummarysecond">$TargetDomain</span>				
+			</td>
+		 </tr>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align:top">$DomainController</td>
+			<td >					
+				<span class="ScanSummarysecond">test</span>				
+			</td>
+		 </tr>		 
+		</table> 		  
 	</div>
  </div>
  </a>
