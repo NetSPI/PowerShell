@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.74
+# Version: v1.3.75
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1286,8 +1286,8 @@ $NewHtmlReport = @"
 	
 	.piechartComputers {    		
         display: block;
-        width: 150px;
-        height: 150px;
+        width: 130px;
+        height: 130px;
         background: radial-gradient(white 60%, transparent 41%), 
 		conic-gradient(#9B3722 0% 2.39%, 
 					   #d9d7d7 2.39% 100%);
@@ -1299,8 +1299,8 @@ $NewHtmlReport = @"
 
 	.piechartShares {    
         display: block;
-        width: 150px;
-        height: 150px;
+        width: 130px;
+        height: 130px;
         background: radial-gradient(white 60%, transparent 41%), 
 		conic-gradient(#9B3722 0% 4.29%, 
 					   #d9d7d7 4.29% 100%);
@@ -1313,8 +1313,8 @@ $NewHtmlReport = @"
 	.piechartAcls {   
         position: relative;
 		display: block;
-        width: 150px;
-        height: 150px;
+        width: 130px;
+        height: 130px;
         background: radial-gradient(white 60%, transparent 41%), 
 		conic-gradient(#9B3722 0% 4.14%, 
 					   #d9d7d7 4.14% 100%);
@@ -1323,6 +1323,10 @@ $NewHtmlReport = @"
 		margin-top: 5px;
 		margin-bottom: 10px;
     }
+
+	.percentagetextBuff {
+		height: 25%;
+	}	
 	
 	.percentagetext {
 		text-align: center;
@@ -1581,7 +1585,7 @@ $NewHtmlReport = @"
 	<div class="cardcontainer" align="center">	
 			<span class="piechartComputers">
 				<span class="percentagetext">
-					<div style="height: 38%;"></div>
+					<div class="percentagetextBuff"></div>
 					$PercentComputerExPrivP<br>
 					<span class="percentagetext2"><span style="color:#9B3722;font-size:12;">$ComputerWithExcessive</span> of $ComputerCount</span>
 				</span>
@@ -1627,7 +1631,7 @@ $NewHtmlReport = @"
 	<div class="cardcontainer" align="center">	
 			<span class="piechartComputers">
 				<span class="percentagetext">
-					<div style="height: 38%;"></div>
+					<div class="percentagetextBuff"></div>
 					$PercentSharesExPrivP<br>
 					<span class="percentagetext2"><span style="color:#9B3722;font-size:12;">$ExcessiveSharesCount</span> of $AllSMBSharesCount</span>
 				</span>
@@ -1673,7 +1677,7 @@ $NewHtmlReport = @"
 	<div class="cardcontainer" align="center">	
 			<span class="piechartComputers">
 				<span class="percentagetext">
-					<div style="height: 38%;"></div>
+					<div class="percentagetextBuff"></div>
 					$PercentAclExPrivP<br>
 					<span class="percentagetext2"><span style="color:#9B3722;font-size:12;">$ExcessiveSharePrivsCount</span> of $ShareACLsCount</span>
 				</span>
