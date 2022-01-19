@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.3.75
+# Version: v1.3.76
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1143,7 +1143,7 @@ $NewHtmlReport = @"
 	table{
 		width:100%;
 		max-width:100%;
-		margin-bottom:1rem;
+		--margin-bottom:1rem;
 		border-collapse:collapse
 	}
 	
