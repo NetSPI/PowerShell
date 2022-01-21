@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.5
+# Version: v1.4.6
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1728,7 +1728,7 @@ $NewHtmlReport = @"
 		<label class="tabLabel" onClick="updateTab('dashboard',false)" for="dashboard"></label>
 		<div id="tabPanel" class="tabPanel">
 		<p class="pageDescription" >
-			<span class="PageTitle">$TargetDomain Scan Summary</span><br>				
+			<span class="PageTitle">$TargetDomain  </span> <span class="PageTitleSub">Scan Summary</span><br>				
 			Below is a summary of the shares configured with excessive privileges on computers associated with the $TargetDomain Active directory domain.
 			<a href="$ExcessiveSharePrivsFile">Download Details</a>			
 		</p>
@@ -1955,7 +1955,7 @@ $NewHtmlReport = @"
 <label class="tabLabel" onClick="updateTab('computersummary',false)" for="computersummary"></label>
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">
-<span class="PageTitle">$TargetDomain Computer Summary</span><br>	
+<span class="PageTitle">$TargetDomain  </span> <span class="PageTitleSub">Computer Summary</span><br>	
 Below is a summary of the domain computers that were targeted, connectivity to them, and the number that are hosting potentially insecure SMB shares.
 </p>
 	
@@ -2045,7 +2045,7 @@ Below is a summary of the domain computers that were targeted, connectivity to t
 <label class="tabLabel" onClick="updateTab('sharesum,false)" for="sharesum"></label>
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">
-<span class="PageTitle">$TargetDomain Share Summary</span><br>	
+<span class="PageTitle">$TargetDomain  </span> <span class="PageTitleSub">Share Summary</span><br>	
 Below is a summary of the SMB shares discovered on computers associated with the target domain that may provide excessive privileges to standard domain users. 
 <br>
 </p>
@@ -2118,7 +2118,7 @@ Below is a summary of the SMB shares discovered on computers associated with the
 <label class="tabLabel" onClick="updateTab('ACLsum',false)" for="ACLsum"></label>
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">
-<span class="PageTitle">$TargetDomain Share ACL Entries Summary</span><br>	
+<span class="PageTitle">$TargetDomain  </span> <span class="PageTitleSub">Share ACL Entries Summary</span><br>	
 Below is a summary of the SMB share ACL entries discovered on computers associated with the target domain that may provide excessive privileges to standard domain users.
 </p>
 
@@ -2194,7 +2194,7 @@ This section contains data insights that could be helpful when planning a priori
   <thead>
     <tr>
       <th align="left">Name</th>
-      <th align="left">Excessive Access</th>
+      <th align="left">Excessive ACL Entries</th>
       <th align="left">Affected Computers</th>
 	  <th align="left">Affected Shares</th>
 	  <th align="left">Affected ACLs</th>	 	 
