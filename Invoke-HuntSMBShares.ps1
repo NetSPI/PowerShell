@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.10
+# Version: v1.4.11
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -717,12 +717,12 @@ function Invoke-HuntSMBShares
 
         # Computer write share access         
         $PercentComputerWrite = [math]::Round($ComputerWithWriteCount/$ComputerCount,4)
-        $PercentComputerWriteP = $PercentComputerWrite.tostring("P")
+        $PercentComputerWriteP = $PercentComputerWrite.tostring("P") -replace(" ","")
         $PercentComputerWriteBarVal = ($PercentComputerWrite*2).tostring("P") -replace(" %","px")
 
         # Computer highrisk shares            
         $PercentComputerHighRisk = [math]::Round($ComputerwithHighRisk/$ComputerCount,4)
-        $PercentComputerHighRiskP = $PercentComputerHighRisk.tostring("P")
+        $PercentComputerHighRiskP = $PercentComputerHighRisk.tostring("P") -replace(" ","")
         $PercentComputerHighRiskBarVal = ($PercentComputerHighRisk*2).tostring("P") -replace(" %","px")
 
         # Shares with non default names      
@@ -767,7 +767,7 @@ function Invoke-HuntSMBShares
 
         # ACL with excessive write             
         $PercentAclWrite = [math]::Round($AclWithWriteCount/$ShareACLsCount,4)
-        $PercentAclWriteP = $PercentAclWrite.tostring("P")
+        $PercentAclWriteP = $PercentAclWrite.tostring("P") -replace(" ","")
         $PercentAclWriteBarVal = ($PercentAclWrite *2).tostring("P") -replace(" %","px")
 
         # ACL with excessive highrisk
@@ -1365,7 +1365,6 @@ $NewHtmlReport = @"
 	.divbarDomainInside{
 		--background:#9B3722;
 		background:#CE0E2D;		
-		width:100px;
 		text-align:center;
 		height: 15px;
 		vertical-align:middle;
