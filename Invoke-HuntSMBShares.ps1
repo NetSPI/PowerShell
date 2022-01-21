@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.13
+# Version: v1.4.14
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -2653,8 +2653,8 @@ Below are some tips for getting started on prioritizing the remediation of share
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px"></div>
 <br><span class="landingheader">Overview</span><br>
 <div class="landingtext">
-This report is the output of the Invoke-HuntSMBShares.ps1 audit script. 
-The report summarizes the SMB shares that could be discovered and accessed on domain joined systems by standard domain users.  The initial list of computers was obtained from a domain controller associated with the target domain. The <em>Scan, Computer, Share, and ACL</em> summary sections will provide coverage summaries.  The <em>Data Insights and Recommendations</em> sections are intented to help prioritize remediation by highlighting natural share groupings. The hope is the grouping can be used to tie large numbers of shares to a person, department, application, or process so they can be remediated using a more centralized approach.
+This report is the output of the <a href="https://github.com/NetSPI/PowerShell/blob/master/Invoke-HuntSMBShares.ps1">Invoke-HuntSMBShares.ps1</a> audit script. 
+The report summarizes the SMB shares that could be discovered and accessed on domain joined systems by standard domain users.  The initial list of computers was obtained from the domain controller $DomainController associated with the target domain $TargetDomain. The <em>Scan, Computer, Share, and ACL</em> summary sections will provide a  summary of the results.  The <em>Data Insights and Recommendations</em> sections are intented to provide some guidance arount how to prioritize remediation, develop detections, and exploit identified access. The information in the Data Insights section can be used to tie large numbers of shares to a person, department, application, or process based on natural groupings.  The groupings can then be use to help centralize and expedite remediation on scale faster in Active Directory environments.
 </div>
 
 <span class="landingheader">Excessive Privilege Definition</span><br>
