@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4
+# Version: v1.4.2
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1064,7 +1064,8 @@ function Invoke-HuntSMBShares
 $NewHtmlReport = @" 
 <html>
 <head>
-  <title>SMB Share Discovery Scan Report</title>
+  <link rel="shortcut icon" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyhpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTM4IDc5LjE1OTgyNCwgMjAxNi8wOS8xNC0wMTowOTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTcgKE1hY2ludG9zaCkiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QTQxQkNBNzA2OEI1MTFFNzlENkRCMzJFODY4RjgwNDMiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QTQxQkNBNzE2OEI1MTFFNzlENkRCMzJFODY4RjgwNDMiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpBNDFCQ0E2RTY4QjUxMUU3OUQ2REIzMkU4NjhGODA0MyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpBNDFCQ0E2RjY4QjUxMUU3OUQ2REIzMkU4NjhGODA0MyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Ptdv5vcAAAB9SURBVHjaYmTAAS4IajsCqeVQbqTB+6v7saljxKHZCUhtAWJOqNB3IPYBGrKPoAFYNDPgM4SRSM04DWEkQTNWQxhJ1IxhCCM0tLeSoBnZEG+QAS+ADHEG8sBLJgYKAciASKhzGMjwQiTlgUiVaKRKQqJKUqZKZiI1OwMEGAA7FE70gYsL4wAAAABJRU5ErkJggg==" >
+  <title>Report</title>
   <style>    	
 	.tabs{
 		margin-top: 10px;
@@ -1375,8 +1376,8 @@ $NewHtmlReport = @"
         width: 130px;
         height: 130px;
         background: radial-gradient(white 60%, transparent 41%), 
-		conic-gradient(#CE112D 0% 2.39%, 
-					   #d9d7d7 2.39% 100%);
+		conic-gradient(#CE112D 0% $PercentComputerExPrivP, 
+					   #d9d7d7 $PercentComputerExPrivP 100%);
 		border-radius: 50%;
 		text-align: center;
 		margin-top: 5px;
@@ -1388,8 +1389,8 @@ $NewHtmlReport = @"
         width: 130px;
         height: 130px;
         background: radial-gradient(white 60%, transparent 41%), 
-		conic-gradient(#CE112D 0% 4.29%, 
-					   #d9d7d7 4.29% 100%);
+		conic-gradient(#CE112D 0% 4.$PercentSharesExPrivP, 
+					   #d9d7d7 $PercentSharesExPrivP 100%);
 		border-radius: 50%;
 		text-align: center;
 		margin-top: 5px;
@@ -1402,8 +1403,8 @@ $NewHtmlReport = @"
         width: 130px;
         height: 130px;
         background: radial-gradient(white 60%, transparent 41%), 
-		conic-gradient(#CE112D 0% 4.14%, 
-					   #d9d7d7 4.14% 100%);
+		conic-gradient(#CE112D 0% $PercentAclExPrivP, 
+					   #d9d7d7 $PercentAclExPrivP 100%);
 		border-radius: 50%;
 		text-align: center;
 		margin-top: 5px;
