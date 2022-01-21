@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.2
+# Version: v1.4.4
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1972,63 +1972,63 @@ Below is a summary of the domain computers that were targeted, connectivity to t
   <tbody>
     <tr>
       <td>DISCOVERED</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 100%;"></div></div></td>
 	  <td>100.00%</td>
 	  <td>$ComputerCount</td>
       <td><a href="$DomainComputersFile"><span class="cardsubtitle">CSV</a> | </span><a href="$DomainComputersFileH"><span class="cardsubtitle">HTML</span></a></td>	  
     </tr>
     <tr>
       <td>PING RESPONSE</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerPingBarVal;"></div></div></td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerPingP;"></div></div></td>
       <td>$PercentComputerPingP</td>	
 	  <td>$ComputerPingableCount</td>  
       <td><a href="$ComputersPingableFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ComputersPingableFileH"><span class="cardsubtitle">HTML</span></a></td>		  
     </tr>
     <tr>
       <td>PORT 445 OPEN</td>
-      <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerPortBarVal;"></div></div></td>
+      <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerPortP;"></div></div></td>
 	  <td>$PercentComputerPortP</td>
 	  <td>$Computers445OpenCount</td>
       <td><a href="$Computers445OpenFile"><span class="cardsubtitle">CSV</a> | </span><a href="$Computers445OpenFileH"><span class="cardsubtitle">HTML</span></a></td>  
     </tr>
     <tr>
       <td>HOST SHARE</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWitShareBarVal ;"></div></div></td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWitShareP;"></div></div></td>
       <td>$PercentComputerWitShareP</td>	
 	  <td>$AllComputersWithSharesCount</td>  
       <td><a href="$AllSMBSharesFile"><span class="cardsubtitle">CSV</a> | </span><a href="$AllSMBSharesFileH"><span class="cardsubtitle">HTML</span></a></td> 
     </tr>
     <tr>
       <td>HOST NON-DEFAULT SHARE</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerNonDefaultBarVal;"></div></div></td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerNonDefaultP;"></div></div></td>
       <td>$PercentComputerNonDefaultP</td>	
 	  <td>$ComputerwithNonDefaultCount</td>  
       <td><a href="$SharesNonDefaultFile"><span class="cardsubtitle">CSV</a> | </span><span class="cardsubtitle">HTML</span></td>  
     </tr>	
     <tr>
       <td>HOST POTENITIALLY INSECURE SHARE</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width:$PercentComputerExPrivBarVal;"></div></div></td>
-      <td>$PercentComputerExPrivP</td>	
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width:$PercentComputerNonDefaultP;"></div></div></td>
+      <td>$PercentComputerNonDefaultP</td>	
 	  <td>$ComputerWithExcessive</td>  
       <td><a href="$ExcessiveSharePrivsFile"><span class="cardsubtitle">CSV</a> | </span><span class="cardsubtitle">HTML</span></td>  
     </tr>	
     <tr>
       <td>HOST READABLE SHARE</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerReadBarVal;"></div></div></td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerReadP;"></div></div></td>
       <td>$PercentComputerReadP</td>	  
 	  <td>$ComputerWithReadCount</td>	  
       <td><a href="$SharesWithReadFile"><span class="cardsubtitle">CSV</a> | </span><span class="cardsubtitle">HTML</span></td>	  
     </tr>
 	<tr>
       <td>HOST WRITEABLE SHARE</td>
-      <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWriteBarVal;"></div></div></td>
+      <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWriteP;"></div></div></td>
 	  <td>$PercentComputerWriteP</td>
 	  <td>$ComputerWithWriteCount</td>	  	  
 	  <td><a href="$SharesWithWriteFile"><span class="cardsubtitle">CSV</a> | </span><span class="cardsubtitle">HTML</span></td>	  
     </tr>
 	<tr>
       <td>HOST HIGH RISK SHARE</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerHighRiskBarVal;"></div></div></td>     
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerHighRiskP;"></div></div></td>     
 	  <td>$PercentComputerHighRiskP</td>
 	  <td>$ComputerwithHighRisk</td>	  	 
 	  <td><a href="$SharesHighRiskFile"><span class="cardsubtitle">CSV</a> | </span><span class="cardsubtitle">HTML</span></td>
@@ -2063,42 +2063,42 @@ Below is a summary of the SMB shares discovered on computers associated with the
   <tbody>
     <tr>
       <td>DISCOVERED</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 100%;"></div></div></td>
 	  <td>100.00%</td>
 	  <td>$AllSMBSharesCount</td>
       <td><a href="$AllSMBSharesFile">Download</a></td>	  
     </tr>
     <tr>
       <td>NON-DEFAULT</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesNonDefaultBarVal;"></div></div></td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesNonDefaultP;"></div></div></td>
       <td>$PercentSharesNonDefaultP</td>	
 	  <td>$SharesNonDefaultCount</td>  
       <td><a href="$SharesNonDefaultFile">Download</a></td>	  
     </tr>	
     <tr>
       <td>POTENTIALLY EXCESSIVE</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesExPrivBarVal;"></div></div></td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesExPrivP;"></div></div></td>
       <td>$PercentSharesExPrivP</td>	
 	  <td>$ExcessiveSharesCount</td>  
       <td><a href="$ExcessiveSharePrivsFile">Download</a></td>	  
     </tr>
     <tr>
       <td>READ ACCESS</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesReadBarVal;"></div></div></td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesReadP;"></div></div></td>
       <td>$PercentSharesReadP</td>	  
 	  <td>$SharesWithReadCount</td>	  
       <td><a href="$SharesWithReadFile">Download</a></td>	  
     </tr>
 	<tr>
       <td>WRITE ACCESS</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesWriteBarVal;"></div></div></td>     
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesWriteP;"></div></div></td>     
 	  <td>$PercentSharesWriteP</td>
 	  <td>$SharesWithWriteCount</td>	  	 
 	  <td><a href="$SharesWithWriteFile">Download</a></td>	  
     </tr>
 	<tr>
       <td>HIGH RISK</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesHighRiskBarVal;"></div></div></td>     
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesHighRiskP;"></div></div></td>     
 	  <td>$PercentSharesHighRiskP</td>
 	  <td>$SharesHighRiskCount</td>	  	 
 	  <td><a href="$SharesHighRiskFile">Download</a></td>
@@ -2135,42 +2135,42 @@ Below is a summary of the SMB share ACL entries discovered on computers associat
   <tbody>
     <tr>
       <td>DISCOVERED</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 200px;"></div></div></td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 100%;"></div></div></td>
 	  <td>100.00%</td>
 	  <td>$ShareACLsCount</td>
       <td><a href="$ShareACLsFile">Download</a></td>	  
     </tr>	
     <tr>
       <td>NON-DEFAULT</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclNonDefaultBarVal;"></div></div></td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclNonDefaultP;"></div></div></td>
       <td>$PercentAclNonDefaultP</td>	
 	  <td>$AclNonDefaultCount</td>  
       <td><a href="$SharesNonDefaultFile">Download</a></td>	  
     </tr>		
     <tr>
       <td>POTENTIALLY EXCESSIVE</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclExPrivBarVal;"></div></div></td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclExPrivP;"></div></div></td>
       <td>$PercentAclExPrivP</td>	
 	  <td>$ExcessiveSharePrivsCount</td>  
       <td><a href="$ExcessiveSharePrivsFile">Download</a></td>	  
     </tr>
     <tr>
       <td>READ ACCESS</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclReadBarVal;"></div></div></td>
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclReadP;"></div></div></td>
       <td>$PercentAclReadP</td>	  
 	  <td>$AclWithReadCount</td>	  
       <td><a href="$SharesWithReadFile">Download</a></td>	  
     </tr>
 	<tr>
       <td>WRITE ACCESS</td>
-      <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclWriteBarVal;"></div></div></td>
+      <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclWriteP;"></div></div></td>
 	  <td>$PercentAclWriteP</td>
 	  <td>$AclWithWriteCount</td>	  	  
 	  <td><a href="$SharesWithWriteFile">Download</a></td>	  
     </tr>
 	<tr>
       <td>HIGH RISK</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclHighRiskBarVal;"></div></div></td>     
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclHighRiskP;"></div></div></td>     
 	  <td>$PercentAclHighRiskP</td>
 	  <td>$AclHighRiskCount</td>	  	 
 	  <td><a href="$SharesHighRiskFile">Download</a></td>
@@ -2223,20 +2223,20 @@ This section contains data insights that could be helpful when planning a priori
 		  <span class="dashboardsub2">$AceEveryoneComputerCountPS ($AceEveryoneComputerCount of $ComputerCount)</span>
 		  <br>
 		  <div class="divbarDomain">
-			<div class="divbarDomainInside" style="width: $AceEveryoneComputerCountPB;"></div>
+			<div class="divbarDomainInside" style="width: $AceEveryoneComputerCountPS;"></div>
 		  </div>
       </td>     	 	  
 	  <td>
 		<span class="dashboardsub2">$AceEveryoneShareCountPS ($AceEveryoneShareCount of $AllSMBSharesCount)</span>
 		<br>
 		<div class="divbarDomain">
-			<div class="divbarDomainInside" style="width: $AceEveryoneShareCountPB;"></div>
+			<div class="divbarDomainInside" style="width: $AceEveryoneShareCountPS;"></div>
 		</div>
       </td>  	  
 	  <td>
 	  <span class="dashboardsub2">$AceEveryoneAclPS ($AceEveryoneAclCount of $ShareACLsCount)</span>
       <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: $AceEveryoneAclPB;"></div></div>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: $AceEveryoneAclPS;"></div></div>
       </td>    	  
     </tr>	
 	<tr>
@@ -2261,20 +2261,20 @@ This section contains data insights that could be helpful when planning a priori
 		  <span class="dashboardsub2">$AceUsersComputerCountPS ($AceUsersComputerCount of $ComputerCount)</span>
 		  <br>
 		  <div class="divbarDomain">
-			<div class="divbarDomainInside" style="width: $AceUsersComputerCountPB;"></div>
+			<div class="divbarDomainInside" style="width: $AceUsersComputerCountPS;"></div>
 		  </div>
       </td>     	 	  
 	  <td>
 		<span class="dashboardsub2">$AceUsersShareCountPS ($AceUsersShareCount of $AllSMBSharesCount)</span>
 		<br>
 		<div class="divbarDomain">
-			<div class="divbarDomainInside" style="width: $AceUsersShareCountPB;"></div>
+			<div class="divbarDomainInside" style="width: $AceUsersShareCountPS;"></div>
 		</div>
       </td>  	  
 	  <td>
 	  <span class="dashboardsub2">$AceUsersAclPS ($AceUsersAclCount of $ShareACLsCount)</span>
       <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: $AceUsersAclPB;"></div></div>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: $AceUsersAclPS;"></div></div>
       </td>    	  
     </tr>	
 	<tr>
@@ -2299,20 +2299,20 @@ This section contains data insights that could be helpful when planning a priori
 		  <span class="dashboardsub2">$AceAuthenticatedUsersComputerCountPS ($AceAuthenticatedUsersComputerCount of $ComputerCount)</span>
 		  <br>
 		  <div class="divbarDomain">
-			<div class="divbarDomainInside" style="width: $AceAuthenticatedUsersComputerCountPB;"></div>
+			<div class="divbarDomainInside" style="width: $AceAuthenticatedUsersComputerCountPS;"></div>
 		  </div>
       </td>     	 	  
 	  <td>
 		<span class="dashboardsub2">$AceAuthenticatedUsersShareCountPS ($AceAuthenticatedUsersShareCount of $AllSMBSharesCount)</span>
 		<br>
 		<div class="divbarDomain">
-			<div class="divbarDomainInside" style="width: $AceAuthenticatedUsersShareCountPB;"></div>
+			<div class="divbarDomainInside" style="width: $AceAuthenticatedUsersShareCountPS;"></div>
 		</div>
       </td>  	  
 	  <td>
 	  <span class="dashboardsub2">$AceAuthenticatedUsersAclPS ($AceAuthenticatedUsersAclCount of $ShareACLsCount)</span>
       <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: $AceAuthenticatedUsersAclPB;"></div></div>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: $AceAuthenticatedUsersAclPS;"></div></div>
       </td>    	  
     </tr>	
 	<tr>
@@ -2337,20 +2337,20 @@ This section contains data insights that could be helpful when planning a priori
 		  <span class="dashboardsub2">$AceDomainUsersComputerCountPS ($AceDomainUsersComputerCount of $ComputerCount)</span>
 		  <br>
 		  <div class="divbarDomain">
-			<div class="divbarDomainInside" style="width: $AceDomainUsersComputerCountPB;"></div>
+			<div class="divbarDomainInside" style="width: $AceDomainUsersComputerCountPS;"></div>
 		  </div>
       </td>     	 	  
 	  <td>
 		<span class="dashboardsub2">$AceDomainUsersShareCountPS ($AceDomainUsersShareCount of $AllSMBSharesCount)</span>
 		<br>
 		<div class="divbarDomain">
-			<div class="divbarDomainInside" style="width: $AceDomainUsersShareCountPB;"></div>
+			<div class="divbarDomainInside" style="width: $AceDomainUsersShareCountPS;"></div>
 		</div>
       </td>  	  
 	  <td>
 	  <span class="dashboardsub2">$AceDomainUsersAclPS ($AceDomainUsersAclCount of $ShareACLsCount)</span>
       <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: $AceDomainUsersAclPB;"></div></div>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: $AceDomainUsersAclPS;"></div></div>
       </td>    	  
     </tr>
 	<tr>
@@ -2375,20 +2375,20 @@ This section contains data insights that could be helpful when planning a priori
 		  <span class="dashboardsub2">$AceDomainComputersComputerCountPS ($AceDomainComputersComputerCount of $ComputerCount)</span>
 		  <br>
 		  <div class="divbarDomain">
-			<div class="divbarDomainInside" style="width: $AceDomainComputersComputerCountPB;"></div>
+			<div class="divbarDomainInside" style="width: $AceDomainComputersComputerCountPS;"></div>
 		  </div>
       </td>     	 	  
 	  <td>
 		<span class="dashboardsub2">$AceDomainComputersShareCountPS ($AceDomainComputersShareCount of $AllSMBSharesCount)</span>
 		<br>
 		<div class="divbarDomain">
-			<div class="divbarDomainInside" style="width: $AceDomainComputersShareCountPB;"></div>
+			<div class="divbarDomainInside" style="width: $AceDomainComputersShareCountPS;"></div>
 		</div>
       </td>  	  
 	  <td>
 	  <span class="dashboardsub2">$AceDomainComputersAclPS ($AceDomainComputersAclCount of $ShareACLsCount)</span>
       <br>
-      <div class="divbarDomain"><div class="divbarDomainInside" style="width: $AceDomainComputersAclPB;"></div></div>
+      <div class="divbarDomain"><div class="divbarDomainInside" style="width: $AceDomainComputersAclPS;"></div></div>
       </td>    	  
     </tr>
   </tbody>
@@ -3039,7 +3039,7 @@ function Get-GroupOwnerBar
     $UserAclsPercent = [math]::Round($UserAclsCount/$AllAclCount,4)
     $UserAclsPercentString = $UserAclsPercent.tostring("P") -replace(" ","")
     $UserAclsPercentBarVal = ($UserAclsPercent *2).tostring("P") -replace(" %","px")
-    $UserAclsPercentBarCode = "<span class=`"dashboardsub2`">$UserAclsPercentString ($UserAclsCount of $AllAclCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserAclsPercentBarVal;`"></div></div>"
+    $UserAclsPercentBarCode = "<span class=`"dashboardsub2`">$UserAclsPercentString ($UserAclsCount of $AllAclCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserAclsPercentString;`"></div></div>"
 
     # Get share counts
     $UserShare = $UserAcls | Select-Object SharePath -Unique
@@ -3047,7 +3047,7 @@ function Get-GroupOwnerBar
     $UserSharePercent = [math]::Round($UserShareCount/$AllShareCount,4)
     $UserSharePercentString = $UserSharePercent.tostring("P") -replace(" ","")
     $UserSharePercentBarVal = ($UserSharePercent *2).tostring("P") -replace(" %","px")
-    $UserSharePercentBarCode = "<span class=`"dashboardsub2`">$UserSharePercentString ($UserShareCount of $AllShareCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserSharePercentBarVal;`"></div></div>"
+    $UserSharePercentBarCode = "<span class=`"dashboardsub2`">$UserSharePercentString ($UserShareCount of $AllShareCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserSharePercentString;`"></div></div>"
 
     # Get computer counts
     $UserComputer = $UserAcls | Select-Object ComputerName -Unique
@@ -3055,7 +3055,7 @@ function Get-GroupOwnerBar
     $UserComputerPercent = [math]::Round($UserComputerCount/$AllComputerCount,4)
     $UserComputerPercentString = $UserComputerPercent.tostring("P") -replace(" ","")
     $UserComputerPercentBarVal = ($UserComputerPercent *2).tostring("P") -replace(" %","px")
-    $UserComputerPercentBarCode = "<span class=`"dashboardsub2`">$UserComputerPercentString ($UserComputerCount of $AllComputerCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserComputerPercentBarVal;`"></div></div>"
+    $UserComputerPercentBarCode = "<span class=`"dashboardsub2`">$UserComputerPercentString ($UserComputerCount of $AllComputerCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserComputerPercentString;`"></div></div>"
 
     # Return object with all counts
     $TheCounts = new-object psobject            
@@ -3084,7 +3084,7 @@ function Get-GroupNameBar
     $UserAclsPercent = [math]::Round($UserAclsCount/$AllAclCount,4)
     $UserAclsPercentString = $UserAclsPercent.tostring("P") -replace(" ","")
     $UserAclsPercentBarVal = ($UserAclsPercent *2).tostring("P") -replace(" %","px")
-    $UserAclsPercentBarCode = "<span class=`"dashboardsub2`">$UserAclsPercentString ($UserAclsCount of $AllAclCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserAclsPercentBarVal;`"></div></div>"
+    $UserAclsPercentBarCode = "<span class=`"dashboardsub2`">$UserAclsPercentString ($UserAclsCount of $AllAclCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserAclsPercentString;`"></div></div>"
 
     # Get share counts
     $UserShare = $UserAcls | Select-Object SharePath -Unique
@@ -3092,7 +3092,7 @@ function Get-GroupNameBar
     $UserSharePercent = [math]::Round($UserShareCount/$AllShareCount,4)
     $UserSharePercentString = $UserSharePercent.tostring("P") -replace(" ","")
     $UserSharePercentBarVal = ($UserSharePercent *2).tostring("P") -replace(" %","px")
-    $UserSharePercentBarCode = "<span class=`"dashboardsub2`">$UserSharePercentString ($UserShareCount of $AllShareCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserSharePercentBarVal;`"></div></div>"
+    $UserSharePercentBarCode = "<span class=`"dashboardsub2`">$UserSharePercentString ($UserShareCount of $AllShareCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserSharePercentString;`"></div></div>"
 
     # Get computer counts
     $UserComputer = $UserAcls | Select-Object ComputerName -Unique
@@ -3100,7 +3100,7 @@ function Get-GroupNameBar
     $UserComputerPercent = [math]::Round($UserComputerCount/$AllComputerCount,4)
     $UserComputerPercentString = $UserComputerPercent.tostring("P") -replace(" ","")
     $UserComputerPercentBarVal = ($UserComputerPercent *2).tostring("P") -replace(" %","px")
-    $UserComputerPercentBarCode = "<span class=`"dashboardsub2`">$UserComputerPercentString ($UserComputerCount of $AllComputerCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserComputerPercentBarVal;`"></div></div>"
+    $UserComputerPercentBarCode = "<span class=`"dashboardsub2`">$UserComputerPercentString ($UserComputerCount of $AllComputerCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserComputerPercentString;`"></div></div>"
 
     # Return object with all counts
     $TheCounts = new-object psobject            
@@ -3132,7 +3132,7 @@ function Get-GroupFileBar
     $UserAclsPercent = [math]::Round($UserAclsCount/$AllAclCount,4)
     $UserAclsPercentString = $UserAclsPercent.tostring("P") -replace(" ","")
     $UserAclsPercentBarVal = ($UserAclsPercent *2).tostring("P") -replace(" %","px")
-    $UserAclsPercentBarCode = "<span class=`"dashboardsub2`">$UserAclsPercentString ($UserAclsCount of $AllAclCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserAclsPercentBarVal;`"></div></div>"
+    $UserAclsPercentBarCode = "<span class=`"dashboardsub2`">$UserAclsPercentString ($UserAclsCount of $AllAclCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserAclsPercentString;`"></div></div>"
 
     # Get share counts
     $UserShare = $UserAcls | Select-Object SharePath -Unique
@@ -3140,7 +3140,7 @@ function Get-GroupFileBar
     $UserSharePercent = [math]::Round($UserShareCount/$AllShareCount,4)
     $UserSharePercentString = $UserSharePercent.tostring("P") -replace(" ","")
     $UserSharePercentBarVal = ($UserSharePercent *2).tostring("P") -replace(" %","px")
-    $UserSharePercentBarCode = "<span class=`"dashboardsub2`">$UserSharePercentString ($UserShareCount of $AllShareCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserSharePercentBarVal;`"></div></div>"
+    $UserSharePercentBarCode = "<span class=`"dashboardsub2`">$UserSharePercentString ($UserShareCount of $AllShareCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserSharePercentString;`"></div></div>"
 
     # Get computer counts
     $UserComputer = $UserAcls | Select-Object ComputerName -Unique
@@ -3148,7 +3148,7 @@ function Get-GroupFileBar
     $UserComputerPercent = [math]::Round($UserComputerCount/$AllComputerCount,4)
     $UserComputerPercentString = $UserComputerPercent.tostring("P") -replace(" ","")
     $UserComputerPercentBarVal = ($UserComputerPercent *2).tostring("P") -replace(" %","px")
-    $UserComputerPercentBarCode = "<span class=`"dashboardsub2`">$UserComputerPercentString ($UserComputerCount of $AllComputerCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserComputerPercentBarVal;`"></div></div>"
+    $UserComputerPercentBarCode = "<span class=`"dashboardsub2`">$UserComputerPercentString ($UserComputerCount of $AllComputerCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserComputerPercentString;`"></div></div>"
 
     # Return object with all counts
     $TheCounts = new-object psobject            
