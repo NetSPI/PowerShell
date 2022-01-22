@@ -4,12 +4,16 @@ function Convert-ImageToHtml
             .SYNOPSIS
             This function can be used to convert an image file into an HTML IMG tag with an image
             embedded in the SRC so that an external image file doesn't have to be referenced.
-            .PARAMETER $Infile
+            .PARAMETER $ImageFile
             The image file path.
-            .PARAMETER $Outfile
-            The html output file path.
+            .PARAMETER $MakeHtml
+            An HTML file will be created using the same name as the image file.
             .EXAMPLE
-            PS C:\> Convert-CsvToPsDt -Infile c:\temp\serverinfo.csv -Outfile c:\temp\createmydatatable.ps1
+            PS C:\> Convert-ImageToHtml -$ImageFile c:\temp\picture.png -Verbose
+            .EXAMPLE
+            PS C:\> Get-ChildItem *.png | select fullname | Convert-ImageToHtml -Verbose
+            .EXAMPLE
+            PS C:\> Get-ChildItem *.png | select fullname | Convert-ImageToHtml -Verbose -MakeHtml
 	        .NOTES
 	        Author: Scott Sutherland (@_nullbind)
     #>
@@ -17,18 +21,32 @@ function Convert-ImageToHtml
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $true,
+        ValueFromPipeline = $true,
+        ValueFromPipelineByPropertyName = $true,
         HelpMessage = 'The image file path.')]
         [string]$ImageFile,
 
         [Parameter(Mandatory = $false,
-        HelpMessage = 'The html output file path.')]
-        [string]$HtmlFile = ".\image.html"
+        HelpMessage = 'An HTML file will be created using the same name as the image file.')]
+        [switch]$MakeHtml 
     )
  
 
     Process {
 
-        try {
+        try {           
+
+            # Process for common parameter names if pipeline is used
+            if($PSCmdlet.MyInvocation.ExpectingInput){
+                $CheckFullName = $_ | gm | where name -like "fullname"
+                if($CheckFullName){
+                    $ImageFile = $_.fullname
+                }
+            }
+
+            # Verbose info
+            Write-Verbose "Processing $ImageFile"
+
             # Read image file
             $ImageBytes  = [System.IO.File]::ReadAllBytes("$ImageFile")
 
