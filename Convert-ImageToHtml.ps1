@@ -9,10 +9,13 @@ function Convert-ImageToHtml
             .PARAMETER $MakeHtml
             An HTML file will be created using the same name as the image file.
             .EXAMPLE
+            Convert a single image file to an HTML IMG tag and display the code.
             PS C:\> Convert-ImageToHtml -$ImageFile c:\temp\picture.png -Verbose
             .EXAMPLE
+            Convert a directory of images to HTML IMG tags and display the code.
             PS C:\> Get-ChildItem *.png | select fullname | Convert-ImageToHtml -Verbose
             .EXAMPLE
+            Convert a directory of images to HTML IMG tags, display the code, and write them to html files.
             PS C:\> Get-ChildItem *.png | select fullname | Convert-ImageToHtml -Verbose -MakeHtml
 	        .NOTES
 	        Author: Scott Sutherland (@_nullbind)
@@ -59,8 +62,8 @@ function Convert-ImageToHtml
             # Display image tag
             $output
 
-            if($HtmlFile){
-            $output | Out-File "$HtmlFile"
+            if($MakeHtml){
+            $output | Out-File "$ImageFile.html"
             }
         }catch{
             Write-Error "Something went wrong. Check your paths. :)" -ErrorId B1 -TargetObject $_
