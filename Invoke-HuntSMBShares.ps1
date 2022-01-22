@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.14
+# Version: v1.4.16
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1214,7 +1214,7 @@ $NewHtmlReport = @"
 		vertical-align:bottom;
 		background-color: #3D3935;
 		color:white;
-		border:1px solid #222222;;
+		border:1px solid #3D3935;
 	}
 	
 	table tbody tr:nth-of-type(odd){
@@ -2659,7 +2659,7 @@ The report summarizes the SMB shares that could be discovered and accessed on do
 
 <span class="landingheader">Excessive Privilege Definition</span><br>
 <div class="landingtext">
-In the context of this report, excessive read and write share permissions have been defined as any network share ACL containing an explicit entry for the <em>"Everyone", "Authenticated Users", "BUILTIN\Users", "Domain Users", or "Domain Computers"</em> groups. All provide domain users access to the target share due to privilege inheritance. Please note that share permissions can be overruled by NTFS permissions. Also, be aware that testing excluded share names containing the following keywords: <em>"print$", "prnproc$", "printer", "netlogon",and "sysvol"</em>.
+In the context of this report, excessive read and write share permissions have been defined as any network share ACL containing an explicit entry for the <em>"Everyone", "Authenticated Users", "BUILTIN\Users", "Domain Users", or "Domain Computers"</em> groups. All provide domain users access to the affected shares due to privilege inheritance. Please note that share permissions can be overruled by NTFS permissions. Also, be aware that testing excluded share names containing the following keywords: <em>"print$", "prnproc$", "printer", "netlogon",and "sysvol"</em>.
 </div>
 
 <span class="landingheader">High Risk Share Definition</span><br>
