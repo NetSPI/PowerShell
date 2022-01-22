@@ -17,8 +17,8 @@ function Convert-ImageToHtml
             .EXAMPLE
             Convert a directory of images to HTML IMG tags, display the code, and write them to html files.
             PS C:\> Get-ChildItem *.png | select fullname | Convert-ImageToHtml -Verbose -MakeHtml
-	        .NOTES
-	        Author: Scott Sutherland (@_nullbind)
+           .NOTES
+           Author: Scott Sutherland (@_nullbind)
     #>
  
     [CmdletBinding()]
