@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.17
+# Version: v1.4.18
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1411,7 +1411,7 @@ $NewHtmlReport = @"
     }
 
 	.percentagetextBuff {
-		height: 25%;
+		--height: 25%;
 	}	
 	
 	.percentagetext {
@@ -1853,7 +1853,7 @@ $NewHtmlReport = @"
 		<span class="cardsubtitle2">configured with excessive privileges</span>
 	</div>
 	<div class="cardcontainer" align="center">	
-			<span class="piechartComputers">
+			<span class="piechartShares">
 				<span class="percentagetext">
 					<div class="percentagetextBuff"></div>
                     <img style ="padding-top:20px; padding-bottom:5px;border-bottom:1px solid #ccc;padding-left:10px; padding-right:10px;"  src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAQAAABu4E3oAAABJWlDQ1BJQ0MgcHJvZmlsZQAAKJGdkL1KA0EUhc9G0SBaKVGCxRa2ARu3svEHlxSBuFnB1Wozs8HgzrjsTAi+gW+iD5NCEHwEH0DB2jOrhYXTeIfL/bjce87MAK2wFMos7wNK2zpOjrLL7CpcfUOADs82dnJhqsHoLIU3Pl85zXjpOS3/3J+xIgsjWBdMLaraAsEhOZrbyjETW7dpckJ+IIdSaUl+Iu9JJR273USVM/Gj6W6zXuiLkeszdxGjjwGGCDHGDFOUsOixanZOEeGANUaNHPcwEKwlCvbmnLG4IRkqxTgmpSTexuPXbfyGdBlTY0ot53AHRU3nB/e/32sf581m0FlUeZ03rSVmazIB3h+BjQzYfAbWrj1e7d9v88xEzcw/3/gF/GJQb3mdv/oAAAACYktHRADnlONU6QAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+YBFhYZNZHDwTUAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAABFElEQVQ4y+3RO0pDURSF4S8xsRBFDVyCoEJALKwcgmBtYWPho1ERbBScg1baiCOwsolWARVxAjqAWImQYCGCGAMWJrFIws2Lq7W4m3PgnLX+tffmv/5IxYw4MARK9hV/lsQNm3UlJ6dk5TeUhJp3F8q4c+bGZ9efqoKPVkk9HhTc2uthO6BqtdVq0qXByCTT8lKdlLCSUg1mWIGYQD/48proGMaO7S6bPmnXauDNQqLNM7Au0zPceKPnnGK8bUe7ZiK7enSk2iqZsKYaucNzT8Rbgm0Yi2Q8OFQhpGRsdc2qnZH1Ur80vy0JIhl5J/XYdUlN2mYko+bYc3OVFaMWzZuKbD0vGw42adlcT9/wLDt133z4Bg7MOl4Iv7/cAAAAAElFTkSuQmCC" />
@@ -1905,7 +1905,7 @@ $NewHtmlReport = @"
 		<span class="cardsubtitle2">configured with excessive privileges</span>
 	</div>
 	<div class="cardcontainer" align="center">	
-			<span class="piechartComputers">
+			<span class="piechartAcls">
 				<span class="percentagetext">
 					<div class="percentagetextBuff"></div>
                     <img style ="padding-top:20px; padding-bottom:5px;border-bottom:1px solid #ccc; padding-left:10px; padding-right:10px;"  src="data:image/png;base64, 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" />
