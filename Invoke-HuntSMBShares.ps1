@@ -1396,8 +1396,7 @@ $NewHtmlReport = @"
 		margin-bottom: 10px;
     }
 	
-	.piechartAcls {   
-        position: relative;
+	.piechartAcls {         
 		display: block;
         width: 130px;
         height: 130px;
