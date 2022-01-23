@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.18
+# Version: v1.4.19
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1388,7 +1388,7 @@ $NewHtmlReport = @"
         width: 130px;
         height: 130px;
         background: radial-gradient(white 60%, transparent 41%), 
-		conic-gradient(#CE112D 0% 4.$PercentSharesExPrivP, 
+		conic-gradient(#CE112D 0% $PercentSharesExPrivP, 
 					   #d9d7d7 $PercentSharesExPrivP 100%);
 		border-radius: 50%;
 		text-align: center;
