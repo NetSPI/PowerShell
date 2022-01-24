@@ -2806,14 +2806,14 @@ The command examples below can be used to identify potentially malicious share p
 <br><br>
 <strong style="color:#333">From Domain System</strong>
 <div style="border-radius:25px;border: 2px solid #CCC;margin-top:5px;padding: 5px;padding-left: 15px;width:95%;background-color:white;color:#757575;font-family:Lucida, Grande, sans-serif;">
-Invoke-HuntSMBShares -Threads 100 -Timeout 10 -OutputDirectory c:\folder\ 
+Invoke-HuntSMBShares -Threads 100 -RunSpaceTimeOut 10 -OutputDirectory c:\folder\ 
 </div>
 <br>
 <strong style="color:#333">From Non-Domain System</strong>
 <div style="border-radius:25px;border: 2px solid #CCC;margin-top:5px;padding: 5px;padding-left: 15px;width:95%;background-color:white;color:#757575;font-family:Lucida, Grande, sans-serif;">
 runas /netonly /user:domain\user PowerShell.exe<Br>
 Import-Module Invoke-HuntSMBShares.ps1<br>
-Invoke-HuntSMBShares -Threads 100 -Timeout 10 -OutputDirectory c:\folder\ -DomainController 10.1.1.1 -Username domain\user -Password password 
+Invoke-HuntSMBShares -Threads 100 -RunSpaceTimeOut 10 -OutputDirectory c:\folder\ -DomainController 10.1.1.1 -Username domain\user -Password password 
 </div>
 </div>
 </div>
