@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.22
+# Version: v1.4.23
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1769,16 +1769,18 @@ $NewHtmlReport = @"
 <div id="main">
 
 <!--  
-|||||||||| PAGE: SCAN SUMMARY
+|||||||||| PAGE: Dashboard
 -->
 		<input class="tabInput"  name="tabs" type="radio" id="dashboard"/>
 		<label class="tabLabel" onClick="updateTab('dashboard',false)" for="dashboard"></label>
 		<div id="tabPanel" class="tabPanel">
+<div style="min-height: 510px">		
 		<p class="pageDescription" >
-			<span class="PageTitle">$TargetDomain  </span> <span class="PageTitleSub">Dashboard Charts</span><br>				
+			<span class="PageTitle">$TargetDomain </span> <span class="PageTitleSub">Dashboard Charts</span><br>				
 			Below is a summary of the shares configured with excessive privileges on computers associated with the $TargetDomain Active directory domain.
 			<a href="$ExcessiveSharePrivsFile">Download Details</a>			
-		</p>
+		</p> 	
+<div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>		
 
 <!--  
 |||||||||| CARD: COMPUTER SUMMARY
@@ -1936,6 +1938,7 @@ $NewHtmlReport = @"
  </div>
  </a>
  <!-- <div style="border-bottom:1px solid #DEDFE1;height: 1px;width:100%"></div> -->
+</div>
 </div>
 
 <!--  
@@ -2737,12 +2740,8 @@ The <em>Data Insights</em> sections are intented to highlight natural data group
 Review potentially excessive share ACL entry details in the associated HTML and CSV files.
 </div>
 </div>
-<button class="collapsible"><span style="color:#CE112D;">3</span> | Verify and Remediate Issues</button>
-<div class="content">
-<div class="landingtext" >
-Follow the guidance in the Exploit Share Access, Detect Share Access, and Prioritize Remediation sections.</div>
-</div>
-<button class="collapsible"><span style="color:#CE112D;">4</span> | Review Definitions</button>
+
+<button class="collapsible"><span style="color:#CE112D;">3</span> | Review Definitions</button>
 <div class="content">
 <div class="landingtext">
 Review the definitions below to ensure you understand what was targeted and how privileges have been qualified as excessive.
@@ -2759,6 +2758,13 @@ In the context of this report, high risk shares have been defined as shares that
 <br>
 </div>
 </div>
+
+<button class="collapsible"><span style="color:#CE112D;">4</span> | Verify and Remediate Issues</button>
+<div class="content">
+<div class="landingtext" >
+Follow the guidance in the Exploit Share Access, Detect Share Access, and Prioritize Remediation sections.</div>
+</div>
+
 <button class="collapsible"><span style="color:#CE112D;">5</span> | Run Scan Again</button>
 <div class="content">
 <div class="landingtext" style="">
