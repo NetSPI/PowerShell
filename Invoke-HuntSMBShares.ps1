@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.31
+# Version: v1.4.33
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1578,7 +1578,7 @@ $NewHtmlReport = @"
 
 	.cardtitle{	
 		padding:5px;	
-		padding-left: 10px;
+		padding-left: 20px;
 		font-size:15;
 		color: white;
 		font-weight:bold;
@@ -1596,7 +1596,7 @@ $NewHtmlReport = @"
 	}	
 
 	.cardsubtitle2 {
-		font-size: 10;
+		font-size: 12;
 		font-family:"Open Sans", sans-serif;
 		color:#eee;	
 		text-align: left;
@@ -1627,8 +1627,8 @@ $NewHtmlReport = @"
 		color: white;
 		font-weight:bold;
 		font-family:"Open Sans", sans-serif;
-		border-bottom:1.5px solid transparent;
-		border-bottom-color:#222222;
+		--border-bottom:1.5px solid transparent;
+		--border-bottom-color:#222222;
 		background-color: #222222;
 	}
 
@@ -1643,7 +1643,10 @@ $NewHtmlReport = @"
 		background-color:white;
 		padding: 8px;
 		: center;
-		--padding-left: 10px;	
+		--padding-left: 10px;
+		border-right:1px solid #ccc;
+		border-left:1px solid #ccc;
+		border-bottom:1px solid #ccc;	
 	}		
 
 	.cardbarouter{
@@ -1790,7 +1793,7 @@ $NewHtmlReport = @"
  <div class="card">	
 	<div class="cardtitle">
 		Computers<br>
-		<span class="cardsubtitle2">hosting shares with excessive privileges</span>
+		<span class="cardsubtitle2">host shares with excessive privileges</span>
 	</div>
 	<div class="cardcontainer" align="center">	
 			<span class="piechartComputers">
