@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.36
+# Version: v1.4.37
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -426,7 +426,7 @@ function Invoke-HuntSMBShares
          }   
 
         # Get SMB permissions threaded
-        $ShareACLs = $AllSMBShares | Invoke-Parallel -ScriptBlock $MyScriptBlock -ImportSessionFunctions -ImportVariables -Throttle $GlobalThreadCount -RunspaceTimeout $RunSpaceTimeOut -ErrorAction SilentlyContinue  -WarningAction SilentlyContinue 
+        $ShareACLs = $AllSMBShares | Invoke-Parallel -ScriptBlock $MyScriptBlock -ImportSessionFunctions -ImportVariables -Throttle $GlobalThreadCount -RunspaceTimeout $RunSpaceTimeOut -ErrorAction SilentlyContinue  -WarningAction SilentlyContinue | where ShareName -notlike ""
 
         # Status user
         $ShareACLsCount = $ShareACLs | measure | select count -ExpandProperty count
@@ -441,8 +441,10 @@ function Invoke-HuntSMBShares
 
         # Save results
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"
-        $ShareACLs | where ShareName -notlike "" | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"        
-        $ShareACLsFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"
+        $ShareACLs | where ShareName -notlike "" | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"                
+        $null = Convert-DataTableToHtmlTable -DataTable $ShareACLs -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.html" -Title "Domain Computers" -Description "This page shows all share ACL entries discovered on computers associated with the $TargetDomain Active Directory domain."
+        $ShareACLsFile = "$TargetDomain-Shares-Inventory-All-ACL.csv"
+        $ShareACLsFileH = "$TargetDomain-Shares-Inventory-All-ACL.html"
 
         # ----------------------------------------------------------------------
         # Get potentially excessive share permissions 
