@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.37
+# Version: v1.4.40
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -135,7 +135,12 @@ function Invoke-HuntSMBShares
 
         [Parameter(Mandatory = $false,
         HelpMessage = 'Runspace time out.')]
-        [int]$RunSpaceTimeOut = 5
+        [int]$RunSpaceTimeOut = 10,
+
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'Show runspace errors if they occur.')]
+        [switch] $ShowRunpaceErrors
+        
     )
 	
     
@@ -216,7 +221,7 @@ function Invoke-HuntSMBShares
         # Save results
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers.csv"
         $DomainComputers | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Domain-Computers.csv"
-        $null = Convert-DataTableToHtmlTable -DataTable $DomainComputers -Outfile "$OutputDirectory\$TargetDomain-Domain-Computers.html" -Title "Domain Computers" -Description "This page shows the domain computers for the $TargetDomain Active Directory domain."
+        $null = Convert-DataTableToHtmlTable -DataTable $DomainComputers -Outfile "$OutputDirectory\$TargetDomain-Domain-Computers.html" -Title "Domain Computers" -Description "This page shows the domain computers discovered for the $TargetDomain Active Directory domain."
         $DomainComputersFile = "$TargetDomain-Domain-Computers.csv"
         $DomainComputersFileH = "$TargetDomain-Domain-Computers.html"
 
@@ -442,7 +447,7 @@ function Invoke-HuntSMBShares
         # Save results
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"
         $ShareACLs | where ShareName -notlike "" | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"                
-        $null = Convert-DataTableToHtmlTable -DataTable $ShareACLs -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.html" -Title "Domain Computers" -Description "This page shows all share ACL entries discovered on computers associated with the $TargetDomain Active Directory domain."
+        $null = Convert-DataTableToHtmlTable -DataTable $ShareACLs -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.html" -Title "Domain Shares: All ACL Entries" -Description "This page shows all share ACL entries discovered on computers associated with the $TargetDomain Active Directory domain."
         $ShareACLsFile = "$TargetDomain-Shares-Inventory-All-ACL.csv"
         $ShareACLsFileH = "$TargetDomain-Shares-Inventory-All-ACL.html"
 
@@ -480,7 +485,10 @@ function Invoke-HuntSMBShares
         # Save results
         if($ExcessiveSharesCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"            
-            $ExcessiveSharePrivs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"              
+            $ExcessiveSharePrivs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
+            $null = Convert-DataTableToHtmlTable -DataTable $ExcessiveSharePrivs -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.html" -Title "Domain Shares: ACL Entries - Excessive Privileges" -Description "This page shows all share ACL entries discovered on computers associated with the $TargetDomain Active Directory domain that appear to be configured with excessive privileges."
+            $ShareACLsExFile = "$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
+            $ShareACLsExFileH = "$TargetDomain-Shares-Inventory-Excessive-Privileges.html"                          
         }else{
             break
         }
@@ -511,6 +519,9 @@ function Invoke-HuntSMBShares
         if($SharesWithReadCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
             $SharesWithRead | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"               
+            $null = Convert-DataTableToHtmlTable -DataTable $SharesWithRead -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.html" -Title "Domain Shares: ACL Allow Read Entries - Excessive Privileges" -Description "This page shows all share ACL entries discovered on computers associated with the $TargetDomain Active Directory domain that are readable."
+            $ShareACLsReadFile = "$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
+            $ShareACLsReadFileH = "$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.html"
         }
 
         $SharesWithReadFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
@@ -539,6 +550,9 @@ function Invoke-HuntSMBShares
         if($SharesWithWriteCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"
             $SharesWithWrite | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"            
+            $null = Convert-DataTableToHtmlTable -DataTable $SharesWithWrite -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.html" -Title "Domain Shares: ACL Allow Write Entries" -Description "This page shows all share ACL entries discovered on computers associated with the $TargetDomain Active Directory domain that are writable."
+            $ShareACLsWriteFile = "$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"
+            $ShareACLsWriteFileH = "$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.html"
         }
 
         $SharesWithWriteFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"
@@ -566,7 +580,10 @@ function Invoke-HuntSMBShares
         # Save results
         if($SharesNonDefaultCount-ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
-            $SharesNonDefault | where ShareName -notlike "" | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"           
+            $SharesNonDefault | where ShareName -notlike "" | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"   
+            $null = Convert-DataTableToHtmlTable -DataTable $SharesNonDefault -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.html" -Title "Domain Shares: Non-Default" -Description "This page shows all share ACL entries discovered on computers associated with the $TargetDomain Active Directory domain that are non-default."
+            $ShareACLsNonDefaultFile = "$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
+            $ShareACLsNonDefaultFileH = "$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.html"                    
         }
 
         $SharesNonDefaultFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
@@ -594,7 +611,10 @@ function Invoke-HuntSMBShares
         # Save results
         if($SharesHighRiskCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"
-            $SharesHighRisk | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"            
+            $SharesHighRisk | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"   
+			$null = Convert-DataTableToHtmlTable -DataTable $SharesHighRisk -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.html" -Title "Domain Shares: ACL High Risk Entries" -Description "This page shows all share ACL entries discovered on computers associated with the $TargetDomain Active Directory domain that are considered to be high risk."
+            $ShareACLsHRFile = "$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"
+            $ShareACLsHRFileH = "$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.html"                     
         }
 
         $SharesHighRiskFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"
@@ -1998,42 +2018,42 @@ Below is a summary of the domain computers that were targeted, connectivity to t
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWitShareP;"></div></div></td>
       <td>$PercentComputerWitShareP</td>	
 	  <td>$AllComputersWithSharesCount</td>  
-      <td><a href="$AllSMBSharesFile"><span class="cardsubtitle">CSV</a> | </span><a href="$AllSMBSharesFileH"><span class="cardsubtitle">HTML</span></a></td> 
+      <td><a href="$ShareACLsFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsFileH"><span class="cardsubtitle">HTML</span></a></td> 
     </tr>
     <tr>
       <td>HOST NON-DEFAULT SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerNonDefaultP;"></div></div></td>
       <td>$PercentComputerNonDefaultP</td>	
 	  <td>$ComputerwithNonDefaultCount</td>  
-      <td><a href="$SharesNonDefaultFile"><span class="cardsubtitle">CSV</a> | </span><span class="cardsubtitle">HTML</span></td>  
+      <td><a href="$ShareACLsNonDefaultFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsNonDefaultFileH"><span class="cardsubtitle">HTML</span></a></td>  
     </tr>	
     <tr>
       <td>HOST POTENITIALLY INSECURE SHARE</td>
-	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width:$PercentComputerNonDefaultP;"></div></div></td>
-      <td>$PercentComputerNonDefaultP</td>	
+	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width:$PercentComputerExPrivP;"></div></div></td>
+      <td>$PercentComputerExPrivP</td>	
 	  <td>$ComputerWithExcessive</td>  
-      <td><a href="$ExcessiveSharePrivsFile"><span class="cardsubtitle">CSV</a> | </span><span class="cardsubtitle">HTML</span></td>  
+      <td><a href="$ShareACLsExFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsExFileH"><span class="cardsubtitle">HTML</span></a></td>  
     </tr>	
     <tr>
       <td>HOST READABLE SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerReadP;"></div></div></td>
       <td>$PercentComputerReadP</td>	  
 	  <td>$ComputerWithReadCount</td>	  
-      <td><a href="$SharesWithReadFile"><span class="cardsubtitle">CSV</a> | </span><span class="cardsubtitle">HTML</span></td>	  
+      <td><a href="$ShareACLsReadFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsReadFileH"><span class="cardsubtitle">HTML</span></a></td>  
     </tr>
 	<tr>
       <td>HOST WRITEABLE SHARE</td>
       <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerWriteP;"></div></div></td>
 	  <td>$PercentComputerWriteP</td>
 	  <td>$ComputerWithWriteCount</td>	  	  
-	  <td><a href="$SharesWithWriteFile"><span class="cardsubtitle">CSV</a> | </span><span class="cardsubtitle">HTML</span></td>	  
+	  <td><a href="$ShareACLsWriteFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsWriteFileH"><span class="cardsubtitle">HTML</span></a></td> 
     </tr>
 	<tr>
       <td>HOST HIGH RISK SHARE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentComputerHighRiskP;"></div></div></td>     
 	  <td>$PercentComputerHighRiskP</td>
 	  <td>$ComputerwithHighRisk</td>	  	 
-	  <td><a href="$SharesHighRiskFile"><span class="cardsubtitle">CSV</a> | </span><span class="cardsubtitle">HTML</span></td>
+	  <td><a href="$ShareACLsHRFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsHRFileH"><span class="cardsubtitle">HTML</span></a></td> 
     </tr>	
   </tbody>
 </table>
@@ -4443,7 +4463,11 @@ function Invoke-Parallel
                 $null = $runspaces.Add($temp)
 
                 #loop through existing runspaces one time
-                Get-RunspaceData
+                if($ShowRunpaceErrors){
+                    Get-RunspaceData 
+                }else{
+                    Get-RunspaceData -ErrorAction SilentlyContinue
+                }
 
                 #If we have more running than max queue (used to control timeout accuracy)
                 #Script scope resolves odd PowerShell 2 issue
@@ -12500,7 +12524,11 @@ Function Invoke-Ping
                             $runspaces.Add($temp) | Out-Null
             
                             #loop through existing runspaces one time
-                            Get-RunspaceData
+                            if($ShowRunpaceErrors){
+                                Get-RunspaceData
+                            }else{
+                                Get-RunspaceData -ErrorAction SilentlyContinue
+                            }
 
                             #If we have more running than max queue (used to control timeout accuracy)
                             #Script scope resolves odd PowerShell 2 issue
