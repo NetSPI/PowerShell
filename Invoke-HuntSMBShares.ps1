@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.41
+# Version: v1.4.42
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -513,13 +513,13 @@ function Invoke-HuntSMBShares
         $AclWithReadCount = $SharesWithread.count
         $SharesWithReadCount = $SharesWithread | Select-Object SharePath -Unique | Measure-Object | select count -ExpandProperty count
         $ComputerWithReadCount = $SharesWithread | Select-Object ComputerName -Unique | Measure-Object | select count -ExpandProperty count
-        Write-Output " [*] - $SharesWithReadCount shares can be written to across $ComputerWithReadCount systems."
+        Write-Output " [*] - $SharesWithReadCount shares can be read across $ComputerWithReadCount systems."
 
         # Save results
         if($SharesWithReadCount -ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
             $SharesWithRead | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"               
-            $null = Convert-DataTableToHtmlTable -DataTable $SharesWithRead -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.html" -Title "Domain Shares: ACL Allow Read Entries - Excessive Privileges" -Description "This page shows all share ACL entries discovered on computers associated with the $TargetDomain Active Directory domain that are readable."
+            $null = Convert-DataTableToHtmlTable -DataTable $SharesWithRead -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.html" -Title "Domain Shares: ACL Allow Read Entries" -Description "This page shows all share ACL entries discovered on computers associated with the $TargetDomain Active Directory domain that are readable."
             $ShareACLsReadFile = "$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
             $ShareACLsReadFileH = "$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.html"
         }
@@ -1769,7 +1769,7 @@ $NewHtmlReport = @"
 	<div id="tabs" class="tabs" data-tabs-ignore-url="false">
 		<label href="#" class="stuff" style="width:100%;margin-top:15px" onClick="radiobtn = document.getElementById('home');radiobtn.checked = true;">Home</label>		
 		<label class="tabLabel" style="width:100%;color:white;background-color:#333;border-top:1px solid #757575;padding-top:5px;padding-bottom:5px;margin-top:1px;margin-bottom:2px;font-weight:bolder"><Strong>Reports</Strong></label>	
-		<label href="#" class="stuff" style="width:100%;" onClick="radiobtn = document.getElementById('dashboard');radiobtn.checked = true;">Dashboard Charts</label>		
+		<label href="#" class="stuff" style="width:100%;" onClick="radiobtn = document.getElementById('dashboard');radiobtn.checked = true;">Dashboard</label>		
 		<label href="#" class="stuff" style="width:100%;" onClick="radiobtn = document.getElementById('computersummary');radiobtn.checked = true;">Computer Summary</label>		
 		<label href="#" class="stuff" style="width:100%;" onClick="radiobtn = document.getElementById('sharesum');radiobtn.checked = true;">Share Summary</label>		
 		<label href="#" class="stuff" style="width:100%;" onClick="radiobtn = document.getElementById('ACLsum');radiobtn.checked = true;">ACL Summary</label>		
@@ -2090,42 +2090,42 @@ Below is a summary of the SMB shares discovered on computers associated with the
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 100%;"></div></div></td>
 	  <td>100.00%</td>
 	  <td>$AllSMBSharesCount</td>
-      <td><a href="$AllSMBSharesFile">Download</a></td>	  
+      <td><a href="$ShareACLsFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsFileH"><span class="cardsubtitle">HTML</span></a></td>   
     </tr>
     <tr>
       <td>NON-DEFAULT</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesNonDefaultP;"></div></div></td>
       <td>$PercentSharesNonDefaultP</td>	
 	  <td>$SharesNonDefaultCount</td>  
-      <td><a href="$SharesNonDefaultFile">Download</a></td>	  
+      <td><a href="$ShareACLsNonDefaultFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsNonDefaultFileH"><span class="cardsubtitle">HTML</span></a></td>  	  
     </tr>	
     <tr>
       <td>POTENTIALLY EXCESSIVE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesExPrivP;"></div></div></td>
       <td>$PercentSharesExPrivP</td>	
 	  <td>$ExcessiveSharesCount</td>  
-      <td><a href="$ExcessiveSharePrivsFile">Download</a></td>	  
+      <td><a href="$ShareACLsExFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsExFileH"><span class="cardsubtitle">HTML</span></a></td>    
     </tr>
     <tr>
       <td>READ ACCESS</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesReadP;"></div></div></td>
       <td>$PercentSharesReadP</td>	  
 	  <td>$SharesWithReadCount</td>	  
-      <td><a href="$SharesWithReadFile">Download</a></td>	  
+      <td><a href="$ShareACLsReadFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsReadFileH"><span class="cardsubtitle">HTML</span></a></td>   
     </tr>
 	<tr>
       <td>WRITE ACCESS</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesWriteP;"></div></div></td>     
 	  <td>$PercentSharesWriteP</td>
 	  <td>$SharesWithWriteCount</td>	  	 
-	  <td><a href="$SharesWithWriteFile">Download</a></td>	  
+	  <td><a href="$ShareACLsWriteFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsWriteFileH"><span class="cardsubtitle">HTML</span></a></td> 	  
     </tr>
 	<tr>
       <td>HIGH RISK</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentSharesHighRiskP;"></div></div></td>     
 	  <td>$PercentSharesHighRiskP</td>
 	  <td>$SharesHighRiskCount</td>	  	 
-	  <td><a href="$SharesHighRiskFile">Download</a></td>
+	  <td><a href="$ShareACLsHRFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsHRFileH"><span class="cardsubtitle">HTML</span></a></td> 
     </tr>	
   </tbody>
 </table>
@@ -2164,42 +2164,42 @@ Below is a summary of the SMB share ACL entries discovered on computers associat
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 100%;"></div></div></td>
 	  <td>100.00%</td>
 	  <td>$ShareACLsCount</td>
-      <td><a href="$ShareACLsFile">Download</a></td>	  
+      <td><a href="$ShareACLsFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsFileH"><span class="cardsubtitle">HTML</span></a></td> 	  
     </tr>	
     <tr>
       <td>NON-DEFAULT</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclNonDefaultP;"></div></div></td>
       <td>$PercentAclNonDefaultP</td>	
 	  <td>$AclNonDefaultCount</td>  
-      <td><a href="$SharesNonDefaultFile">Download</a></td>	  
+      <td><a href="$ShareACLsNonDefaultFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsNonDefaultFileH"><span class="cardsubtitle">HTML</span></a></td>   
     </tr>		
     <tr>
       <td>POTENTIALLY EXCESSIVE</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclExPrivP;"></div></div></td>
       <td>$PercentAclExPrivP</td>	
 	  <td>$ExcessiveSharePrivsCount</td>  
-      <td><a href="$ExcessiveSharePrivsFile">Download</a></td>	  
+      <td><a href="$ShareACLsExFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsExFileH"><span class="cardsubtitle">HTML</span></a></td>  
     </tr>
     <tr>
       <td>READ ACCESS</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclReadP;"></div></div></td>
       <td>$PercentAclReadP</td>	  
 	  <td>$AclWithReadCount</td>	  
-      <td><a href="$SharesWithReadFile">Download</a></td>	  
+      <td><a href="$ShareACLsReadFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsReadFileH"><span class="cardsubtitle">HTML</span></a></td>  	  
     </tr>
 	<tr>
       <td>WRITE ACCESS</td>
       <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclWriteP;"></div></div></td>
 	  <td>$PercentAclWriteP</td>
 	  <td>$AclWithWriteCount</td>	  	  
-	  <td><a href="$SharesWithWriteFile">Download</a></td>	  
+	  <td><a href="$ShareACLsWriteFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsWriteFileH"><span class="cardsubtitle">HTML</span></a></td> 
     </tr>
 	<tr>
       <td>HIGH RISK</td>
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: $PercentAclHighRiskP;"></div></div></td>     
 	  <td>$PercentAclHighRiskP</td>
 	  <td>$AclHighRiskCount</td>	  	 
-	  <td><a href="$SharesHighRiskFile">Download</a></td>
+	  <td><a href="$ShareACLsHRFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsHRFileH"><span class="cardsubtitle">HTML</span></a></td> 
     </tr>	
   </tbody>
 </table>
@@ -2214,7 +2214,7 @@ Below is a summary of the SMB share ACL entries discovered on computers associat
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">
 <span class="PageTitle">Data Insights: </span> <span class="PageTitleSub">Group Stats</span><br>	
-This section contains data insights that could be helpful when planning a prioritizing remediation efforts. Excessive Access Summary by Group
+This section contains data insights that could be helpful when planning a prioritizing remediation efforts. 
 </p>
 
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>
