@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.34
+# Version: v1.4.36
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -429,7 +429,7 @@ function Invoke-HuntSMBShares
         $ShareACLs = $AllSMBShares | Invoke-Parallel -ScriptBlock $MyScriptBlock -ImportSessionFunctions -ImportVariables -Throttle $GlobalThreadCount -RunspaceTimeout $RunSpaceTimeOut -ErrorAction SilentlyContinue  -WarningAction SilentlyContinue 
 
         # Status user
-        $ShareACLsCount = $ShareACLs.count
+        $ShareACLsCount = $ShareACLs | measure | select count -ExpandProperty count
         Write-Output " [*] - $ShareACLsCount share permissions were enumerated."       
         
         # Stop if no shares ACLs were enumerated
@@ -441,15 +441,15 @@ function Invoke-HuntSMBShares
 
         # Save results
         Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"
-        $ShareACLs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"        
+        $ShareACLs | where ShareName -notlike "" | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"        
         $ShareACLsFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"
+
         # ----------------------------------------------------------------------
         # Get potentially excessive share permissions 
         # ----------------------------------------------------------------------
 
         # Status user
         Write-Output " [*] Identifying potentially excessive share permissions"
-
 
         # Check for share that provide read/write access to common user groups
         $ExcessiveSharePrivs = foreach ($line in $ShareACLs){
@@ -556,7 +556,7 @@ function Invoke-HuntSMBShares
         }
 
         # Status user
-        $AclNonDefaultCount = $SharesNonDefault.count
+        $AclNonDefaultCount = $SharesNonDefault | measure | select count -ExpandProperty count
         $SharesNonDefaultCount = $SharesNonDefault | Select-Object SharePath -Unique | Measure-Object | select count -ExpandProperty count
         $ComputerwithNonDefaultCount = $SharesNonDefault | Select-Object ComputerName -Unique | Measure-Object | select count -ExpandProperty count
         Write-Output " [*] - $SharesNonDefaultCount that are considered high risk across $ComputerwithNonDefaultCount systems."
@@ -564,7 +564,7 @@ function Invoke-HuntSMBShares
         # Save results
         if($SharesNonDefaultCount-ne 0){
             Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
-            $SharesNonDefault | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"           
+            $SharesNonDefault | where ShareName -notlike "" | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"           
         }
 
         $SharesNonDefaultFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
@@ -3457,8 +3457,7 @@ function Convert-DataTableToHtmlTable
 		        font-family:"Open Sans", 
 		        sans-serif;font-weight:400;
 		        min-height:100%;;color:#3d3935;
-		        margin:1px;line-height:1.5;
-		        overflow-x:hidden
+		        margin:1px;line-height:1.5;		       
 	        }
 		
 	        table{
