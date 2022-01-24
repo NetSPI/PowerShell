@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.33
+# Version: v1.4.34
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -955,10 +955,7 @@ function Invoke-HuntSMBShares
             $ThisFileCount = $ThisFileBars.FileCount
             $ThisFileShareCount = $ThisFileBars.Sharecount
             $ThisRow = @" 
-	          <tr>
-	          <td>
-              $ThisFileShareCount
-	          </td>	
+	          <tr>	
 	          <td>
               $FileGroupName
 	          </td>	
@@ -1261,6 +1258,10 @@ $NewHtmlReport = @"
 	table tbody tr{
 		background-color:white;	
 		--font-weight: bold;		
+	}	
+
+	table tbody td:nth-child(1){	 
+	  --font-weight: bold;
 	}	
 	
 	table tbody tr:nth-of-type(odd){
@@ -1578,8 +1579,8 @@ $NewHtmlReport = @"
 
 	.cardtitle{	
 		padding:5px;	
-		padding-left: 20px;
-		font-size:15;
+		padding-left: 10px;
+		font-size: 20;
 		color: white;
 		font-weight:bold;
 		font-family:"Open Sans", sans-serif;
@@ -2476,8 +2477,7 @@ This section contains data insights that could be helpful when planning a priori
 
 <table class="table table-striped table-hover tabledrop">
   <thead>
-    <tr>
-      <th align="left">Share Count</th>  
+    <tr>  
       <th align="left">File Group</th>
       <th align="left">File Count</th>
       <th align="left">File List</th>
