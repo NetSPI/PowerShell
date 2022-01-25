@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.48
+# Version: v1.4.49
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1780,7 +1780,7 @@ $NewHtmlReport = @"
 		<label href="#" class="stuff" style="width:100%;" onClick="radiobtn = document.getElementById('accounts');radiobtn.checked = true;">Group Stats</label>		
 		<label href="#" class="stuff" style="width:100%;" onClick="radiobtn = document.getElementById('ShareName');radiobtn.checked = true;">Top Share Names</label>		
 		<label href="#" class="stuff" style="width:100%;" onClick="radiobtn = document.getElementById('ShareOwner');radiobtn.checked = true;">Top Share Owners</label>		
-		<label href="#" class="stuff" style="width:100%;" onClick="radiobtn = document.getElementById('ShareFolders');radiobtn.checked = true;">Top Share Folders</label>		
+		<label href="#" class="stuff" style="width:100%;" onClick="radiobtn = document.getElementById('ShareFolders');radiobtn.checked = true;">Top Folder Groups</label>		
 		<label class="tabLabel" style="width:100%;color:white;background-color:#333;padding-top:5px;padding-bottom:5px;margin-top:2px;margin-bottom:2px;"><strong>Recommendations</strong></label>
 		<label href="#" class="stuff" style="width:100%;" onClick="radiobtn = document.getElementById('Attacks');radiobtn.checked = true;">Exploit Share Access</label>		
 		<label href="#" class="stuff" style="width:100%;" onClick="radiobtn = document.getElementById('Detections');radiobtn.checked = true;">Detect Share Scans</label>
@@ -2504,7 +2504,7 @@ This section contains data insights that could be helpful when planning a priori
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">
 <span class="PageTitle">Data Insights: </span> <span class="PageTitleSub">$SampleSum Most Common Share Folder Groups</span><br>	
-This section contains data insights that could be helpful when planning a prioritizing remediation efforts. 
+Folder groups are SMB shares that contain the same file listing. In some cases, shares with the exact same file listing may be related to a single application or process.  This information can help identify the root cause associated with the excessive privileges and expedite remediation.
 </p>
 
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>
