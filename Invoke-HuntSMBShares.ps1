@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.49
+# Version: v1.4.50
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -2445,7 +2445,7 @@ This section contains data insights that could be helpful when planning a priori
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">
 <span class="PageTitle">Data Insights: </span> <span class="PageTitleSub">$SampleSum Most Common Share Names</span><br>	
-This section contains data insights that could be helpful when planning a prioritizing remediation efforts. 
+This section contains a list of the most common SMB share names. In some cases, shares with the exact same name may be related to a single application or process.  This information can help identify the root cause associated with the excessive privileges and expedite remediation. 
 </p>
 
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>
@@ -2474,7 +2474,7 @@ This section contains data insights that could be helpful when planning a priori
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">
 <span class="PageTitle">Data Insights: </span> <span class="PageTitleSub">$SampleSum Most Common Share Owners</span><br>	
-This section contains data insights that could be helpful when planning a prioritizing remediation efforts. 
+This section lists the most common share owners. This information can help you track down the asset owner so they can remediate the share configured with excessive privileges. 
 </p>
 
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>
