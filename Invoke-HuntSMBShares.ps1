@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.51
+# Version: v1.4.52
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -2475,7 +2475,7 @@ This section contains a list of the most common SMB share names. In some cases, 
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">
 <span class="PageTitle">Data Insights: </span> <span class="PageTitleSub">$SampleSum Most Common Share Owners</span><br>	
-This section lists the most common share owners. This information can help you track down the asset owner so they can remediate the share configured with excessive privileges. 
+This section lists the most common share owners. This information can help you track down the asset owner so they can remediate the shares configured with excessive privileges. 
 </p>
 
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>
@@ -2505,7 +2505,7 @@ This section lists the most common share owners. This information can help you t
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">
 <span class="PageTitle">Data Insights: </span> <span class="PageTitleSub">$SampleSum Most Common Share Folder Groups</span><br>	
-Folder groups are SMB shares that contain the same file listing. In some cases, shares with the exact same file listing may be related to a single application or process.  This information can help identify the root cause associated with the excessive privileges and expedite remediation.
+Folder groups are SMB shares that contain the exact same file listing. Each file group has been hashed so they can be quickly correlated. In some cases, shares with the exact same file listing may be related to a single application or process.  This information can help identify the root cause associated with the excessive privileges and expedite remediation.
 </p>
 
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>
@@ -2918,64 +2918,9 @@ for (i = 0; i < coll.length; i++) {
 </body>
 </html>
 "@
-$NewHtmlReport | Out-File "$OutputDirectory\$TargetDomain-Share-Inventory-Summary-Report2.html"
-
-        # ----------------------------------------------------------------------
-        # Display final summary - HTML
-        # ----------------------------------------------------------------------
-$HTMLReport1 = @"        
-        <HTML>
-         <HEAD>
-         </HEAD>
-         <BODY>
-            <H1>SMB Share Inventory Summary Report</H1>
-            <strong>Domain:</strong>$TargetDomain<Br>
-			
-			<H3>Scan Time</H3>
-			<ul>
-				<li>Start Time: $StartTime</li>
-				<li>End Time: $EndTime</li>
-				<li>Run Time: $RunTime</li>
-			</ul>
-            
-            <H3>Computer Summary</H3>
-            
-            <ul>
-             <li>$ComputerCount domain computers found.</li>
-             <li>$ComputerPingableCount domain computers responded to ping.</li>
-             <li>$Computers445OpenCount domain computers had TCP port 445 accessible.</li>             
-            </ul>
-            
-            <H3>Share Summary</H3>
-            
-            <ul>
-             <li>$AllSMBSharesCount shares were found.</li>
-             <li>$ExcessiveSharesCount shares across $ComputerWithExcessive systems are configured with $ExcessiveSharePrivsCount potentially excessive ACLs.</li>
-             <li>$SharesWithWriteCount shares across $ComputerWithWriteCount systems can be written to.</li>
-             <li>$SharesHighRiskCount shares across $ComputerwithHighRisk systems are considered high risk. (c`$,admin`$,wwwroot)</li>
-             <li>$Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names.<Br>
-                 The 5 most common share names are:<br>
-                 <ul>
-"@
-
-        $HTMLReport2 = $CommonShareNamesTop5 |
-        foreach {
-            $ShareCount = $_.count
-            $ShareName = $_.name
-            Write-Output "<li>$ShareCount $ShareName</li>"   
-        }                 
-
-        $HTMLReport3 = @" 
-               </ul>
-             </li>
-           </ul>                                   
-         </BODY>
-        </HTML>
-"@
-
-        $HTMLReport = $HTMLReport1 + $HTMLReport2 + $HTMLReport3
-        Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-Share-Inventory-Summary-Report.html"        
-        $HTMLReport | Out-File "$OutputDirectory\$TargetDomain-Share-Inventory-Summary-Report.html"      
+$NewHtmlReport | Out-File "$OutputDirectory\_Report-$TargetDomain-Share-Inventory-Summary.html"
+$NewHtmlReport | Out-File "$OutputDirectory\index.html"
+Write-Output " [*] Saving results to $OutputDirectory\_Report-$TargetDomain-Share-Inventory-Summary.html"     
                 
         # ----------------------------------------------------------------------
         # Generate Excessive Privilege Findings
