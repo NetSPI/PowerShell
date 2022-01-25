@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.50
+# Version: v1.4.51
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -2226,7 +2226,8 @@ Below is a summary of the SMB share ACL entries discovered on computers associat
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">
 <span class="PageTitle">Data Insights: </span> <span class="PageTitleSub">Group Stats</span><br>	
-This section contains data insights that could be helpful when planning a prioritizing remediation efforts. 
+In the context of this report, excessive read and write share permissions have been defined as any network share ACL containing an explicit entry for the "Everyone", "Authenticated Users", "BUILTIN\Users", "Domain Users", or "Domain Computers" groups. All provide domain users access to the affected shares due to privilege inheritance.
+Below is a summary of the exposure associated with each of those groups. 
 </p>
 
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>
