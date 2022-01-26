@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.56
+# Version: v1.4.57
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -2865,7 +2865,6 @@ Below are some tips for getting started on prioritizing the remediation of share
 
 <!-- home text -->
 <div style="margin-left:300px;"> 
-<br>
 <br>
 <span style="font-size:30; color:#222222; font-weight:bold">Collection Approach</span>
 <Br>
