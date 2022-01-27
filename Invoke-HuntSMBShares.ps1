@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.57
+# Version: v1.4.58
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -377,7 +377,7 @@ function Invoke-HuntSMBShares
 
             $CurrentShareName = $_.ShareName
             $CurrentComputerName = $_.ComputerName
-            $CurrentIP = $_.IpAddress
+            $CurrentIP = $_.IpAddress 
             $ShareDescription = $_.ShareDesc
             $Sharetype = $_.sharetype
             $Shareaccess = $_.shareaccess
@@ -962,7 +962,7 @@ function Invoke-HuntSMBShares
         # Display final summary - NEW HTML REPORT
         # ----------------------------------------------------------------------
 		if($username -like ""){$username = whoami}
-		$SourceIps = (Get-NetIPAddress | where AddressState -like "*Pref*" | where AddressFamily -like "ipv4" | where ipaddress -notlike "127.0.0.1" | select IpAddress).ipaddress -join (",")
+		$SourceIps = (Get-NetIPAddress | where AddressState -like "*Pref*" | where AddressFamily -like "ipv4" | where ipaddress -notlike "127.0.0.1" | select IpAddress).ipaddress -join ("<br>")
 		$SourceHost = (hostname) 
 
         # Get share list string list
