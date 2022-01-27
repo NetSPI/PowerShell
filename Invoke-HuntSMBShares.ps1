@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.71
+# Version: v1.4.72
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -2275,7 +2275,7 @@ Below is a summary of the SMB share ACL entries discovered on computers associat
 <label class="tabLabel" onClick="updateTab('accounts',false)" for="accounts"></label>
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">
-<span class="PageTitle">Data Insights: </span> <span class="PageTitleSub">Group Stats</span><br>	
+<h2>Data Insights: Group Stats</h2>	
 In the context of this report, excessive read and write share permissions have been defined as any network share ACL containing an explicit entry for the "Everyone", "Authenticated Users", "BUILTIN\Users", "Domain Users", or "Domain Computers" groups. All provide domain users access to the affected shares due to privilege inheritance.
 Below is a summary of the exposure associated with each of those groups. 
 </p>
@@ -2495,7 +2495,7 @@ Below is a summary of the exposure associated with each of those groups.
 <label class="tabLabel" onClick="updateTab('ShareName',false)" for="ShareName"></label>
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">
-<span class="PageTitle">Data Insights: </span> <span class="PageTitleSub">$SampleSum Most Common Share Names</span><br>	
+<h2>Data Insights:Data Insights: $SampleSum Most Common Share Names</h2>
 This section contains a list of the most common SMB share names. In some cases, shares with the exact same name may be related to a single application or process.  This information can help identify the root cause associated with the excessive privileges and expedite remediation. 
 </p>
 
@@ -2524,7 +2524,7 @@ This section contains a list of the most common SMB share names. In some cases, 
 <label class="tabLabel" onClick="updateTab('ShareOwner',false)" for="ShareOwner"></label>
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">
-<span class="PageTitle">Data Insights: </span> <span class="PageTitleSub">$SampleSum Most Common Share Owners</span><br>	
+<h2>Data Insights: $SampleSum Most Common Share Owners</h2>	
 This section lists the most common share owners. This information can help you track down the asset owner so they can remediate the shares configured with excessive privileges. 
 </p>
 
@@ -2554,7 +2554,7 @@ This section lists the most common share owners. This information can help you t
 <label class="tabLabel" onClick="updateTab('ShareFolders',false)" for="ShareFolders"></label>
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">
-<span class="PageTitle">Data Insights: </span> <span class="PageTitleSub">$SampleSum Most Common Share Folder Groups</span><br>	
+<h2>Data Insights: Data Insights: $SampleSum Most Common Share Folder Groups</h2>
 Folder groups are SMB shares that contain the exact same file listing. Each file group has been hashed so they can be quickly correlated. In some cases, shares with the exact same file listing may be related to a single application or process.  This information can help identify the root cause associated with the excessive privileges and expedite remediation.
 </p>
 
@@ -2649,7 +2649,7 @@ Below are some tips for getting started on exploiting share access.
 <label class="tabLabel" onClick="updateTab('Detections',false)" for="Detections"></label>
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">
-<span class="PageTitle">Recommendations: </span> <span class="PageTitleSub">Detect Share Enumeration</span><br>	
+<h2>Recommendations: Exploit Share Access</h2>
 Below are some tips for getting started on building detections for potentially malicious share scanning events.
 </p>
 
@@ -2716,7 +2716,7 @@ Guest access to the system should also be revoked and ensure that adequate acces
 <label class="tabLabel" onClick="updateTab('Remediation',false)" for="Remediation"></label>
 <div id="tabPanel" class="tabPanel">
 <p class="pageDescription">
-<span class="PageTitle">Recommendations: </span> <span class="PageTitleSub">Prioritize Remediation</span><br>	
+<h2>Recommendations: Prioritize Remediation</h2>	
 Below are some tips for getting started on prioritizing the remediation of shares configured with excessive privileges.
 </p>
 
