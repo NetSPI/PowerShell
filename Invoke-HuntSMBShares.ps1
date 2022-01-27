@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.78
+# Version: v1.4.79
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1869,7 +1869,7 @@ $NewHtmlReport = @"
 |||||||||| CARD: COMPUTER SUMMARY
 -->
 
-<div style="margin-left: 10px;">$ExcessiveSharePrivsCount acls, on $ExcessiveSharesCount shares, hosted by $ComputerWithExcessive computers were found configured with excessive privilegs on the $TargetDomain domain.</div>
+<div style="margin-left: 10px;">$ExcessiveSharePrivsCount ACL entries, on $ExcessiveSharesCount shares, hosted by $ComputerWithExcessive computers were found configured with excessive privilegs on the $TargetDomain domain.</div>
 
 <a href="#" id="DashLink" onClick="radiobtn = document.getElementById('computersummary');radiobtn.checked = true;">
  <div class="card">	
