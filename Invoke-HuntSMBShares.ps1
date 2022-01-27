@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.72
+# Version: v1.4.74
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -2133,7 +2133,7 @@ Below is a summary of the domain computers that were targeted, connectivity to t
 <div id="tabPanel" class="tabPanel">
 <div style="margin-left:10px;margin-top:3px">
 <h2>Share Summary</h2>
-Below is a summary of the SMB shares discovered on computers associated with the target domain that may provide excessive privileges to standard domain users.
+Below is a summary of the SMB shares discovered on domain computers that may provide excessive privileges to standard domain users.
 </div> 	
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>
 
@@ -2206,7 +2206,7 @@ Below is a summary of the SMB shares discovered on computers associated with the
 <div id="tabPanel" class="tabPanel">
 <div style="margin-left:10px;margin-top:3px">
 <h2>Share ACL Entry Summary</h2>	
-Below is a summary of the SMB share ACL entries discovered on computers associated with the target domain that may provide excessive privileges to standard domain users.
+Below is a summary of the SMB share ACL entries discovered on domain computers that may provide excessive privileges to standard domain users.
 </div> 	
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>
 
@@ -2274,11 +2274,11 @@ Below is a summary of the SMB share ACL entries discovered on computers associat
 <input class="tabInput"  name="tabs" type="radio" id="accounts"/> 
 <label class="tabLabel" onClick="updateTab('accounts',false)" for="accounts"></label>
 <div id="tabPanel" class="tabPanel">
-<p class="pageDescription">
+<div style="margin-left:10px;margin-top:3px">
 <h2>Data Insights: Group Stats</h2>	
 In the context of this report, excessive read and write share permissions have been defined as any network share ACL containing an explicit entry for the "Everyone", "Authenticated Users", "BUILTIN\Users", "Domain Users", or "Domain Computers" groups. All provide domain users access to the affected shares due to privilege inheritance.
 Below is a summary of the exposure associated with each of those groups. 
-</p>
+</div>
 
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>
 
@@ -2494,10 +2494,10 @@ Below is a summary of the exposure associated with each of those groups.
 <input class="tabInput"  name="tabs" type="radio" id="ShareName"/> 
 <label class="tabLabel" onClick="updateTab('ShareName',false)" for="ShareName"></label>
 <div id="tabPanel" class="tabPanel">
-<p class="pageDescription">
-<h2>Data Insights:Data Insights: $SampleSum Most Common Share Names</h2>
+<div style="margin-left:10px;margin-top:3px">
+<h2>Data Insights: $SampleSum Most Common Share Names</h2>
 This section contains a list of the most common SMB share names. In some cases, shares with the exact same name may be related to a single application or process.  This information can help identify the root cause associated with the excessive privileges and expedite remediation. 
-</p>
+</div>
 
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>
 
@@ -2523,10 +2523,10 @@ This section contains a list of the most common SMB share names. In some cases, 
 <input class="tabInput"  name="tabs" type="radio" id="ShareOwner"/> 
 <label class="tabLabel" onClick="updateTab('ShareOwner',false)" for="ShareOwner"></label>
 <div id="tabPanel" class="tabPanel">
-<p class="pageDescription">
+<div style="margin-left:10px;margin-top:3px">
 <h2>Data Insights: $SampleSum Most Common Share Owners</h2>	
-This section lists the most common share owners. This information can help you track down the asset owner so they can remediate the shares configured with excessive privileges. 
-</p>
+This section lists the most common share owners. 
+</div>
 
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>
 
@@ -2553,10 +2553,10 @@ This section lists the most common share owners. This information can help you t
 <input class="tabInput"  name="tabs" type="radio" id="ShareFolders"/> 
 <label class="tabLabel" onClick="updateTab('ShareFolders',false)" for="ShareFolders"></label>
 <div id="tabPanel" class="tabPanel">
-<p class="pageDescription">
-<h2>Data Insights: Data Insights: $SampleSum Most Common Share Folder Groups</h2>
+<div style="margin-left:10px;margin-top:3px">
+<h2>Data Insights: $SampleSum Most Common Share Folder Groups</h2>
 Folder groups are SMB shares that contain the exact same file listing. Each file group has been hashed so they can be quickly correlated. In some cases, shares with the exact same file listing may be related to a single application or process.  This information can help identify the root cause associated with the excessive privileges and expedite remediation.
-</p>
+</div>
 
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>
 
@@ -2585,10 +2585,10 @@ Folder groups are SMB shares that contain the exact same file listing. Each file
 <input class="tabInput"  name="tabs" type="radio" id="Attacks"/> 
 <label class="tabLabel" onClick="updateTab('Attacks',false)" for="Attacks"></label>
 <div id="tabPanel" class="tabPanel">
-<p class="pageDescription">
-<span class="PageTitle">Recommendations:</span> <span class="PageTitleSub">Exploit Share Accesss</span><br>	
+<div style="margin-left:10px;margin-top:7px">
+<h3>Exploit Share Accesss</h3>
 Below are some tips for getting started on exploiting share access.	
-</p>
+</div>
 
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>
 
@@ -2642,16 +2642,16 @@ Below are some tips for getting started on exploiting share access.
 </div>
 
 <!--  
-|||||||||| PAGE: Detect Share Scan
+|||||||||| PAGE: Detect Share Scans
 -->
 
 <input class="tabInput"  name="tabs" type="radio" id="Detections"/> 
 <label class="tabLabel" onClick="updateTab('Detections',false)" for="Detections"></label>
 <div id="tabPanel" class="tabPanel">
-<p class="pageDescription">
+<div style="margin-left:10px;margin-top:3px">
 <h2>Recommendations: Exploit Share Access</h2>
 Below are some tips for getting started on building detections for potentially malicious share scanning events.
-</p>
+</div>
 
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>
 
@@ -2666,23 +2666,22 @@ Below are some tips for getting started on building detections for potentially m
    <tr>
 	  <td>Detect Share Scanning</td>
 	  <td>
-Data Sources<br>
+<strong>Data Sources</strong><br>
 Ensure that group policy audit settings are configured so that authentication successes and failures are logged so that real-time analysis and offline analysis can be used to identify common indicators of compromise.  Specifically, ensure the following events IDs are logged and forward to a SIEM solutions.
 <br><br>
 Logon Success<br>
 - Windows Server 2003: 540<br>
 - Windows Server 2008-2012: 4624<br>
-<br><br>
+<br>
 Logon Failure<br>
 - Windows Server 2003: 680<br>
 - Windows Server 2008-2012: 4625<br>
-<br><br>
+<br>
 Network Share Object was Accessed
 - All versions: 5140
-<br><br>
 
 <br><br>
-Detection Thresholds and Indicators
+<strong>Detection Thresholds and Indicators</strong>
 <br>
 Below is a list of common Indicators of Compromise (IoCs) that can be used to identify potentially SMB scanning.  Please note that not all IoCs will work in every environment due false positives generated by legitimate applications and processes.  However, in some environments it may be possible to modify IoC thresholds or signatures to reduce the number of false positives to an acceptable level.
 <br><br>
@@ -2692,7 +2691,7 @@ A single system authenticates to many systems via SMB (port 445) in short period
 <br><br>
 Consider implementing a honey pot or canary system that supports SMB shares that can be used to generate alerts when accessed.
 <br><br>
-Prevention<br>
+<strong>Prevention</strong><br>
 If network shares are not required, disable them or block access using host-based firewalls.
 Ensure that sensitive information is not available on these shares. To restrict access under Windows, open Explorer, right-click on each of the shares, go to the 'Sharing' tab, and click on 'Permissions'. From here, add or remove permissions for various users and groups.
 Guest access to the system should also be revoked and ensure that adequate access controls are in place for each shared resource. NULL sessions should be disabled.
@@ -2715,10 +2714,10 @@ Guest access to the system should also be revoked and ensure that adequate acces
 <input class="tabInput"  name="tabs" type="radio" id="Remediation"/> 
 <label class="tabLabel" onClick="updateTab('Remediation',false)" for="Remediation"></label>
 <div id="tabPanel" class="tabPanel">
-<p class="pageDescription">
+<div style="margin-left:10px;margin-top:3px">
 <h2>Recommendations: Prioritize Remediation</h2>	
 Below are some tips for getting started on prioritizing the remediation of shares configured with excessive privileges.
-</p>
+</div>
 
 <div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>
 
