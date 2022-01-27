@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.63
+# Version: v1.4.65
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1801,7 +1801,7 @@ $NewHtmlReport = @"
 		border-bottom: 1px solid red;	         	
 		height:10px;
 		width:20px;
-		margin-top:60px;	
+		margin-top:65px;	
     }
 
   </style>
@@ -2808,6 +2808,18 @@ Below are some tips for getting started on prioritizing the remediation of share
 	<span align="left">The scan context and run time information have been provided below.</span>			
 	<table>
 		 <tr>
+			<td class="cardsubtitle" style="vertical-align:top">Domain</td>
+			<td >					
+				<span class="AclEntryRight">$TargetDomain</span>				
+			</td>
+		 </tr>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align:top">DC</td>
+			<td >					
+				<span class="AclEntryRight">$DomainController</span>				
+			</td>
+		 </tr>	
+		 <tr>
 			<td class="cardsubtitle" style="vertical-align: top;">Start Time</td>
 			<td>					
 				<span class="AclEntryRight">$StartTime</span>				
@@ -2826,33 +2838,21 @@ Below are some tips for getting started on prioritizing the remediation of share
 			</td>
 		 </tr>
 		 <tr>
-			<td class="cardsubtitle" style="vertical-align:top">Host</td>
+			<td class="cardsubtitle" style="vertical-align:top">Src Host</td>
 			<td >					
 				<span class="AclEntryRight">$SourceHost</span>				
 			</td>
 		 </tr>
 		 <tr>
-			<td class="cardsubtitle" style="vertical-align:top">IP</td>
+			<td class="cardsubtitle" style="vertical-align:top">Src IPs</td>
 			<td >					
 				<span class="AclEntryRight">$SourceIps</span>				
 			</td>
 		 </tr>		
 		 <tr>
-			<td class="cardsubtitle" style="vertical-align:top">User</td>
+			<td class="cardsubtitle" style="vertical-align:top">Src User</td>
 			<td >					
 				<span class="AclEntryRight">$username</span>				
-			</td>
-		 </tr>	
-		 <tr>
-			<td class="cardsubtitle" style="vertical-align:top">Domain</td>
-			<td >					
-				<span class="AclEntryRight">$TargetDomain</span>				
-			</td>
-		 </tr>
-		 <tr>
-			<td class="cardsubtitle" style="vertical-align:top">DC</td>
-			<td >					
-				<span class="AclEntryRight">$DomainController</span>				
 			</td>
 		 </tr>		 
 		</table> 		  
@@ -2863,9 +2863,7 @@ Below are some tips for getting started on prioritizing the remediation of share
 <!-- home text -->
 <div style="margin-left:300px;"> 
 <br>
-<span style="font-size:30; color:#222222; font-weight:bold">Collection Approach</span>
-<Br>
-<br>
+<h2>Collection Approach</h2>
 <div style="width:80%">
 The <a  style="color:#333" href="https://github.com/NetSPI/PowerShell/blob/master/Invoke-HuntSMBShares.ps1">Invoke-HuntSMBShares.ps1</a> audit script was run against the netspi.local domain to collect SMB Share data, generate this HTML summary report, and generate the associated csv files that detail potentially excessive share configurations.
 The left menu can be used to find summary data, the scan summary is in the table to the left, and a summary of the data collection approach has been outlined below.<br>
@@ -2964,10 +2962,9 @@ The left menu can be used to find summary data, the scan summary is in the table
  </div>
 </div>
 </div>
-<br>
+
 <div style="float:left;display:block;position:relative;">
-<span style="font-size:30; color:#222222; font-weight:bold">How do I use this report?</span>
-<br><br>
+<h2>How do I use this report?</h2>
 Follow the guidance below to get the most out of this report.
 <br><br>
 <button class="collapsible"><span style="color:#CE112D;">1</span> | Review Reports and Insights</button>
