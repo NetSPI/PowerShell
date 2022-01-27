@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.74
+# Version: v1.4.76
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -2858,7 +2858,7 @@ Below are some tips for getting started on prioritizing the remediation of share
 <div style="margin-left:300px;"> 
 <br>
 <h4>Collection Approach</h4>
-<div style="width:80%">
+<div>
 The <a  style="color:#333" href="https://github.com/NetSPI/PowerShell/blob/master/Invoke-HuntSMBShares.ps1">Invoke-HuntSMBShares.ps1</a> audit script was run against the netspi.local domain to collect SMB Share data, generate this HTML summary report, and generate the associated csv files that detail potentially excessive share configurations.
 The left menu can be used to find summary data, the scan summary is in the table to the left, and a summary of the data collection approach has been outlined below.<br>
 <br>
