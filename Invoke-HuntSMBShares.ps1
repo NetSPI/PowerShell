@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.76
+# Version: v1.4.78
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1860,7 +1860,7 @@ $NewHtmlReport = @"
 		<div style="min-height: 450px;margin-top:11px;">		
 		<div style="margin-left:10px;margin-top:3px">
 		<h2>Dashboard Charts</h2>			
-		Below is a summary of the shares configured with excessive privileges on computers associated with the netspi.local Active directory domain.
+		Below is a summary of the shares configured with excessive privileges on accessible domain computers.
 		<a href="netspi.local-Shares-Inventory-Excessive-Privileges.csv">Download Details</a>			
 		</div> 	
 		<div style="border-bottom: 1px solid #DEDFE1 ;  background-color:#f0f3f5; height:5px; margin-bottom:10px;"></div>	
@@ -1868,6 +1868,8 @@ $NewHtmlReport = @"
 <!--  
 |||||||||| CARD: COMPUTER SUMMARY
 -->
+
+<div style="margin-left: 10px;">$ExcessiveSharePrivsCount acls, on $ExcessiveSharesCount shares, hosted by $ComputerWithExcessive computers were found configured with excessive privilegs on the $TargetDomain domain.</div>
 
 <a href="#" id="DashLink" onClick="radiobtn = document.getElementById('computersummary');radiobtn.checked = true;">
  <div class="card">	
