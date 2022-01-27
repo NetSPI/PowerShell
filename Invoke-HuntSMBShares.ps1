@@ -1801,7 +1801,7 @@ $NewHtmlReport = @"
 		border-bottom: 1px solid red;	         	
 		height:10px;
 		width:20px;
-		margin-top:65px;	
+		margin-top:58px;	
     }
 
   </style>
