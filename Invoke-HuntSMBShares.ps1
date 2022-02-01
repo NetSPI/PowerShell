@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.85
+# Version: v1.4.89
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -993,6 +993,9 @@ function Invoke-HuntSMBShares
             $ThisRow = @" 
 	          <tr>	
 	          <td>
+              $ThisFileShareCount
+	          </td>
+	          <td>
               $FileGroupName
 	          </td>	
 	          <td>
@@ -1032,6 +1035,7 @@ function Invoke-HuntSMBShares
             $ComputerBar = $ShareNameBars.ComputerBar
             $ShareBar = $ShareNameBars.ShareBar
             $AclBar = $ShareNameBars.AclBar
+            $ShareFolderGroupList = $ExcessiveSharePrivs|where sharename -like "$ShareName" | select filelistgroup -Unique | select filelistgroup -ExpandProperty filelistgroup
             $ThisRow = @" 
 	          <tr>
 	          <td>
@@ -1040,6 +1044,9 @@ function Invoke-HuntSMBShares
 	          <td>
               $ShareName
 	          </td>		  
+              <td>
+              $ShareFolderGroupList
+              </td>
 	          <td>
 	          $ComputerBar     	 
 	          </td>		  
@@ -2384,7 +2391,7 @@ Below is a summary of the exposure associated with each of those groups.
       </td>    	  
     </tr>	
 	<tr>
-	  <td>NT AUTHORITY\Authenticated Users</td>
+	  <td>Authenticated Users</td>
       <td>
  	  <span class="tablecolinfo">
 		  <div class="AclEntryWrapper">
@@ -2520,6 +2527,7 @@ This section contains a list of the most common SMB share names. In some cases, 
     <tr>      
       <th align="left">Share Count</th> 
       <th align="left">Share Name</th>
+      <th align="left">Folder Groups</th>
       <th align="left">Affected Computers</th>
 	  <th align="left">Affected Shares</th>
 	  <th align="left">Affected ACLs</th>	 	 
@@ -2577,6 +2585,7 @@ Folder groups are SMB shares that contain the exact same file listing. Each file
 <table class="table table-striped table-hover tabledrop">
   <thead>
     <tr>  
+      <th align="left">Affected Shares</th>
       <th align="left">File Group</th>
       <th align="left">File Count</th>
       <th align="left">File List</th>
