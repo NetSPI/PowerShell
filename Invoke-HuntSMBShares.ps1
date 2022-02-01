@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.79
+# Version: v1.4.80
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -2782,7 +2782,7 @@ Below are some tips for getting started on prioritizing the remediation of share
 <input class="tabInput"  name="tabs" type="radio" id="home"/> 
 <label class="tabLabel" onClick="updateTab('home',false)" for="home"></label>
 <div id="tabPanel" class="tabPanel">	
-<div style="min-height: 560px">	 
+<div style="min-height: 670px">	 
 	  <div style="margin-left:10px;margin-top:3px">
 	  <h2>SMB Share <span style="color:#CE112D;">Excessive Privilege Report</span></h2>
 	  This report summarizes the shares identified as being configured with excessive privileges.
@@ -2806,49 +2806,49 @@ Below are some tips for getting started on prioritizing the remediation of share
 		 <tr>
 			<td class="cardsubtitle" style="vertical-align:top">Domain</td>
 			<td >					
-				<span class="AclEntryRight">$TargetDomain</span>				
+				<span class="AclEntryRight" style="width:160px;word-wrap: break-word;">$TargetDomain</span>				
 			</td>
 		 </tr>
 		 <tr>
 			<td class="cardsubtitle" style="vertical-align:top">DC</td>
 			<td >					
-				<span class="AclEntryRight">$DomainController</span>				
+				<span class="AclEntryRight" style="width:160px;word-wrap: break-word;">$DomainController</span>				
 			</td>
 		 </tr>	
 		 <tr>
 			<td class="cardsubtitle" style="vertical-align: top;">Start Time</td>
 			<td>					
-				<span class="AclEntryRight">$StartTime</span>				
+				<span class="AclEntryRight" style="width:160px;word-wrap: break-word;">$StartTime</span>				
 			</td>
 		 </tr>
 		 <tr>
 			<td class="cardsubtitle" style="vertical-align:top">Stop Time</td>
 			<td >					
-				<span class="AclEntryRight">$EndTime</span>				
+				<span class="AclEntryRight" style="width:160px;word-wrap: break-word;">$EndTime</span>				
 			</td>
 		 </tr>
 		 <tr>
 			<td class="cardsubtitle" style="vertical-align:top">Duration</td>
 			<td >					
-				<span class="AclEntryRight">$RunTime</span>				
+				<span class="AclEntryRight" style="width:160px;word-wrap: break-word;">$RunTime</span>				
 			</td>
 		 </tr>
 		 <tr>
 			<td class="cardsubtitle" style="vertical-align:top">Src Host</td>
 			<td >					
-				<span class="AclEntryRight">$SourceHost</span>				
+				<span class="AclEntryRight" style="width:160px;word-wrap: break-word;">$SourceHost</span>				
 			</td>
 		 </tr>
 		 <tr>
 			<td class="cardsubtitle" style="vertical-align:top">Src IPs</td>
 			<td >					
-				<span class="AclEntryRight">$SourceIps</span>				
+				<span class="AclEntryRight" style="width:160px;word-wrap: break-word;">$SourceIps</span>				
 			</td>
 		 </tr>		
 		 <tr>
 			<td class="cardsubtitle" style="vertical-align:top">Src User</td>
 			<td >					
-				<span class="AclEntryRight">$username</span>				
+				<span class="AclEntryRight" style="width:160px;word-wrap: break-word;">$username</span>				
 			</td>
 		 </tr>		 
 		</table> 		  
