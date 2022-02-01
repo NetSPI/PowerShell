@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.81
+# Version: v1.4.82
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -1631,8 +1631,7 @@ $NewHtmlReport = @"
 		font-size: 10;
 		font-family:"Open Sans", sans-serif;
 		color:#666;			
-		text-align: right;
-		margin-left: 10px;		
+		text-align: right;		
 		font-weight:bold;
 	}
 
@@ -1680,7 +1679,6 @@ $NewHtmlReport = @"
 		width:102px;
 		--border: 1px solid #999999;
 		height: 15px;
-		margin-left: 10px;
 		text-align:center;
 	}
 	  
@@ -1896,7 +1894,7 @@ $NewHtmlReport = @"
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentComputerReadP;"></div>
 				</div>	
-				<span class="cardbartext">$PercentComputerReadP ($ComputerWithReadCount of $ComputerCount)</span>				
+				<span class="cardbartext">$PercentComputerReadP <br> $ComputerWithReadCount of $ComputerCount</span>				
 			</td>
 		 </tr>
 		 <tr>
@@ -1905,7 +1903,7 @@ $NewHtmlReport = @"
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentComputerWriteP;"></div>
 				</div>
-				<span class="cardbartext">$PercentComputerWriteP ($ComputerWithWriteCount of $ComputerCount)</span>
+				<span class="cardbartext">$PercentComputerWriteP <br> $ComputerWithWriteCount of $ComputerCount</span>
 			</td>
 		 </tr>
 		 <tr>
@@ -1914,7 +1912,7 @@ $NewHtmlReport = @"
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentComputerHighRiskP;"></div>
 				</div>
-				<span class="cardbartext">$PercentComputerHighRiskP ($ComputerwithHighRisk of $ComputerCount)</span>				
+				<span class="cardbartext">$PercentComputerHighRiskP <br> $ComputerwithHighRisk of $ComputerCount</span>				
 			</td>
 		 </tr>		 
 		</table> 		  
@@ -1951,7 +1949,7 @@ $NewHtmlReport = @"
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentSharesReadP;"></div>
 				</div>	
-				<span class="cardbartext">$PercentSharesReadP ($SharesWithReadCount of $AllSMBSharesCount)</span>				
+				<span class="cardbartext">$PercentSharesReadP <br> $SharesWithReadCount of $AllSMBSharesCount</span>				
 			</td>
 		 </tr>
 		 <tr>
@@ -1960,7 +1958,7 @@ $NewHtmlReport = @"
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentSharesWriteP;"></div>
 				</div>
-				<span class="cardbartext">$PercentSharesWriteP ($SharesWithWriteCount of $AllSMBSharesCount)</span>
+				<span class="cardbartext">$PercentSharesWriteP <br> $SharesWithWriteCount of $AllSMBSharesCount</span>
 			</td>
 		 </tr>
 		 <tr>
@@ -1969,7 +1967,7 @@ $NewHtmlReport = @"
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentSharesHighRiskP;"></div>
 				</div>
-				<span class="cardbartext">$PercentSharesHighRiskP ($SharesHighRiskCount of $AllSMBSharesCount)</span>				
+				<span class="cardbartext">$PercentSharesHighRiskP <br> $SharesHighRiskCount of $AllSMBSharesCount</span>				
 			</td>
 		 </tr>		 
 		</table> 		  
@@ -2006,7 +2004,7 @@ $NewHtmlReport = @"
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentAclReadP;"></div>
 				</div>	
-				<span class="cardbartext">$PercentAclReadP  ($AclWithReadCount of $ShareACLsCount)</span>				
+				<span class="cardbartext">$PercentAclReadP <br> $AclWithReadCount of $ShareACLsCount</span>				
 			</td>
 		 </tr>
 		 <tr>
@@ -2015,7 +2013,7 @@ $NewHtmlReport = @"
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentAclWriteP;"></div>
 				</div>
-				<span class="cardbartext">$PercentAclWriteP ($AclWithWriteCount of $ShareACLsCount)</span>
+				<span class="cardbartext">$PercentAclWriteP <br> $AclWithWriteCount of $ShareACLsCount</span>
 			</td>
 		 </tr>
 		 <tr>
@@ -2024,7 +2022,7 @@ $NewHtmlReport = @"
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentAclHighRiskP;"></div>
 				</div>
-				<span class="cardbartext">$PercentAclHighRiskP ($AclHighRiskCount of $ShareACLsCount)</span>				
+				<span class="cardbartext">$PercentAclHighRiskP <br> $AclHighRiskCount of $ShareACLsCount</span>				
 			</td>
 		 </tr>		 
 		</table> 		  
