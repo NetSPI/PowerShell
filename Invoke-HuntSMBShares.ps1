@@ -840,7 +840,7 @@ function Invoke-HuntSMBShares
         $AceUsersComputerCountPB = $AceUsersComputerCountP.PercentBarVal 
 
         # ACE User: Authenticated Users
-        $AceAuthenticatedUsers = Get-UserAceCounts -DataTable $ExcessiveSharePrivs -UserName "NT AUTHORITY\Authenticated Users"        
+        $AceAuthenticatedUsers = Get-UserAceCounts -DataTable $ExcessiveSharePrivs -UserName "Authenticated Users"        
         $AceAuthenticatedUsersComputerCount = $AceAuthenticatedUsers.UserComputerCount 
         $AceAuthenticatedUsersShareCount    = $AceAuthenticatedUsers.UserShareCount 
         $AceAuthenticatedUsersAclCount      = $AceAuthenticatedUsers.UserAclsCount 
