@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.89
+# Version: v1.4.90
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -414,11 +414,13 @@ function Invoke-HuntSMBShares
                       $TargetPath = $_.Path
                       $LastModifiedDateObject = Get-Item "\\$TargetAsset\$CurrentShareName" -ErrorAction SilentlyContinue | Select-Object LastWriteTime
                       $LastModifiedDate = $LastModifiedDateObject.LastWriteTime.ToString()
+                      $LastModifiedDateYear  = $LastModifiedDate.split(' ')[0].split('/')[2]
 
                       # Last accessed date
                       $TargetPath = $_.Path
                       $LastAccessDateObject = Get-Item "\\$TargetAsset\$CurrentShareName" -ErrorAction SilentlyContinue | Select-Object LastAccessTime
                       $LastAccessDate = $LastAccessDateObject.LastAccessTime.ToString()
+                      $LastAccessDateYear = $LastAccessDate.split(' ')[0].split('/')[2]
 
                       $aclObject = new-object psobject            
                       $aclObject | add-member  Noteproperty ComputerName         $CurrentComputerName
@@ -433,10 +435,12 @@ function Invoke-HuntSMBShares
                       $aclObject | add-member  Noteproperty IdentityReference    $_.IdentityReference
                       $aclObject | add-member  Noteproperty IdentitySID          $_.IdentitySID
                       $aclObject | add-member  Noteproperty AccessControlType    $_.AccessControlType
-                      $aclObject | add-member  Noteproperty CreationDateYear     $CreationdDateYear
                       $aclObject | add-member  Noteproperty CreationDate         $CreationdDate
+                      $aclObject | add-member  Noteproperty CreationDateYear     $CreationdDateYear
                       $aclObject | add-member  Noteproperty LastModifiedDate     $LastModifiedDate
+                      $aclObject | add-member  Noteproperty LastModifiedDateYear $LastModifiedDateYear
                       $aclObject | add-member  Noteproperty LastAccessDate       $LastAccessDate                                           
+                      $aclObject | add-member  Noteproperty LastAccessDateYear   $LastAccessDateYear
                       $aclObject | add-member  Noteproperty FileCount            $FileCount
                       $aclObject | add-member  Noteproperty FileList             $FileList
                       $aclObject | add-member  Noteproperty FileListGroup        $FileListGroup
