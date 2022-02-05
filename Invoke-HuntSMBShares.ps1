@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.90
+# Version: v1.4.91
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -138,8 +138,20 @@ function Invoke-HuntSMBShares
         [int]$RunSpaceTimeOut = 15,
 
         [Parameter(Mandatory = $false,
+        HelpMessage = 'Time in days for last access report.')]
+        [int]$LastAccessDays = 90,
+
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'Time in days for last modified report.')]
+        [int]$LastModDays = 90,
+
+        [Parameter(Mandatory = $false,
         HelpMessage = 'Show runspace errors if they occur.')]
-        [switch] $ShowRunpaceErrors
+        [switch] $ShowRunpaceErrors,
+
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'Supress timeline report generation.')]
+        [switch] $SupressTimelineRpt
         
     )
 	
@@ -684,17 +696,14 @@ function Invoke-HuntSMBShares
         # ----------------------------------------------------------------------
 
         # Status user
-        Write-Output " [*] Generating summary data"
-        Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Common-Names.csv"
+        Write-Output " [*] Identifying common share names"              
         $CommonShareNames = $ExcessiveSharePrivs | Select-Object ComputerName,ShareName -Unique | Group-Object ShareName |Sort Count -Descending | select count,name | 
         foreach{
             if( ($_.name -ne 'SYSVOL') -and ($_.name -ne 'NETLOGON'))
             {
                 $_                
             }
-        }
-        
-        $CommonShareNames | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Common-Names.csv"
+        }        
        
         # Get percent of shared covered by top 5
         # If very weighted this indicates if the shares are part of a deployment process, image, or app
@@ -713,6 +722,53 @@ function Invoke-HuntSMBShares
         
         # Get count of all accessible shares
         $AllAccessibleSharesCount = $ExcessiveSharePrivs | Select-Object ComputerName,ShareName -Unique | measure | select count -ExpandProperty count
+
+        # Write output
+        Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Common-Names.csv" 
+        $CommonShareNames | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Common-Names.csv"
+
+        # ----------------------------------------------------------------------
+        # Identify excessive share access in last n 90 days
+        # ----------------------------------------------------------------------
+
+        # Select shares from last n names
+        $StartDateAccess = Get-Date
+        $EndDateAccess = (get-date).AddDays(-$LastAccessDays);
+        $ExPrivAccessLastn = $ExcessiveSharePrivs | Where-Object {([Datetime]$_.LastModifiedDate.trim() -ge $StartDateAccess -and [Datetime]$_.LastModifiedDate.trim() -le $EndDateAccess)}
+        $ExPrivAccessLastnCount = $ExPrivAccessLastn | Measure  |select count -ExpandProperty count
+
+        # Percent of shares accessed in last n days
+        # $ExPrivAccessLastnCount / $ShareACLsCount
+
+        # Get summary bar code - Need to extend for counts,%, and bar
+        $ExPrivAccesLastBars = Get-ExPrivSumData -DataTable $ExPrivModLastn  -AllComputerCount $ComputerCount -AllShareCount $AllSMBSharesCount -AllAclCount $ShareACLsCount
+        $ExPrivAccesLastComputerB = $ExPrivAccesLastBars.ComputerBar
+        $ExPrivAccesLastShareB = $ExPrivAccesLastBars.ShareBar
+        $ExPrivAccesLastShareB = $ExPrivAccesLastBars.AclBar
+
+        # Generate chart
+
+
+        # ----------------------------------------------------------------------
+        # Identify excessive modification in last n 90 days
+        # ----------------------------------------------------------------------
+
+        # Select shares from last n names 
+        $StartDateLastMod = Get-Date
+        $EndDateLastMod = (get-date).AddDays(-$LastModDays);
+        $ExPrivModLastn = $ExcessiveSharePrivs | Where-Object {([Datetime]$_.LastModifiedDate.trim() -ge $StartDateLastMod -and [Datetime]$_.LastModifiedDate.trim() -le $EndDateLastMod)}
+        $ExPrivModLastnCount = $ExPrivModLastn | Measure  |select count -ExpandProperty count
+
+        # Percent of shares modified in last n days
+        # $ExPrivModLastnCount / $ShareACLsCount
+
+        # Get summary bar code - Need to extend for counts,%, and bar
+        $ExPrivModLastBars = Get-ExPrivSumData -DataTable $ExPrivModLastn  -AllComputerCount $ComputerCount -AllShareCount $AllSMBSharesCount -AllAclCount $ShareACLsCount
+        $ExPrivModLastComputerB = $ExPrivModLastBars.ComputerBar
+        $ExPrivModLastShareB = $ExPrivModLastBars.ShareBar
+        $ExPrivModLastShareB = $ExPrivModLastBars.AclBar
+
+        # Generate chart
 
         # ----------------------------------------------------------------------
         # Calculate percentages
@@ -3369,6 +3425,51 @@ function Get-PercentDisplay
     $TheCounts = new-object psobject            
     $TheCounts | add-member  Noteproperty PercentString         $PercentString
     $TheCounts | add-member  Noteproperty PercentBarVal         $PercentBarVal    
+    $TheCounts
+}
+
+# -------------------------------------------
+# Function: Get-ExPrivSumData
+# -------------------------------------------
+# get the computer, share, and acl summary data for a provided data table
+function Get-ExPrivSumData
+{
+    param (
+        $DataTable,
+        $AllComputerCount,
+        $AllShareCount,
+        $AllAclCount
+    )
+
+    # Get acl counts
+    $UserAcls = $DataTable 
+    $UserAclsCount = $UserAcls | measure | select count -ExpandProperty count
+    $UserAclsPercent = [math]::Round($UserAclsCount/$AllAclCount,4)
+    $UserAclsPercentString = $UserAclsPercent.tostring("P") -replace(" ","")
+    $UserAclsPercentBarVal = ($UserAclsPercent *2).tostring("P") -replace(" %","px")
+    $UserAclsPercentBarCode = "<span class=`"dashboardsub2`">$UserAclsPercentString ($UserAclsCount of $AllAclCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserAclsPercentString;`"></div></div>"
+
+    # Get share counts
+    $UserShare = $UserAcls | Select-Object SharePath -Unique
+    $UserShareCount = $UserShare | measure | select count -ExpandProperty count
+    $UserSharePercent = [math]::Round($UserShareCount/$AllShareCount,4)
+    $UserSharePercentString = $UserSharePercent.tostring("P") -replace(" ","")
+    $UserSharePercentBarVal = ($UserSharePercent *2).tostring("P") -replace(" %","px")
+    $UserSharePercentBarCode = "<span class=`"dashboardsub2`">$UserSharePercentString ($UserShareCount of $AllShareCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserSharePercentString;`"></div></div>"
+
+    # Get computer counts
+    $UserComputer = $UserAcls | Select-Object ComputerName -Unique
+    $UserComputerCount = $UserComputer | measure | select count -ExpandProperty count   
+    $UserComputerPercent = [math]::Round($UserComputerCount/$AllComputerCount,4)
+    $UserComputerPercentString = $UserComputerPercent.tostring("P") -replace(" ","")
+    $UserComputerPercentBarVal = ($UserComputerPercent *2).tostring("P") -replace(" %","px")
+    $UserComputerPercentBarCode = "<span class=`"dashboardsub2`">$UserComputerPercentString ($UserComputerCount of $AllComputerCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserComputerPercentString;`"></div></div>"
+
+    # Return object with all counts
+    $TheCounts = new-object psobject            
+    $TheCounts | add-member  Noteproperty ComputerBar   $UserComputerPercentBarCode
+    $TheCounts | add-member  Noteproperty ShareBar      $UserSharePercentBarCode    
+    $TheCounts | add-member  Noteproperty AclBar        $UserAclsPercentBarCode
     $TheCounts
 }
 
