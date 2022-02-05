@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.92
+# Version: v1.4.93
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -739,7 +739,8 @@ function Invoke-HuntSMBShares
         $ExPrivAccessLastnShareCount = $ExPrivAccessLastnShare | Measure  |select count -ExpandProperty count
 
         # Percent of shares accessed in last n days
-        $ExpPrivAccessLastP = $ExPrivAccessLastnShareCount / $AllSMBSharesCount
+        $ExpPrivAccessLast = $ExPrivAccessLastnShareCount / $AllSMBSharesCount
+        $ExpPrivAccessLastP = $ExpPrivAccessLast.tostring("P") -replace(" ","")
 
         # Get summary bar code - Need to extend for counts,%, and bar
         $ExPrivAccesLastBars = Get-ExPrivSumData -DataTable $ExPrivModLastn  -AllComputerCount $ComputerCount -AllShareCount $AllSMBSharesCount -AllAclCount $ShareACLsCount
@@ -762,7 +763,8 @@ function Invoke-HuntSMBShares
         $ExPrivModLastnShareCount = $ExPrivModLastnShare | Measure  |select count -ExpandProperty count
 
         # Percent of shares modified in last n days
-        $ExpPrivModLastP = $ExPrivModLastnShareCount / $AllSMBSharesCount
+        $ExpPrivModLast = $ExPrivModLastnShareCount / $AllSMBSharesCount
+        $ExpPrivModLastP = $ExpPrivModLast.tostring("P") -replace(" ","")
 
         # Get summary bar code - Need to extend for counts,%, and bar
         $ExPrivModLastBars = Get-ExPrivSumData -DataTable $ExPrivModLastn  -AllComputerCount $ComputerCount -AllShareCount $AllSMBSharesCount -AllAclCount $ShareACLsCount
