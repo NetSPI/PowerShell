@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.91
+# Version: v1.4.92
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -735,10 +735,11 @@ function Invoke-HuntSMBShares
         $StartDateAccess = Get-Date
         $EndDateAccess = (get-date).AddDays(-$LastAccessDays);
         $ExPrivAccessLastn = $ExcessiveSharePrivs | Where-Object {([Datetime]$_.LastModifiedDate.trim() -ge $StartDateAccess -and [Datetime]$_.LastModifiedDate.trim() -le $EndDateAccess)}
-        $ExPrivAccessLastnCount = $ExPrivAccessLastn | Measure  |select count -ExpandProperty count
+        $ExPrivAccessLastnShare = $ExcessiveSharePrivs | Where-Object {([Datetime]$_.LastModifiedDate.trim() -ge $StartDateAccess -and [Datetime]$_.LastModifiedDate.trim() -le $EndDateAccess)} | select sharenpath -Unique
+        $ExPrivAccessLastnShareCount = $ExPrivAccessLastnShare | Measure  |select count -ExpandProperty count
 
         # Percent of shares accessed in last n days
-        # $ExPrivAccessLastnCount / $ShareACLsCount
+        $ExpPrivAccessLastP = $ExPrivAccessLastnShareCount / $AllSMBSharesCount
 
         # Get summary bar code - Need to extend for counts,%, and bar
         $ExPrivAccesLastBars = Get-ExPrivSumData -DataTable $ExPrivModLastn  -AllComputerCount $ComputerCount -AllShareCount $AllSMBSharesCount -AllAclCount $ShareACLsCount
@@ -756,11 +757,12 @@ function Invoke-HuntSMBShares
         # Select shares from last n names 
         $StartDateLastMod = Get-Date
         $EndDateLastMod = (get-date).AddDays(-$LastModDays);
-        $ExPrivModLastn = $ExcessiveSharePrivs | Where-Object {([Datetime]$_.LastModifiedDate.trim() -ge $StartDateLastMod -and [Datetime]$_.LastModifiedDate.trim() -le $EndDateLastMod)}
-        $ExPrivModLastnCount = $ExPrivModLastn | Measure  |select count -ExpandProperty count
+        $ExPrivModLastn = $ExcessiveSharePrivs | Where-Object {([Datetime]$_.LastModifiedDate.trim() -ge $StartDateLastMod -and [Datetime]$_.LastModifiedDate.trim() -le $EndDateLastMod)} 
+        $ExPrivModLastnShare = $ExcessiveSharePrivs | Where-Object {([Datetime]$_.LastModifiedDate.trim() -ge $StartDateLastMod -and [Datetime]$_.LastModifiedDate.trim() -le $EndDateLastMod)}  | select sharenpath -Unique
+        $ExPrivModLastnShareCount = $ExPrivModLastnShare | Measure  |select count -ExpandProperty count
 
         # Percent of shares modified in last n days
-        # $ExPrivModLastnCount / $ShareACLsCount
+        $ExpPrivModLastP = $ExPrivModLastnShareCount / $AllSMBSharesCount
 
         # Get summary bar code - Need to extend for counts,%, and bar
         $ExPrivModLastBars = Get-ExPrivSumData -DataTable $ExPrivModLastn  -AllComputerCount $ComputerCount -AllShareCount $AllSMBSharesCount -AllAclCount $ShareACLsCount
