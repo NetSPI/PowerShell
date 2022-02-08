@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.11
+# Version: v1.4.15
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -779,6 +779,11 @@ function Invoke-HuntSMBShares
         # ----------------------------------------------------------------------
         # Calculate percentages
         # ----------------------------------------------------------------------
+        
+        # Set good/bad images
+        $CheckGood = '<img style="padding-top:5px;padding-left:20px;" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAGPAAABjwEeLVWuAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAAwFJREFUOI2NlU1IVFEUx3/vvZwBS2eRjUzWRFY2mz6wEqKooCLEwsmKRDKIFkUFtYiICHvtakzUbDNLrY1jmFJE0AcFUQaWhDkt+sIcpcag8mPeNF+nxThDM28g/9tzz+/ec+79n6uQSzoWFPYiVAPlwKKZSAB4A/QAPehEslMVE+wy+xA8QKmmaKwuXk1JYUmSNhFg8PsgcYkDfALOodOd81D40NC5ho7YG+3S0tci49Pjkq3gdFCaXjRJkadI0BF0GtFRc5V5DR3ZdXOX/DR+mkDZ+hH6Idvbt6egV81l6kjlrUqJxqP/haUUiUdkR8eOFNSd7KGOBfAvLFi4zH/Sj81qy92SLA18G2Dw+yB7Vu7BdcNFcDr4BXCpKOwFljVsbZg1zIgZHOo+xKn7pwjHwlzcchFgKQrVKoLbqlmpW1U3KxjA+Ufn8Y/7aa1sxTHPweE1h7FoFhCqVWBdRUkFBZaCWcEefn5I26s23C43R9YeAcBmtVHuKAdYrwIOp805K9iv8C+O9h5lwdwFeHd7M2IzjJI5AIpift+5dPzecQITAe7W3cU+154R0xQNIKECY6MTo+lAOBZm+PewCdbxtoPOoU5ObDhB1YoqU3xkYgRgTAVe9wX6CEVDADS9bKKsrYzTD04zGZlMLz7z4AyuIheenR4TbCoyRf9YP0C/CvQYMYPu90lLVq2oYuOijVx/dR3XDRfefi/1d+qZjEzS7m4nPy/fBOzydxGOhQF6wUseOh9KW0vFiBppF/iGfLKkeUnKBdLwpCGnW6YiU+Jsdgo6n2ZMAujUoCMHfAckkUikF4eiIanprJHixmKJJWImWCKRkINdB5ObXqY689zJqSG1t2slFA3918dG1JD67vpUBVfSt50GbuMxkP8u+G6Tb8iHfZ6dsvllaKqWse+f+B98Qz72d+3n2fAzAA9wgacI5BqwyanRCCwvtBay2bmZxYWLEYSR3yM8//o8dfsfUTjLJXr/Tc/9or3k8Q33zBewjswv4DXQg4NejhHNTv0LNRDqVEdgcn0AAAAASUVORK5CYII="/>'
+        $CheckBad = '<img  style="padding-top:5px;padding-left:20px;" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAGPAAABjwEeLVWuAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAAnFJREFUOI19lL1Lm1EUxh8TEg0EXUSpxYhBHQRBwcEhDqIggtJiTf0A0cV/QDr4J7S1gjjpoIua6iJ0Fxez6eSgttqCZPIDjSYajfD+Oty8TeL72gMXLofnPPfcc55zJBdD8iMNI8WQjpHSuXOc831E8rvFupF9QPqNBF4vtLVBf785ra3GJ4F0ijT4PyIv0jckqKqC+Xm4vMRhFxcwNweVlTbxLJLHjdCQ9fbCzY2T6KVdXUF3t036xe2b0NcHz88m4OQE9vedRPE4JBLmns1CT49N+r6wAafU1EAymQfW1UF9Pdze5snOz6G6GlpawLKM7/ralEj6g+RXrpuwuFicydaWeXlyMu8bGACPB7a3i7ELC3aWUSF9p7QU7u6c35uYMMDNTVhaMvfpaScumQS/H6Q1If2is9O98KkUNDRARQUEg9DcDA8P7tiODpCOPZLeKBRy11IwKC0vS3d30sODtL4uBQLuWMPx1uinpOR1pe/smOpYlrS7+zrO65UkS0g/6epy/8beHvh8EIlAezuUlcHBgTs2EgHpSEgxAgG4vy8GpNPQ1GTqd3YGh4cQCJhRfHpy1rqsDKRV5QYdVleLQVNTpquxWN5ny2Nmphi7smLLZkhIPqQTwmHIZAwgmzXLYHS0ONCyzGiOjeWFnU5DKERuofjtaRlEgmg0D7Ss/AOFVigby4LhYTu7dy/neRYJRkZe11qhZTIwPm6TfXZ0HcmD9BUJGhthY8NZfIDHR1hfh3D436YpXF8OAea2xqykBpWXS5GIVFtrQhMJKR6XUilJOpX0qUT68bo486Q+pCjSGtIRUip3jnK+ISSfW+xfIvl4RaUKqNMAAAAASUVORK5CYII=" />'
+        
 
         # top 5 shares
         $DupDec = $Top5ShareCountTotal / $AllAccessibleSharesCount
@@ -812,20 +817,35 @@ function Invoke-HuntSMBShares
         $PercentComputerExPrivP = $PercentComputerExPriv.tostring("P") -replace(" ","")
         $PercentComputerExPrivBarVal = ($PercentComputerExPriv*2).tostring("P") -replace(" %","px")
 
-        # Computer read  share access       
+        # Computer read share access       
         $PercentComputerRead = [math]::Round($ComputerWithReadCount/$ComputerCount,4)
         $PercentComputerReadP = $PercentComputerRead.tostring("P") -replace(" ","")
         $PercentComputerReadBarVal = ($PercentComputerRead*2).tostring("P") -replace(" %","px")
+        if($PercentComputerRead -ne 0){
+            $CheckStatusComputerR = $CheckBad
+        }else{
+            $CheckStatusComputerR = $CheckGood
+        }
 
         # Computer write share access         
         $PercentComputerWrite = [math]::Round($ComputerWithWriteCount/$ComputerCount,4)
         $PercentComputerWriteP = $PercentComputerWrite.tostring("P") -replace(" ","")
         $PercentComputerWriteBarVal = ($PercentComputerWrite*2).tostring("P") -replace(" %","px")
+        if($PercentComputerWrite -ne 0){
+            $CheckStatusComputerW = $CheckBad
+        }else{
+            $CheckStatusComputerW = $CheckGood
+        }
 
         # Computer highrisk shares            
         $PercentComputerHighRisk = [math]::Round($ComputerwithHighRisk/$ComputerCount,4)
         $PercentComputerHighRiskP = $PercentComputerHighRisk.tostring("P") -replace(" ","")
         $PercentComputerHighRiskBarVal = ($PercentComputerHighRisk*2).tostring("P") -replace(" %","px")
+        if($PercentComputerHighRisk -ne 0){
+            $CheckStatusComputerH = $CheckBad
+        }else{
+            $CheckStatusComputerH = $CheckGood
+        }
 
         # Shares with non default names      
         $PercentSharesNonDefault = [math]::Round($SharesNonDefaultCount/$AllSMBSharesCount,4)
@@ -841,16 +861,31 @@ function Invoke-HuntSMBShares
         $PercentSharesRead = [math]::Round($SharesWithReadCount/$AllSMBSharesCount,4)
         $PercentSharesReadP = $PercentSharesRead.tostring("P") -replace(" ","")
         $PercentSharesReadBarVal = ($PercentSharesRead*2).tostring("P") -replace(" %","px")
+        if($PercentSharesRead -ne 0){
+            $CheckStatusShareR = $CheckBad
+        }else{
+            $CheckStatusShareR = $CheckGood
+        }
 
         # Shares with excessive write         
         $PercentSharesWrite = [math]::Round($SharesWithWriteCount/$AllSMBSharesCount,4) 
         $PercentSharesWriteP = $PercentSharesWrite.tostring("P") -replace(" ","")
         $PercentSharesWriteBarVal = ($PercentSharesWrite*2).tostring("P") -replace(" %","px")
+        if($PercentSharesWrite -ne 0){
+            $CheckStatusShareW = $CheckBad
+        }else{
+            $CheckStatusShareW = $CheckGood
+        }
 
         # Shares with excessive highrisk      
         $PercentSharesHighRisk = [math]::Round($SharesHighRiskCount/$AllSMBSharesCount,4)
         $PercentSharesHighRiskP = $PercentSharesHighRisk.tostring("P") -replace(" ","")
         $PercentSharesHighRiskBarVal = ($PercentSharesHighRisk*2).tostring("P") -replace(" %","px")
+        if($PercentSharesHighRisk -ne 0){
+            $CheckStatusShareH = $CheckBad
+        }else{
+            $CheckStatusShareH = $CheckGood
+        }
 
         # ACL with non default names          
         $PercentAclNonDefault = [math]::Round($AclNonDefaultCount/$ShareACLsCount,4)
@@ -866,16 +901,31 @@ function Invoke-HuntSMBShares
         $PercentAclRead = [math]::Round($AclWithReadCount/$ShareACLsCount,4)
         $PercentAclReadP = $PercentAclRead.tostring("P") -replace(" ","")
         $PercentAclReadBarVal = ($PercentAclRead *2).tostring("P") -replace(" %","px")
+        if($PercentAclRead -ne 0){
+            $CheckStatusAclR = $CheckBad
+        }else{
+            $CheckStatusAclR = $CheckGood
+        }
 
         # ACL with excessive write             
         $PercentAclWrite = [math]::Round($AclWithWriteCount/$ShareACLsCount,4)
         $PercentAclWriteP = $PercentAclWrite.tostring("P") -replace(" ","")
         $PercentAclWriteBarVal = ($PercentAclWrite *2).tostring("P") -replace(" %","px")
+        if($PercentAclWrite -ne 0){
+            $CheckStatusAclW = $CheckBad
+        }else{
+            $CheckStatusAclW = $CheckGood
+        }
 
         # ACL with excessive highrisk
         $PercentAclHighRisk = [math]::Round($AclHighRiskCount/$ShareACLsCount,4)
         $PercentAclHighRiskP = $PercentAclHighRisk.tostring("P") -replace(" ","")
         $PercentAclHighRiskBarVal = ($PercentAclHighRisk *2).tostring("P") -replace(" %","px")
+        if($PercentAclHighRisk  -ne 0){
+            $CheckStatusAclH = $CheckBad
+        }else{
+            $CheckStatusAclH = $CheckGood
+        }
         
         # ACE User: Everyone
         $AceEveryone = Get-UserAceCounts -DataTable $ExcessiveSharePrivs -UserName "everyone"
@@ -1213,8 +1263,7 @@ function Invoke-HuntSMBShares
 "@              
             $ThisRow    
         } 
-
-        
+       
 $NewHtmlReport = @" 
 <html>
 <head>
@@ -2238,7 +2287,10 @@ $NewHtmlReport = @"
 			</span>			
 	<table>
 		 <tr>
-			<td class="cardsubtitle" style="vertical-align: top; width:78px;">Read Access</td>
+			<td class="cardsubtitle" style="vertical-align: top; width:78px;">
+            Read Access
+            $CheckStatusComputerR
+            </td>
 			<td align="right">				
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentComputerReadP;"></div>
@@ -2247,7 +2299,10 @@ $NewHtmlReport = @"
 			</td>
 		 </tr>
 		 <tr>
-			<td class="cardsubtitle" style="vertical-align:top">Write Access</td>
+			<td class="cardsubtitle" style="vertical-align:top">
+            Write Access
+            $CheckStatusComputerW
+            </td>
 			<td align="right">				
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentComputerWriteP;"></div>
@@ -2256,7 +2311,10 @@ $NewHtmlReport = @"
 			</td>
 		 </tr>
 		 <tr>
-			<td class="cardsubtitle" style="vertical-align:top">High&nbsp;Risk</td>
+			<td class="cardsubtitle" style="vertical-align:top">
+            High&nbsp;Risk
+            $CheckStatusComputerH
+            </td>
 			<td align="right">
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentComputerHighRiskP;"></div>
@@ -2293,7 +2351,10 @@ $NewHtmlReport = @"
 			</span>					
 	<table>
 		 <tr>
-			<td class="cardsubtitle" style="vertical-align: top; width:78px;">Read Access</td>
+			<td class="cardsubtitle" style="vertical-align: top; width:78px;">
+            Read Access
+            $CheckStatusShareR
+            </td>
 			<td align="right">				
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentSharesReadP;"></div>
@@ -2302,7 +2363,10 @@ $NewHtmlReport = @"
 			</td>
 		 </tr>
 		 <tr>
-			<td class="cardsubtitle" style="vertical-align:top">Write Access</td>
+			<td class="cardsubtitle" style="vertical-align:top">
+            Write Access
+            $CheckStatusShareW
+            </td>
 			<td align="right">				
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentSharesWriteP;"></div>
@@ -2311,7 +2375,10 @@ $NewHtmlReport = @"
 			</td>
 		 </tr>
 		 <tr>
-			<td class="cardsubtitle" style="vertical-align:top">High&nbsp;Risk</td>
+			<td class="cardsubtitle" style="vertical-align:top">
+            High&nbsp;Risk
+            $CheckStatusShareH
+            </td>
 			<td align="right">
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentSharesHighRiskP;"></div>
@@ -2348,7 +2415,10 @@ $NewHtmlReport = @"
 			</span>		
 	<table>
 		 <tr>
-			<td class="cardsubtitle" style="vertical-align: top; width:78px;">Read Access</td>
+			<td class="cardsubtitle" style="vertical-align: top; width:78px;">
+            Read Access
+            $CheckStatusAclR
+            </td>
 			<td align="right">				
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentAclReadP;"></div>
@@ -2357,7 +2427,10 @@ $NewHtmlReport = @"
 			</td>
 		 </tr>
 		 <tr>
-			<td class="cardsubtitle" style="vertical-align:top">Write Access</td>
+			<td class="cardsubtitle" style="vertical-align:top">
+            Write Access
+            $CheckStatusAclw 
+            </td>
 			<td align="right">				
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentAclWriteP;"></div>
@@ -2366,7 +2439,10 @@ $NewHtmlReport = @"
 			</td>
 		 </tr>
 		 <tr>
-			<td class="cardsubtitle" style="vertical-align:top">High&nbsp;Risk</td>
+			<td class="cardsubtitle" style="vertical-align:top">
+            High&nbsp;Risk
+            $CheckStatusAclH 
+            </td>
 			<td align="right">
 				<div class="cardbarouter">
 					<div class="cardbarinside" style="width: $PercentAclHighRiskP;"></div>
@@ -2383,7 +2459,7 @@ $NewHtmlReport = @"
 |||||||||| CARD: Top 5 Names
 -->
 
-<a href="#" id="DashLink" onClick="radiobtn = document.getElementById('DashBoard');radiobtn.checked = true;">
+<a href="#" id="DashLink" onClick="radiobtn = document.getElementById('ShareName');radiobtn.checked = true;">
  <div class="card">	
 	<div class="cardtitle">
 		Top Share Names<br>
