@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.101
+# Version: v1.4.102
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -34,9 +34,11 @@ function Invoke-HuntSMBShares
 			| o Enumerate SMB shares                                        |
 			| o Enumerate SMB share permissions                             |
 			| o Identify shares with potentially excessive privielges       |
-			| o Identify shares that provide write access                   |
+			| o Identify shares that provide read and write access          |
 			| o Identify shares thare are high risk                         |
-			| o Identify common share names with more than 5 instances      |
+			| o Identify common owners, share names, & directory listings   |
+			| o Generate last written & last accessed timelines             |
+            | o Generate html summary report and detailed csv files         |
 			|                                                               |
 			  ---------------------------------------------------------------
 			| Note: This can take hours to run in large environments.       |
@@ -158,7 +160,6 @@ function Invoke-HuntSMBShares
     
     Begin
     {
-        $TheVersion = "1.3.33"
         Write-Output "  ---------------------------------------------------------------" 
         Write-Output " | Invoke-HuntSMBShares                                          |"
         Write-Output "  ---------------------------------------------------------------"         
@@ -171,9 +172,11 @@ function Invoke-HuntSMBShares
         Write-Output " | o Enumerate SMB shares                                        |"
         Write-Output " | o Enumerate SMB share permissions                             |"
         Write-Output " | o Identify shares with potentially excessive privielges       |"
-        Write-Output " | o Identify shares that provide write access                   |"                     
+        Write-Output " | o Identify shares that provide reads & write access           |"                     
         Write-Output " | o Identify shares thare are high risk                         |"
-        Write-Output " | o Identify common share names with more that 5 instances      |"
+        Write-Output " | o Identify common share owners, names, & directory listings   |"
+        Write-Output " | o Generate last written & last accessed timelines             |"
+        Write-Output " | o Generate html summary report and detailed csv files         |"
         Write-Output " |                                                               |"
         Write-Output "  ---------------------------------------------------------------"  
         Write-Output " | Note: This can take hours to run in large environments.       |"
