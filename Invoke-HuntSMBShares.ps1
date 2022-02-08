@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.102
+# Version: v1.4.105
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -3785,14 +3785,13 @@ $HTML1 = @"
 	<div class="LargeCardContainer" align="center">			
 
 <div class="container" style="position: relative;float:left;bottom:0;left:0;height:195px;width:50px;">
-  <div style="top:5;position:absolute;color:#757575;border-top:1px solid #ccc;width:100%;font-size:10;" align="right">$HighestAclCountinMonth <span style="color: #ccc">-</span> </div>
+  <div style="top:5;position:absolute;color:#757575;width:100%;font-size:10;" align="right">$HighestAclCountinMonth <span style="color: #ccc">-</span> </div>
   <div style="bottom: 98;position:absolute;color:#757575;border-bottom:1px solid #ccc;width:100%;font-size:10;padding-right:1px;" align="right">0 <span style="color: #ccc">-</span></div>
-  <div style="bottom:51;position:absolute;width:100%;font-size:10">
-	  <div width="100%" align="left" style="padding:.5;color:#757575">High Risk<br></div>
-	  <div width="100%" align="left" style="padding:.5;color:#757575">Write<br></div>
-	  <div width="100%" align="left" style="padding:.5;color:#757575">Read<br></div>
+  <div style="bottom:55;position:absolute;width:100%;font-size:10">
+	  <div width="100%" align="right" style="padding-right:3px;color:#757575">High Risk<br></div>
+	  <div width="100%" align="right" style="padding-right:3px;color:#757575">Write<br></div>
+	  <div width="100%" align="right" style="padding-right:3px;color:#757575">Read<br></div>
   </div>
-  <div style="bottom: 1;position:absolute;border-bottom:1px solid #ccc;width:100%;"></div>
 </div>
 <div class="TimelineChart" Style="grid-template-columns: 1px repeat($ExcessivePrivsYearsCount, 204px) 1px;">		
 "@
@@ -4071,14 +4070,13 @@ function Get-CardLastModified
 	    <div class="LargeCardContainer" align="center">			
 
     <div class="container" style="position: relative;float:left;bottom:0;left:0;height:195px;width:50px;">
-      <div style="top:5;position:absolute;color:#757575;border-top:1px solid #ccc;width:100%;font-size:10;" align="right">$HighestAclCountinMonth <span style="color: #ccc">-</span> </div>
+      <div style="top:5;position:absolute;color:#757575;width:100%;font-size:10;" align="right">$HighestAclCountinMonth <span style="color: #ccc">-</span> </div>
       <div style="bottom: 98;position:absolute;color:#757575;border-bottom:1px solid #ccc;width:100%;font-size:10;padding-right:1px;" align="right">0 <span style="color: #ccc">-</span></div>
-      <div style="bottom:51;position:absolute;width:100%;font-size:10">
-	      <div width="100%" align="left" style="padding:.5;color:#757575">High Risk<br></div>
-	      <div width="100%" align="left" style="padding:.5;color:#757575">Write<br></div>
-	      <div width="100%" align="left" style="padding:.5;color:#757575">Read<br></div>
+      <div style="bottom:55;position:absolute;width:100%;font-size:10">
+	      <div width="100%" align="right" style="padding-right:3px;color:#757575">High Risk<br></div>
+	      <div width="100%" align="right" style="padding-right:3px;color:#757575">Write<br></div>
+	      <div width="100%" align="right" style="padding-right:3px;color:#757575">Read<br></div>
       </div>
-      <div style="bottom: 1;position:absolute;border-bottom:1px solid #ccc;width:100%;"></div>
     </div>
     <div class="TimelineChart" Style="grid-template-columns: 1px repeat($ExcessivePrivsYearsCount, 204px) 1px;">		
 "@
