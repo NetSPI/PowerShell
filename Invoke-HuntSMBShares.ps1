@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.96
+# Version: v1.4.97
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -2339,7 +2339,12 @@ $NewHtmlReport = @"
 	</div>
  </div>
  </a>
- <!-- <div style="border-bottom:1px solid #DEDFE1;height: 1px;width:100%"></div> -->
+ 
+<!--  
+|||||||||| CARD: LastModifiedDate Timeline
+-->
+$CardLastModifiedTimeLine
+
 </div>
 </div>
 
@@ -3649,7 +3654,7 @@ function Get-CardLastModified
         $MyDataTable,   
         [Parameter(Mandatory = $false,
         HelpMessage = 'Output file path.')]
-        [string]$OutFilePath = "c:\temp\test-lastmod-monthly-summary-data.csv"  
+        [string]$OutFilePath = "Share-ACL-LastModifiedDate-Monthly-Summary.csv"  
     )
 
     # Get list of years for LastModifiedDate - need to actual calculate all years to generate full timeline, even years with no data.
