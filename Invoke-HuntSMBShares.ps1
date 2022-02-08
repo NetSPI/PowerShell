@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.98
+# Version: v1.4.99
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -417,6 +417,9 @@ function Invoke-HuntSMBShares
                       $FileListGroup = Get-FolderGroupMd5 -FolderList $FileList
                       $FileListGroup
 
+                      # Audit Settings
+                      $AuditSettings = Get-ACL "\\$TargetAsset\$CurrentShareName" -ErrorAction SilentlyContinue | Select-Object AuditToString
+
                       # Creation date
                       $CreationdDateObject = Get-Item "\\$TargetAsset\$CurrentShareName" -ErrorAction SilentlyContinue | Select-Object CreationTime
                       $CreationdDate = $creatiodateobject.CreationTime.ToString()
@@ -456,6 +459,7 @@ function Invoke-HuntSMBShares
                       $aclObject | add-member  Noteproperty FileCount            $FileCount
                       $aclObject | add-member  Noteproperty FileList             $FileList
                       $aclObject | add-member  Noteproperty FileListGroup        $FileListGroup
+                      $aclObject | add-member  Noteproperty AuditSettings        $AuditSettings
                       $aclObject                             
                 }
          }   
@@ -3772,7 +3776,7 @@ $HighestTypeCount = $TypeCounts | Sort-Object {[int]$_} -Descending | select -Fi
 $HTML1 = @"
 <div class="LargeCard">	
 	<div class="LargeCardTitle">
-		LastAccess Date Timeline<br>
+		Last Access Timeline<br>
 		<span class="LargeCardSubtitle2">For shares ACLs configured with excessive privileges</span>
 	</div>
 	<div class="LargeCardContainer" align="center">			
@@ -4058,7 +4062,7 @@ function Get-CardLastModified
     $HTML1 = @"
     <div class="LargeCard">	
 	    <div class="LargeCardTitle">
-		    LastModified Date Timeline<br>
+		    Last Write Timeline<br>
 		    <span class="LargeCardSubtitle2">For shares ACLs configured with excessive privileges</span>
 	    </div>
 	    <div class="LargeCardContainer" align="center">			
