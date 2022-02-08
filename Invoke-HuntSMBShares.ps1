@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.17
+# Version: v1.4.18
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -503,7 +503,7 @@ function Invoke-HuntSMBShares
                 
                 if($line.ShareAccess -like "Yes"){
 
-                    if(($line.ShareName -notlike "print$") -and ($line.ShareName -notlike "prnproc$") -and ($line.ShareName -notlike "*printer*") -and ($line.ShareName -notlike "netlogon") -and ($line.ShareName -notlike "sysvol"))
+                    if(($line.ShareName -notlike "print$") -and ($line.ShareName -notlike "prnproc$") -and ($line.ShareName -notlike "*printer*"))
                     {
                         $line                        
                     }
@@ -2714,7 +2714,7 @@ Below is a summary of the SMB shares discovered on domain computers that may pro
 	  <td><div class="divbarDomain"><div class="divbarDomainInside" style="width: 100%;"></div></div></td>
 	  <td>100.00%</td>
 	  <td>$AllSMBSharesCount</td>
-      <td><a href="$ShareACLsFile"><span class="cardsubtitle">CSV</a> | </span><a href="$ShareACLsFileH"><span class="cardsubtitle">HTML</span></a></td>   
+      <td><a href="$AllSMBSharesFile"><span class="cardsubtitle">CSV</a> | </span><a href="$AllSMBSharesFileH"><span class="cardsubtitle">HTML</span></a></td>   
     </tr>
     <tr>
       <td>NON-DEFAULT</td>
