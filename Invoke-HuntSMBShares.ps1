@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.5
+# Version: v1.5.2
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -3887,6 +3887,290 @@ The 5 most common share names are:
 # Functions used by Get-SmbShareInventory
 # //////////////////////////////////////////////////////////////////////////
 
+# -------------------------------------------
+# Function: Get-CardCreationTime
+# -------------------------------------------
+function Get-CardCreationTime
+{    
+    [CmdletBinding()]
+    Param(
+       [Parameter(Mandatory = $false,
+        HelpMessage = 'Data table to parse. This should be the excessive privileges ACL table')]
+        $MyDataTable,
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'Output file path.')]
+        [string]$OutFilePath = "Share-ACL-CreationdDate-Monthly-Summary.csv"        
+    )
+
+# Get list of years for CreationdDate - need to actual calculate all years to generate full timeline, even years with no data.
+$ExcessivePrivsAclCount = $MyDataTable | measure | select count -expandproperty count
+$ExcessivePrivsYears = $MyDataTable | select CreationdDateYear -unique | Sort-Object CreationdDateYear
+$ExcessivePrivsYearsCount = $ExcessivePrivsYears | measure | select count -expandproperty count
+$ExcessivePrivsYearsfirst = $ExcessivePrivsYears | select CreationdDateYear -first 1 | select CreationdDateYear -ExpandProperty CreationdDateYear
+$ExcessivePrivsYearsLast  = $ExcessivePrivsYears | select CreationdDateYear -last 1 | select CreationdDateYear -ExpandProperty CreationdDateYear
+
+# Create data table to store summary data for chart scale
+$ChartDataSummary  = New-Object System.Data.DataTable
+$null = $ChartDataSummary.Columns.Add("Year")
+$null = $ChartDataSummary.Columns.Add("Month")
+$null = $ChartDataSummary.Columns.Add("Computer")
+$null = $ChartDataSummary.Columns.Add("Share")
+$null = $ChartDataSummary.Columns.Add("ShareAcl")
+$null = $ChartDataSummary.Columns.Add("AclRead")
+$null = $ChartDataSummary.Columns.Add("AclWrite")
+$null = $ChartDataSummary.Columns.Add("AclHR")
+
+# ///////////////////////// Get bar chart ranges
+
+# Year Loop
+$ExcessivePrivsYears |
+foreach {
+
+    $TargetYear = $_.CreationdDateYear
+    $TargetYearData = $MyDataTable | where CreationdDateYear -like "$TargetYear" 
+
+    # Month looop
+    1..12 |
+    foreach {        
+
+        # do last day of month look up here
+        $currentMonth = $_
+        $monthnames = @(0,"January","February","March","April","May","June","July","August","September","October","November","December")
+        $monthdays = @(0,31,28,31,30,31,30,31,31,30,31,30,31)
+        $enddays = $monthdays[$_]
+        $currentmonthname = $monthnames[$_]
+
+        # setup start and end dates
+        [Datetime]$startDate = Get-Date -Year $TargetYear -Month $_ -Day 1
+	    [Datetime]$endDate = Get-Date -Year $TargetYear -Month $_ -Day $enddays               
+
+        # get data for the month
+        $MonthAcls = $TargetYearData | Where-Object {([Datetime]$_.CreationdDate.trim() -ge $startDate -and [Datetime]$_.CreationdDate.trim() -le $endDate)}
+        
+        # Get acl count & and % of total        
+        $MonthAclsCount = $MonthAcls | Measure-Object | select count -ExpandProperty count
+        if($MonthAclsCount -eq 0){
+            $MonthAclsCountP = 0;
+        }else{
+            $MonthAclsCountP = [math]::Round($MonthAclsCount/$ExcessivePrivsAclCount,4).tostring("P") -replace(" ","")       
+        }
+
+        # Get share count
+        $MonthShareCount = $MonthAcls | select sharepath -Unique | Measure-Object | select count -ExpandProperty count
+        
+        # Get computer count        
+        $MonthComputerCount = $MonthAcls | select computername -Unique| Measure-Object | select count -ExpandProperty count
+
+        # Get read count
+        $MonthAclReadCount = $MonthAcls | Where-Object {($_.FileSystemRights -like "*Read*") -or ($_.FileSystemRights -like "*Append*") } | Where-Object {($_.FileSystemRights -notlike "*GenericAll*") -and ($_.FileSystemRights -notlike "*Write*")} |  Measure-Object | select count -ExpandProperty count
+
+        # Get write count 
+        $MonthAclWriteCount = $MonthAcls | Where-Object {($_.FileSystemRights -like "*GenericAll*") -or ($_.FileSystemRights -like "*Write*")} | Measure-Object | select count -ExpandProperty count
+
+        # Get hr count 
+        $MonthAclHrCount = $MonthAcls | Where-Object {($_.ShareName -like 'c$') -or ($_.ShareName -like 'admin$') -or ($_.ShareName -like "*wwwroot*") -or ($_.ShareName -like "*inetpub*") -or ($_.ShareName -like 'c') -or ($_.ShareName -like 'c_share')} | Measure-Object | select count -ExpandProperty count            
+
+        # Populate table
+        $null = $ChartDataSummary.Rows.Add("$TargetYear","$currentmonthname",$MonthComputerCount,$MonthShareCount,$MonthAclsCount,$MonthAclReadCount,$MonthAclWriteCount,$MonthAclHrCount)
+
+        # Export Results
+        $ChartDataSummary | Export-Csv -NoTypeInformation $OutFilePath
+    
+	} #End Month    
+} # End year
+
+# Get highest ShareAcl
+$HighestAclCountinMonth = $ChartDataSummary | select shareacl | sort {[int]$_.shareacl} -Descending | select shareacl -First 1 -ExpandProperty shareacl 
+
+# Get highest AclRead
+$HighestAclReadCountinMonth = $ChartDataSummary | Sort-Object {[int]$_.AclRead} -Descending | Select-Object AclRead -First 1 -ExpandProperty AclRead
+
+# Get highest AclWrite
+$HighestAclWriteCountinMonth = $ChartDataSummary | Sort-Object {[int]$_.AclWrite} -Descending | Select-Object AclWrite -First 1 -ExpandProperty AclWrite
+
+# Get highest AclHR
+$HighestAclHRCountinMonth = $ChartDataSummary | Sort-Object {[int]$_.AclHR} -Descending | Select-Object AclHR -First 1 -ExpandProperty AclHR
+
+# Get highst ACL type count
+$TypeCounts = $HighestAclReadCountinMonth,$HighestAclWriteCountinMont,$HighestAclHRCountinMonth
+$HighestTypeCount = $TypeCounts | Sort-Object {[int]$_} -Descending | select -First 1
+
+
+# ///////////////////////// Get bar chart data
+
+# Start Table
+$HTML1 = @"
+<div class="LargeCard">	
+	<div class="LargeCardTitle">
+		Share Creation Timeline<br>
+		<span class="LargeCardSubtitle2">for share ACLs configured with excessive privileges</span>
+	</div>
+	<div class="LargeCardContainer" align="center">			
+
+<div class="container" style="position: relative;float:left;bottom:0;left:0;height:195px;width:50px;">
+  <div style="top:5;position:absolute;color:#757575;width:100%;font-size:10;" align="right">$HighestAclCountinMonth <span style="color: #ccc">-</span> </div>
+  <div style="bottom: 98;position:absolute;color:#757575;border-bottom:1px solid #ccc;width:100%;font-size:10;padding-right:1px;" align="right">0 <span style="color: #ccc">-</span></div>
+  <div style="bottom:55;position:absolute;width:100%;font-size:10">
+	  <div width="100%" align="right" style="padding-right:3px;color:#757575">High Risk<br></div>
+	  <div width="100%" align="right" style="padding-right:3px;color:#757575">Write<br></div>
+	  <div width="100%" align="right" style="padding-right:3px;color:#757575">Read<br></div>
+  </div>
+</div>
+<div class="TimelineChart" Style="grid-template-columns: 1px repeat($ExcessivePrivsYearsCount, 204px) 1px;">		
+"@
+
+$HTML1
+
+# Year Loop
+$ExcessivePrivsYears |
+foreach {
+
+    $TargetYear = $_.CreationdDateYear
+    $TargetYearData = $MyDataTable | where CreationdDateYear -like "$TargetYear" 
+
+    # Start Year 
+    $HTMLYearStart = @'    
+	    <div class="YearItem" >	
+			<div id="YearWrapper" style="float:left;background-color:#F2F3F4;">
+				<div id="MonthsWrapper" style="position: relative;float:left">
+
+'@
+    $HTMLYearStart
+
+    # Month looop
+    1..12 |
+    foreach {        
+
+        # do last day of month look up here
+        $currentMonth = $_
+        $monthnames = @(0,"January","February","March","April","May","June","July","August","September","October","November","December")
+        $monthdays = @(0,31,28,31,30,31,30,31,31,30,31,30,31)
+        $enddays = $monthdays[$_]
+        $currentmonthname = $monthnames[$_]
+
+        # setup start and end dates
+        [Datetime]$startDate = Get-Date -Year $TargetYear -Month $_ -Day 1
+	    [Datetime]$endDate = Get-Date -Year $TargetYear -Month $_ -Day $enddays               
+
+        # get data for the month
+        $MonthAcls = $TargetYearData | Where-Object {([Datetime]$_.CreationdDate.trim() -ge $startDate -and [Datetime]$_.CreationdDate.trim() -le $endDate)}
+        
+        # Get acl count & and % of total        
+        $MonthAclsCount = $MonthAcls | Measure-Object | select count -ExpandProperty count
+        if($MonthAclsCount -eq 0){
+            $MonthAclsCountP = 0;
+        }else{
+            $MonthAclsCountP = [math]::Round($MonthAclsCount/$HighestAclCountinMonth,4).tostring("P") -replace(" ","")       
+        }
+
+        # Get share count
+        $MonthShareCount = $MonthAcls | select sharepath -Unique | Measure-Object | select count -ExpandProperty count
+        
+        # Get computer count        
+        $MonthComputerCount = $MonthAcls | select computername -Unique| Measure-Object | select count -ExpandProperty count
+
+        # Get read count
+        $MonthAclReadCount = $MonthAcls | Where-Object {($_.FileSystemRights -like "*Read*") -or ($_.FileSystemRights -like "*Append*") } | Where-Object {($_.FileSystemRights -notlike "*GenericAll*") -and ($_.FileSystemRights -notlike "*Write*")} |  Measure-Object | select count -ExpandProperty count
+        if($MonthAclReadCount -eq 0){
+            $MonthAclReadCountP = 0;
+            $ReadDot = "<div class=`"TimelineDot`" style=`"border:1px solid #F2F3F4;bottom:15px;background-color:gray;`"></div>"
+        }else{
+            $MonthAclReadCountP = [math]::Round($MonthAclReadCount/$HighestTypeCount,4).tostring("P") -replace(" ","")    
+            $ReadDot = "<div class=`"TimelineDot`" style=`"border:1px solid #F2F3F4;bottom:15px;background-color:Orange;opacity: .25;`"></div>"
+        }
+
+        # Get write count 
+        $MonthAclWriteCount = $MonthAcls | Where-Object {($_.FileSystemRights -like "*GenericAll*") -or ($_.FileSystemRights -like "*Write*")} | Measure-Object | select count -ExpandProperty count
+        if($MonthAclWriteCount -eq 0){
+            $MonthAclWriteCountP = 0;
+            $WriteDot = "<div class=`"TimelineDot`" style=`"border:1px solid #F2F3F4;bottom:30px;background-color:gray;`"></div>"
+        }else{
+            $MonthAclWriteCountP = [math]::Round($MonthAclWriteCount/$HighestTypeCount,4).tostring("P") -replace(" ","")       
+            $WriteDot = "<div class=`"TimelineDot`" style=`"border:1px solid #F2F3F4;bottom:30px;background-color:Orange;opacity: .5;`"></div>"
+        }
+
+        # Get hr count 
+        $MonthAclHrCount = $MonthAcls | Where-Object {($_.ShareName -like 'c$') -or ($_.ShareName -like 'admin$') -or ($_.ShareName -like "*wwwroot*") -or ($_.ShareName -like "*inetpub*") -or ($_.ShareName -like 'c') -or ($_.ShareName -like 'c_share')} | Measure-Object | select count -ExpandProperty count            
+        if($MonthAclHrCount -eq 0){
+            $MonthAclHrCountP = 0;
+            $HrDot = "<div class=`"TimelineDot`" style=`"border:1px solid #F2F3F4;bottom:45px;background-color:gray;`"></div>"
+        }else{
+            $MonthAclHrCountP = [math]::Round($MonthAclHrCount/$HighestTypeCount,4).tostring("P") -replace(" ","")    
+            $HrDot = "<div class=`"TimelineDot`" style=`"border:1px solid #F2F3F4;bottom:45px;background-color:Orange;opacity: 1;`"></div>"  
+        }
+
+        # Debug
+        # write-host "$TargetYear - $_ - $startDate to $endDate - a=$MonthAclsCount s=$MonthShareCount c=$MonthComputerCount w=$MonthAclWriteCount r=$MonthAclReadCount hr=$MonthAclHrCount"
+        
+
+        # build column
+        $HTMLMonth = @"
+                    <div id="MonthItem" style="position: relative;float:left;padding-left:1px;padding-right:1px">
+						<div class="TimelineBarOutside" >
+                            <div class="popwrapper" style="height:90px;position:relative;bottom:0;" >
+                                <div class="TimelinePopup" style="position:absolute;">	
+                                       <div class="TimelineMinicard">
+                                            <div class="TimelineMinicardtitle" align="center">
+		                                        $currentmonthname $TargetYear<br>
+	                                        </div>
+                                            <div class="TimelineMinicardcontainer" align="left">
+
+                                                <div style="margin-top:2px;padding-bottom:1px;">									          	                                                		                                                
+                                                <strong>Affected</strong><br>
+                                                &nbsp;&nbsp;Computers:  $MonthComputerCount<br>	
+                                                &nbsp;&nbsp;Shares:  $MonthShareCount<Br>
+                                                &nbsp;&nbsp;ACLs: $MonthAclsCount<Br>	
+                                                </div>	
+
+									            <div style="margin-top:1px;padding-bottom:1px;">									          
+                                                <strong>ACL Summary</strong><br>
+                                                &nbsp;&nbsp;Read: $MonthAclReadCount<br>
+									            &nbsp;&nbsp;Write: $MonthAclWriteCount<br>
+									            &nbsp;&nbsp;High-Risk: $MonthAclHrCount<br>                                                 
+									            </div>						           
+									    </div>	
+                                    </div>							
+								  </div>
+							    <div class="TimelineBarInside" style="height:$MonthAclsCountP;width:100%;z-index: 0;"></div>								 	                                    
+                            </div>
+                            <div style="padding-bottom:15px;">
+							    $ReadDot
+							    $WriteDot
+                                $HrDot
+                            </div>
+                              	 
+						    <div style="font-size:10;bottom:1;position:absolute;padding-left:3px;">$currentMonth</div>
+						</div>
+					</div>
+
+"@
+         $HTMLMonth
+    
+	} # END MONTH
+
+    
+     $HTMLYearEnd = @"           
+                </div>    
+     			<div id="bottom" align="center">
+				$TargetYear
+				</div>
+			</div>			
+         </div> 
+"@
+    $HTMLYearEnd
+
+} # END YEAR
+  
+
+$HTMLEND = @'
+</div>
+</div>
+</div>
+'@
+
+$HTMLEND
+
+}
 
 # -------------------------------------------
 # Function: Get-CardLastAccess
@@ -3975,7 +4259,7 @@ foreach {
         $null = $ChartDataSummary.Rows.Add("$TargetYear","$currentmonthname",$MonthComputerCount,$MonthShareCount,$MonthAclsCount,$MonthAclReadCount,$MonthAclWriteCount,$MonthAclHrCount)
 
         # Export Results
-        $ChartDataSummary | Export-Csv -NoTypeInformation c:\temp\test-lastaccess-monthly-summary-data.csv
+        $ChartDataSummary | Export-Csv -NoTypeInformation $OutFilePath
     
 	} #End Month    
 } # End year
