@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.5.7
+# Version: v1.5.8
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -2306,7 +2306,7 @@ $NewHtmlReport = @"
 		Computers<br>
 		<span class="cardsubtitle2">host shares with excessive privileges</span>
 	</div>
-	<div class="cardcontainer" align="center">	
+	<div class="cardcontainer" align="center" style="padding-bottom: 22px;">	
 			<span class="piechartComputers">
 				<span class="percentagetext">
 					<div class="percentagetextBuff"></div>
@@ -2370,7 +2370,7 @@ $NewHtmlReport = @"
 		Shares<br>
 		<span class="cardsubtitle2">configured with excessive privileges</span>
 	</div>
-	<div class="cardcontainer" align="center">	
+	<div class="cardcontainer" align="center" style="padding-bottom: 22px;">	
 			<span class="piechartShares">
 				<span class="percentagetext">
 					<div class="percentagetextBuff"></div>
@@ -2434,7 +2434,7 @@ $NewHtmlReport = @"
 		Share ACLs<br>
 		<span class="cardsubtitle2">configured with excessive privileges</span>
 	</div>
-	<div class="cardcontainer" align="center">	
+	<div class="cardcontainer" align="center" style="padding-bottom: 22px;">	
 			<span class="piechartAcls">
 				<span class="percentagetext">
 					<div class="percentagetextBuff"></div>
