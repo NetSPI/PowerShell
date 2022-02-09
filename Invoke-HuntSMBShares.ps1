@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.5.2
+# Version: v1.5.6
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -138,6 +138,10 @@ function Invoke-HuntSMBShares
         [Parameter(Mandatory = $false,
         HelpMessage = 'Runspace time out.')]
         [int]$RunSpaceTimeOut = 15,
+
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'Time in days for recent share creation summary report.')]
+        [int]$ShareCreationDays = 90,
 
         [Parameter(Mandatory = $false,
         HelpMessage = 'Time in days for last access report.')]
@@ -735,6 +739,28 @@ function Invoke-HuntSMBShares
         $CommonShareNames | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Common-Names.csv"
 
         # ----------------------------------------------------------------------
+        # Identify excessive share creation in last n 90 days
+        # ----------------------------------------------------------------------
+
+        # Select shares from last n names
+        $StartDateAccess = (get-date).AddDays(-$ShareCreationDays);
+        $EndDateAccess = Get-Date        
+        $ExPrivCreationLastn = $ExcessiveSharePrivs | Where-Object {([Datetime]$_.CreationDate.trim() -ge $StartDateAccess -and [Datetime]$_.CreationDate.trim() -le $EndDateAccess)}
+        $ExPrivCreationLastnShare = $ExPrivCreationLastn | select SharePath -Unique
+        $ExPrivCreationLastnShareCount = $ExPrivCreationLastnShare | Measure | select count -ExpandProperty count
+
+        # Percent of shares accessed in last n days
+        $ExpPrivCreationLast = $ExPrivCreationLastnShareCount / $AllSMBSharesCount
+        $ExpPrivCreationLastP = $ExpPrivCreationLast.tostring("P") -replace(" ","")
+
+        # Get summary bar code - Need to extend for counts,%, and bar
+        $ExPrivCreationLastBars = Get-ExPrivSumData -DataTable $ExPrivCreationLastn  -AllComputerCount $ComputerCount -AllShareCount $AllSMBSharesCount -AllAclCount $ShareACLsCount
+        $ExPrivCreationLastComputerB = $ExPrivCreationLastBars.ComputerBar
+        $ExPrivCreationLastShareB = $ExPrivCreationLastBars.ShareBar
+        $ExPrivCreationLastShareAclB = $ExPrivCreationLastBars.AclBar
+
+
+        # ----------------------------------------------------------------------
         # Identify excessive share access in last n 90 days
         # ----------------------------------------------------------------------
 
@@ -1036,20 +1062,28 @@ function Invoke-HuntSMBShares
 
         # ----------------------------------------------------------------------
         # Create Timeline Reports
-        # ----------------------------------------------------------------------       
+        # ----------------------------------------------------------------------     
         
         # Generate last modified card 
         If($SupressTimelineRpt){
-            Write-Output " [*] Timeline reports have been disabled."
-            $CardLastModifiedTimeLine = "Timeline reports have been disabled."            
+            Write-Output " [*] Creation timeline reports have been disabled."
+            $CardLastModifiedTimeLine = "Share creation Timeline reports have been disabled."            
+        }else{
+            $CardCreationTimeLine = Get-CardCreationTime -MyDataTable $ExcessiveSharePrivs -OutFilePath "$OutputDirectory\$TargetDomain-Share-Creation-Monthly-Summary.csv"            
+        }     
+        
+        # Generate last modified card 
+        If($SupressTimelineRpt){
+            Write-Output " [*] Last modified timeline reports have been disabled."
+            $CardLastModifiedTimeLine = "Last modified timeline reports have been disabled."            
         }else{
             $CardLastModifiedTimeLine = Get-CardLastModified -MyDataTable $ExcessiveSharePrivs -OutFilePath "$OutputDirectory\$TargetDomain-Share-Last-Modified-Monthly-Summary.csv"            
         }        
 
         # Generate last access card
         If($SupressTimelineRpt){
-            Write-Output " [*] Timeline reports have been disabled."
-            $CardLastAccessTimeLine = "Timeline reports have been disabled."            
+            Write-Output " [*] Last access timeline reports have been disabled."
+            $CardLastAccessTimeLine = "Last access timeline reports have been disabled."            
         }else{
             $CardLastAccessTimeLine = Get-CardLastAccess -MyDataTable $ExcessiveSharePrivs -OutFilePath "$OutputDirectory\$TargetDomain-Share-Last-Accessed-Monthly-Summary.csv"            
         }  
@@ -2482,6 +2516,61 @@ $NewHtmlReport = @"
 	</div>
  </div>
 <div style="height:.5px;width:100%;position:relative;float:left;"></div>
+
+
+<!--  
+|||||||||| CARD: Share Creation Summary
+-->
+
+<a href="#" id="DashLink" onClick="radiobtn = document.getElementById('DashBoard');radiobtn.checked = true;">
+ <div class="card">	
+	<div class="cardtitle">
+		Shares Created<br>
+		<span class="cardsubtitle2">in last $ShareCreationDays days</span>
+	</div>
+	<div class="cardcontainer" align="center">	
+			<span class="piechartComputers">
+				<span class="percentagetext">
+					<div class="percentagetextBuff"></div>
+                    <img style ="padding-top:20px; padding-bottom:5px;border-bottom:1px solid #ccc; padding-left:10px; padding-right:10px;"   src="data:image/png;base64, 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Oi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIgogICAgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIKICAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgIHhtbG5zOkdJTVA9Imh0dHA6Ly93d3cuZ2ltcC5vcmcveG1wLyIKICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIgogICAgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIgogICB4bXBNTTpEb2N1bWVudElEPSJnaW1wOmRvY2lkOmdpbXA6NjBhMGY0NjUtNjJmYS00ZmVlLTk5NGUtNmYwYzc5ZmIwODhkIgogICB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOmM2NmZkYzhhLTgxMjMtNDBiYS1iYTNiLTg2YTIwNDE2MGIxMSIKICAgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ4bXAuZGlkOmE1MjRlOTA5LWU1MjEtNGZiMC05MmMyLTExMzZjOWU1NjE1ZCIKICAgZGM6Rm9ybWF0PSJpbWFnZS9wbmciCiAgIEdJTVA6QVBJPSIyLjAiCiAgIEdJTVA6UGxhdGZvcm09IldpbmRvd3MiCiAgIEdJTVA6VGltZVN0YW1wPSIxNjQzMjM3NzY2Mjc4NDAwIgogICBHSU1QOlZlcnNpb249IjIuMTAuMjgiCiAgIHRpZmY6T3JpZW50YXRpb249IjEiCiAgIHhtcDpDcmVhdG9yVG9vbD0iR0lNUCAyLjEwIj4KICAgPHhtcE1NOkhpc3Rvcnk+CiAgICA8cmRmOlNlcT4KICAgICA8cmRmOmxpCiAgICAgIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiCiAgICAgIHN0RXZ0OmNoYW5nZWQ9Ii8iCiAgICAgIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6OTFjYWZiZWEtOTFiZi00YzEwLTliMzMtM2I0MWYyZmQ4NTE3IgogICAgICBzdEV2dDpzb2Z0d2FyZUFnZW50PSJHaW1wIDIuMTAgKFdpbmRvd3MpIgogICAgICBzdEV2dDp3aGVuPSIyMDIyLTAxLTI2VDE2OjU2OjA2Ii8+CiAgICA8L3JkZjpTZXE+CiAgIDwveG1wTU06SGlzdG9yeT4KICA8L3JkZjpEZXNjcmlwdGlvbj4KIDwvcmRmOlJERj4KPC94OnhtcG1ldGE+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAKPD94cGFja2V0IGVuZD0idyI/PiNxLrcAAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQfmARoWOAboWgp4AAADyklEQVRIx61WX2hbZRT/ne+7N1mWtUnadLrYdquxoHQES1qx0251DJniH8YUfRN8ENGXPU4QwRcffHIviogvCiKCA1FhwjbBB6FL7FilnYRRS6hNejfnTdLb/L3f8aE39SZL0lvwwIXLd757fuec3/l936VTp+YI/5n7vWncy18uV2AYBgUCAT54cIg7fA8NvY27OVZWVmU2u5awbfs0gBEARSHo11AodDmRmLA0bSc0kasS2gWAAICZsbBwo980Cx8w82sAfACU6/uUrutvzcw89rvPpwMAhOP0BAAAmcwt3TQLF5j5DQAZInpT0+RTQoizAC4CmK7X69/Mz6cPM2+HoUgk1G9Z5fsApu1YDMcHInLwCERQUkqrUqkmlVLfElE6ENh3Npl8dMPv94OZsbz8hy+fN95l5neI6PPx8fjbo6PDigD8DCDplNyVGyJaBHAFQJyZXxVCPHfixJNXpBQtVafTCyHTLF4DEAqHQw9PTU0WNACTRPSRlOIHZjBtp99pAFgIYdRqta8BVA8cCF5rBwBA0eigVSiU0sx8xrKsGABTc9qyMjc3m+oxqgwAi4tLPsO4XQcgbNv2ddpv24qYeZ+zXG8SjyZBu01ZNDrQIKLrAPzlcuVZy7Ja9jIzcrmN+wEcA/BXONy/vgPi6lDPKYvFDikpxZcAtpRS76dS16ez2TXJzDDNAs3Pp6PVauUCgCEi+ioWO1QGQBLAeSK6NDZ2eNGjEDdMs1BlxotKqVfu3v3nodXVbHx9Pf98rVb7EMATTvKiWCxdGh6ObbpBbnhRejgcZqVUulgs/cnMUwCOM/PTAGYA6ET0I4AHAIw3Go3pfN74iQCYQohzJ08e/2I3ADdvpVIJmcytvmJxM8msRgAqCEGmbasXiCillPoYQAjAZc3rWdXOWV9fH5LJyZKjMwDA1au/vM7MLw8MRN4zTbNq2+pTABGxB4CO2mlbEwAgpeBE4uh3fr9vav/+wGnNY0Daq39wcEDNzh7L7hz1zCyXlm7qO+kIAaUUhBCQUnYMopTi5l6XSbfPfZ8IZj6Xy228tGs51FlKLi2POKfBPZcWATjqPL1JYE/U5doTEQBs/L9m67rWgqIR0SfM/EwPcvcydUxE3weDwWpLm8fGRrVSaVPTdb0F5M6dvycaDftMcyzbeZdSXhwaGly2bQWlbAYAXdcpGAzWjxwZbemOFo8/aLtaRi5hPc7M57uBKKXWJiYeWfAy/lq3WReC0sz0WTcQIeg3r/pq/q3cw8fWVhmGcZu2SaQWeogIkUhYBQIB9iBQ/hfq8Z63CHuDFwAAAABJRU5ErkJggg==" />
+					$ExpPrivCreationLastP
+					<span class="percentagetext2" style="margin-top:0px;display: block;">
+                    <span style="color:#9B3722;font-size:12;">$ExPrivCreationLastnShareCount</span>
+                     of $AllSMBSharesCount
+                    </span>
+				</span>
+			</span>			
+	<table>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align: top; width:78px;">Computers</td>
+			<td align="right">				
+				$ExPrivCreationLastComputerB				
+			</td>
+		 </tr>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align:top">Shares</td>
+			<td align="right">				
+				$ExPrivCreationLastShareB
+			</td>
+		 </tr>
+		 <tr>
+			<td class="cardsubtitle" style="vertical-align:top">ACLs</td>
+			<td align="right">
+				$ExPrivCreationLastShareAclB 			
+			</td>
+		 </tr>		 
+		</table> 		  
+	</div>
+ </div>
+</a>
+
+<!--  
+|||||||||| CARD: Share Creation Timeline
+-->
+<a href="#" id="DashLink" onClick="radiobtn = document.getElementById('DashBoard');radiobtn.checked = true;">
+$CardCreationTimeLine
+</a>
+<div style="height:.5px;width:100%;position:relative;float:left;"></div>
  
 <!--  
 |||||||||| CARD: Last Access Summary
@@ -3899,15 +3988,15 @@ function Get-CardCreationTime
         $MyDataTable,
         [Parameter(Mandatory = $false,
         HelpMessage = 'Output file path.')]
-        [string]$OutFilePath = "Share-ACL-CreationdDate-Monthly-Summary.csv"        
+        [string]$OutFilePath = "Share-ACL-CreationDate-Monthly-Summary.csv"        
     )
 
-# Get list of years for CreationdDate - need to actual calculate all years to generate full timeline, even years with no data.
+# Get list of years for CreationdDate
 $ExcessivePrivsAclCount = $MyDataTable | measure | select count -expandproperty count
-$ExcessivePrivsYears = $MyDataTable | select CreationdDateYear -unique | Sort-Object CreationdDateYear
+$ExcessivePrivsYears = $MyDataTable | select CreationDateYear -unique | Sort-Object CreationDateYear
 $ExcessivePrivsYearsCount = $ExcessivePrivsYears | measure | select count -expandproperty count
-$ExcessivePrivsYearsfirst = $ExcessivePrivsYears | select CreationdDateYear -first 1 | select CreationdDateYear -ExpandProperty CreationdDateYear
-$ExcessivePrivsYearsLast  = $ExcessivePrivsYears | select CreationdDateYear -last 1 | select CreationdDateYear -ExpandProperty CreationdDateYear
+$ExcessivePrivsYearsfirst = $ExcessivePrivsYears | select CreationDateYear -first 1 | select CreationDateYear -ExpandProperty CreationDateYear
+$ExcessivePrivsYearsLast  = $ExcessivePrivsYears | select CreationDateYear -last 1 | select CreationDateYear -ExpandProperty CreationDateYear
 
 # Create data table to store summary data for chart scale
 $ChartDataSummary  = New-Object System.Data.DataTable
@@ -3926,8 +4015,8 @@ $null = $ChartDataSummary.Columns.Add("AclHR")
 $ExcessivePrivsYears |
 foreach {
 
-    $TargetYear = $_.CreationdDateYear
-    $TargetYearData = $MyDataTable | where CreationdDateYear -like "$TargetYear" 
+    $TargetYear = $_.CreationDateYear
+    $TargetYearData = $MyDataTable | where CreationDateYear -like "$TargetYear" 
 
     # Month looop
     1..12 |
@@ -3945,7 +4034,7 @@ foreach {
 	    [Datetime]$endDate = Get-Date -Year $TargetYear -Month $_ -Day $enddays               
 
         # get data for the month
-        $MonthAcls = $TargetYearData | Where-Object {([Datetime]$_.CreationdDate.trim() -ge $startDate -and [Datetime]$_.CreationdDate.trim() -le $endDate)}
+        $MonthAcls = $TargetYearData | Where-Object {([Datetime]$_.CreationDate.trim() -ge $startDate -and [Datetime]$_.CreationDate.trim() -le $endDate)}
         
         # Get acl count & and % of total        
         $MonthAclsCount = $MonthAcls | Measure-Object | select count -ExpandProperty count
@@ -4025,8 +4114,8 @@ $HTML1
 $ExcessivePrivsYears |
 foreach {
 
-    $TargetYear = $_.CreationdDateYear
-    $TargetYearData = $MyDataTable | where CreationdDateYear -like "$TargetYear" 
+    $TargetYear = $_.CreationDateYear
+    $TargetYearData = $MyDataTable | where CreationDateYear -like "$TargetYear" 
 
     # Start Year 
     $HTMLYearStart = @'    
@@ -4053,7 +4142,7 @@ foreach {
 	    [Datetime]$endDate = Get-Date -Year $TargetYear -Month $_ -Day $enddays               
 
         # get data for the month
-        $MonthAcls = $TargetYearData | Where-Object {([Datetime]$_.CreationdDate.trim() -ge $startDate -and [Datetime]$_.CreationdDate.trim() -le $endDate)}
+        $MonthAcls = $TargetYearData | Where-Object {([Datetime]$_.CreationDate.trim() -ge $startDate -and [Datetime]$_.CreationDate.trim() -le $endDate)}
         
         # Get acl count & and % of total        
         $MonthAclsCount = $MonthAcls | Measure-Object | select count -ExpandProperty count
