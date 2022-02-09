@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.4.18
+# Version: v1.4.19
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -424,9 +424,9 @@ function Invoke-HuntSMBShares
                       $AuditSettings = Get-ACL "\\$TargetAsset\$CurrentShareName" -ErrorAction SilentlyContinue | Select-Object AuditToString -ExpandProperty AuditToString
 
                       # Creation date
-                      $CreationdDateObject = Get-Item "\\$TargetAsset\$CurrentShareName" -ErrorAction SilentlyContinue | Select-Object CreationTime
-                      $CreationdDate = $creatiodateobject.CreationTime.ToString()
-                      $CreationdDateYear = $creatiodateobject.CreationTime.Year.ToString()
+                      $CreationdDateObject = Get-Item "\\$TargetAsset\$CurrentShareName" -ErrorAction SilentlyContinue | Select CreationTime
+                      $CreationdDate = $CreationdDateObject.CreationTime.ToString()
+                      $CreationdDateYear = $CreationdDateObject.CreationTime.Year.ToString()
 
                       # Last modified date
                       $TargetPath = $_.Path
