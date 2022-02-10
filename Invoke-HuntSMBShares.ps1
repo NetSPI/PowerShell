@@ -3,7 +3,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.5.8
+# Version: v1.5.9
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 # TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
@@ -17,9 +17,11 @@ function Invoke-HuntSMBShares
             .PARAMETER Output Directory
             File path where all csv and html report will be exported.
             .EXAMPLE
-			PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test -DomainController 10.1.1.1 -Credential domain\user    
-            .EXAMPLE
-			PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test -DomainController 10.1.1.1 -Username domain\user -Password password            
+	    PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test -DomainController 10.1.1.1 -Username domain\user -Password password
+            .EXAMPLE   
+            C:\temp\test> runas /netonly /user:domain\user PowerShell.exe
+            PS C:\temp\test> Import-Module Invoke-HuntSMBShares.ps1
+            PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -RunSpaceTimeOut 10 -OutputDirectory c:\folder\ -DomainController 10.1.1.1 -Username domain\user -Password password        
             .EXAMPLE
 			PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test
 			  ---------------------------------------------------------------
@@ -38,7 +40,7 @@ function Invoke-HuntSMBShares
 			| o Identify shares thare are high risk                         |
 			| o Identify common owners, share names, & directory listings   |
 			| o Generate last written & last accessed timelines             |
-            | o Generate html summary report and detailed csv files         |
+			| o Generate html summary report and detailed csv files         |
 			|                                                               |
 			  ---------------------------------------------------------------
 			| Note: This can take hours to run in large environments.       |
