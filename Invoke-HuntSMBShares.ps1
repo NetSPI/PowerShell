@@ -1,11 +1,11 @@
+#Requires -Version 5.1
 #--------------------------------------
 # Function: Invoke-HuntSMBShares
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.5.9
+# Version: v1.6
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
-# TODO: Add export summary csv. Domain, affected shares by type. High risk read, high risk write.
 function Invoke-HuntSMBShares
 {    
 	<#
@@ -17,7 +17,7 @@ function Invoke-HuntSMBShares
             .PARAMETER Output Directory
             File path where all csv and html report will be exported.
             .EXAMPLE
-	    PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test -DomainController 10.1.1.1 -Username domain\user -Password password
+	        PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test -DomainController 10.1.1.1 -Username domain\user -Password password
             .EXAMPLE   
             C:\temp\test> runas /netonly /user:domain\user PowerShell.exe
             PS C:\temp\test> Import-Module Invoke-HuntSMBShares.ps1
@@ -159,7 +159,19 @@ function Invoke-HuntSMBShares
 
         [Parameter(Mandatory = $false,
         HelpMessage = 'Supress timeline report generation.')]
-        [switch] $SupressTimelineRpt
+        [switch] $SupressTimelineRpt,
+
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'Number of directory levels to capture file list.')]
+        [int] $DirLevel = 3,
+
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'Search for common files containing passwords on the c$ shares.')]
+        [switch] $FindFiles,
+
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'Path to file of file paths to search for. One path per line.')]
+        [string] $FindFilesList
         
     )
 	
@@ -197,8 +209,6 @@ function Invoke-HuntSMBShares
         $GlobalThreadCount = $Threads
 
         Write-Output " [*] All results will be written to the directory $OutputDirectory"
-
-
 
         # ----------------------------------------------------------------------
         # Enumerate domain computers 
@@ -1063,6 +1073,65 @@ function Invoke-HuntSMBShares
 
 
         # ----------------------------------------------------------------------
+        # Get Recursive Directory Listings
+        # ----------------------------------------------------------------------
+        # Default depth is 3 by default
+
+        # Status user
+        Write-Output " [*] Getting directory listings from $ExcessiveSharePrivsCount SMB shares"
+        Write-Output " [*] - Targeting up to $DirLevel nested directory levels"
+
+        # Create script block to query for directory listing
+        $MyScriptBlock = {     
+
+            # Get share context            
+            $CurrentComputerName = $_.ComputerName
+            $CurrentIP = $_.IpAddress 
+            $ShareDescription = $_.ShareDesc
+            $CurrentShareName = $_.ShareName
+            $SharePath = $_.SharePath
+            
+            # Get file listing from non system directories
+            #$FullFileList = Get-ChildItem -Path $SharePath -Exclude "c:\windows" | Select FullName   
+            $FullFileList = Get-ChildItem -Depth $DirLevel -Path "$SharePath" | select fullname | where {$_.fullname -NotLike "$SharePath\Windows*" -and $_.fullname -notlike "$SharePath\WINNT"}                 
+            
+            $FullFileList | 
+            Foreach{
+                $aclObject = new-object psobject            
+                $aclObject | add-member  Noteproperty ComputerName         $CurrentComputerName
+                $aclObject | add-member  Noteproperty IpAddress            $CurrentIP
+                $aclObject | add-member  Noteproperty ShareName            $CurrentShareName
+                $aclObject | add-member  Noteproperty SharePath            $SharePath
+                $aclObject | add-member  Noteproperty ShareDescription     $ShareDescription
+                $aclObject | add-member  Noteproperty FilePath             $_.fullname
+                $aclObject  
+            }     
+        }            
+
+        # Get SMB directory listing threaded
+        $ShareDirListing = $ExcessiveSharePrivs | Invoke-Parallel -ScriptBlock $MyScriptBlock -ImportSessionFunctions -ImportVariables -Throttle $GlobalThreadCount -RunspaceTimeout $RunSpaceTimeOut -ErrorAction SilentlyContinue  -WarningAction SilentlyContinue | where ShareName -notlike "" | select * -Unique
+
+        # Status user
+        $ShareDirListingCount = $ShareDirListing | measure | select count -ExpandProperty count
+        Write-Output " [*] - $ShareDirListingCount files and folders were enumerated."
+        
+        # Write output
+        Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-Shares-Directory-Listings-Depth-$DirLevel.csv" 
+        $ShareDirListing | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Directory-Listings-Depth-$DirLevel.csv"
+               
+        
+        # ----------------------------------------------------------------------
+        # Get File Listings from Shares
+        # ----------------------------------------------------------------------
+        #$FindFiles # hardcoded array
+        #$FindFilesList # file
+        # combine
+        # create where statement
+        #$ShareDirListing | Where
+        #count
+        #export
+
+        # ----------------------------------------------------------------------
         # Create Timeline Reports
         # ----------------------------------------------------------------------     
         
@@ -1071,7 +1140,7 @@ function Invoke-HuntSMBShares
             Write-Output " [*] Creation timeline reports have been disabled."
             $CardLastModifiedTimeLine = "Share creation Timeline reports have been disabled."            
         }else{
-            $CardCreationTimeLine = Get-CardCreationTime -MyDataTable $ExcessiveSharePrivs -OutFilePath "$OutputDirectory\$TargetDomain-Share-Creation-Monthly-Summary.csv"            
+            $CardCreationTimeLine = Get-CardCreationTime -MyDataTable $ExcessiveSharePrivs -OutFilePath "$OutputDirectory\$TargetDomain-Shares-Creation-Monthly-Summary.csv"            
         }     
         
         # Generate last modified card 
@@ -1079,7 +1148,7 @@ function Invoke-HuntSMBShares
             Write-Output " [*] Last modified timeline reports have been disabled."
             $CardLastModifiedTimeLine = "Last modified timeline reports have been disabled."            
         }else{
-            $CardLastModifiedTimeLine = Get-CardLastModified -MyDataTable $ExcessiveSharePrivs -OutFilePath "$OutputDirectory\$TargetDomain-Share-Last-Modified-Monthly-Summary.csv"            
+            $CardLastModifiedTimeLine = Get-CardLastModified -MyDataTable $ExcessiveSharePrivs -OutFilePath "$OutputDirectory\$TargetDomain-Shares-Last-Modified-Monthly-Summary.csv"            
         }        
 
         # Generate last access card
@@ -1087,7 +1156,7 @@ function Invoke-HuntSMBShares
             Write-Output " [*] Last access timeline reports have been disabled."
             $CardLastAccessTimeLine = "Last access timeline reports have been disabled."            
         }else{
-            $CardLastAccessTimeLine = Get-CardLastAccess -MyDataTable $ExcessiveSharePrivs -OutFilePath "$OutputDirectory\$TargetDomain-Share-Last-Accessed-Monthly-Summary.csv"            
+            $CardLastAccessTimeLine = Get-CardLastAccess -MyDataTable $ExcessiveSharePrivs -OutFilePath "$OutputDirectory\$TargetDomain-Shares-Last-Accessed-Monthly-Summary.csv"            
         }  
 
         # ----------------------------------------------------------------------
