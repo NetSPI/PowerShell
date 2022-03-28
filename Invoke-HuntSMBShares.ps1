@@ -5791,7 +5791,7 @@ function Invoke-Parallel
         })]
         [string]$LogFile = 'C:\temp\log.log',
 
-        [switch] $Quiet = $false
+        [switch] $Quiet = $true
     )
 
     Begin {
@@ -5976,7 +5976,7 @@ function Invoke-Parallel
                     #log the results if a log file was indicated
                     <#
                             if($logFile -and $log){
-                            ($log | ConvertTo-Csv -Delimiter ";" -NoTypeInformation)[1] | out-file $LogFile -append
+                            #($log | ConvertTo-Csv -Delimiter ";" -NoTypeInformation)[1] | out-file $LogFile -append
                             }
                     #>
                 }
@@ -6170,7 +6170,7 @@ function Invoke-Parallel
                 #Set up log file if specified
                 if( $LogFile ){
                 New-Item -ItemType file -path $logFile -force | Out-Null
-                ("" | Select Date, Action, Runtime, Status, Details | ConvertTo-Csv -NoTypeInformation -Delimiter ";")[0] | Out-File $LogFile
+                #("" | Select Date, Action, Runtime, Status, Details | ConvertTo-Csv -NoTypeInformation -Delimiter ";")[0] | Out-File $LogFile
                 }
 
                 #write initial log entry
@@ -6181,7 +6181,7 @@ function Invoke-Parallel
                 $log.Status = "Started"
                 $log.Details = $null
                 if($logFile) {
-                ($log | convertto-csv -Delimiter ";" -NoTypeInformation)[1] | Out-File $LogFile -Append
+                #($log | convertto-csv -Delimiter ";" -NoTypeInformation)[1] | Out-File $LogFile -Append
                 }
         #>
         $timedOutTasks = $false
@@ -13486,7 +13486,7 @@ function Invoke-Parallel
                     #log the results if a log file was indicated
                     <#
                             if($logFile -and $log){
-                            ($log | ConvertTo-Csv -Delimiter ";" -NoTypeInformation)[1] | out-file $LogFile -append
+                            #($log | ConvertTo-Csv -Delimiter ";" -NoTypeInformation)[1] | out-file $LogFile -append
                             }
                     #>
                 }
@@ -13680,7 +13680,7 @@ function Invoke-Parallel
                 #Set up log file if specified
                 if( $LogFile ){
                 New-Item -ItemType file -path $logFile -force | Out-Null
-                ("" | Select Date, Action, Runtime, Status, Details | ConvertTo-Csv -NoTypeInformation -Delimiter ";")[0] | Out-File $LogFile
+                #("" | Select Date, Action, Runtime, Status, Details | ConvertTo-Csv -NoTypeInformation -Delimiter ";")[0] | Out-File $LogFile
                 }
 
                 #write initial log entry
@@ -13691,7 +13691,7 @@ function Invoke-Parallel
                 $log.Status = "Started"
                 $log.Details = $null
                 if($logFile) {
-                ($log | convertto-csv -Delimiter ";" -NoTypeInformation)[1] | Out-File $LogFile -Append
+                #($log | convertto-csv -Delimiter ";" -NoTypeInformation)[1] | Out-File $LogFile -Append
                 }
         #>
         $timedOutTasks = $false
@@ -13953,7 +13953,7 @@ Function Invoke-Ping
                     $script:MaxQueue = $MaxQueue
                 }
 
-                Write-Verbose "Throttle: '$throttle' SleepTimer '$sleepTimer' runSpaceTimeout '$runspaceTimeout' maxQueue '$maxQueue' logFile '$logFile'"
+                #Write-Verbose "Throttle: '$throttle' SleepTimer '$sleepTimer' runSpaceTimeout '$runspaceTimeout' maxQueue '$maxQueue' logFile '$logFile'"
 
                 #If they want to import variables or modules, create a clean runspace, get loaded items, use those to exclude items
                 if ($ImportVariables -or $ImportModules)
@@ -14089,7 +14089,7 @@ Function Invoke-Ping
 
                                 #log the results if a log file was indicated
                                 if($logFile -and $log){
-                                    ($log | ConvertTo-Csv -Delimiter ";" -NoTypeInformation)[1] | out-file $LogFile -append
+                                    #($log | ConvertTo-Csv -Delimiter ";" -NoTypeInformation)[1] | out-file $LogFile -append
                                 }
                             }
 
@@ -14236,7 +14236,7 @@ Function Invoke-Ping
                     #Set up log file if specified
                     if( $LogFile ){
                         New-Item -ItemType file -path $logFile -force | Out-Null
-                        ("" | Select Date, Action, Runtime, Status, Details | ConvertTo-Csv -NoTypeInformation -Delimiter ";")[0] | Out-File $LogFile
+                        #("" | Select Date, Action, Runtime, Status, Details | ConvertTo-Csv -NoTypeInformation -Delimiter ";")[0] | Out-File $LogFile
                     }
 
                     #write initial log entry
@@ -14247,7 +14247,7 @@ Function Invoke-Ping
                         $log.Status = "Started"
                         $log.Details = $null
                         if($logFile) {
-                            ($log | convertto-csv -Delimiter ";" -NoTypeInformation)[1] | Out-File $LogFile -Append
+                           # ($log | convertto-csv -Delimiter ";" -NoTypeInformation)[1] | Out-File $LogFile -Append
                         }
 
 			        $timedOutTasks = $false
