@@ -4,7 +4,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.7
+# Version: v1.8
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 function Invoke-HuntSMBShares
 {    
@@ -214,8 +214,15 @@ function Invoke-HuntSMBShares
         # Enumerate domain computers 
         # ----------------------------------------------------------------------
 
+        # Create PS Credential object
+        if($Username -and $Password)
+        {
+            $secpass = ConvertTo-SecureString $Password -AsPlainText -Force
+            $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($Username, $secpass)
+        }
+
         # Set target domain        
-        $DCRecord = Get-LdapQuery -LdapFilter "(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))" -DomainController $DomainController -Username $username -Password $Password -Credential $Credential | select -first 1 | select properties -expand properties -ErrorAction SilentlyContinue
+        $DCRecord = Get-LdapQuery -LdapFilter "(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))" -DomainController $DomainController -Credential $Credential | select -first 1 | select properties -expand properties -ErrorAction SilentlyContinue
         [string]$DCHostname = $DCRecord.dnshostname
         [string]$DCCn = $DCRecord.cn
         [string]$TargetDomain = $DCHostname -replace ("$DCCn\.","") 
@@ -233,7 +240,7 @@ function Invoke-HuntSMBShares
         Write-Output " [*] Performing LDAP query for computers associated with the $TargetDomain domain"
 
         # Get domain computers        
-        $DomainComputersRecord = Get-LdapQuery -LdapFilter "(objectCategory=Computer)" -DomainController $DomainController -Username $username -Password $Password
+        $DomainComputersRecord = Get-LdapQuery -LdapFilter "(objectCategory=Computer)" -DomainController $DomainController -Credential $Credential
         $DomainComputers = $DomainComputersRecord | 
         foreach{
                 
