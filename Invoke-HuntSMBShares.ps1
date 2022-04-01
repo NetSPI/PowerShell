@@ -5,7 +5,7 @@
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
 # Version: v1.8
-# dont use ping filter for 445 
+# dont use ping filter for 445, add custom user group option, and potentially identify groups that have large 20% of domain user members
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 function Invoke-HuntSMBShares
 {    
