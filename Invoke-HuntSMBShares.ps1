@@ -5,6 +5,7 @@
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
 # Version: v1.8
+# dont use ping filter for 445 
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 function Invoke-HuntSMBShares
 {    
