@@ -4,7 +4,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.11
+# Version: v1.15
 # dont use ping filter for 445, add custom user group option, and potentially identify groups that have large 20% of domain user members (make this configrable)
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 function Invoke-HuntSMBShares
@@ -63,27 +63,26 @@ function Invoke-HuntSMBShares
              [*][03/01/2021 09:36] - 217 SMB shares were found.
              [*][03/01/2021 09:36] Getting share permissions from 217 SMB shares
              [*][03/01/2021 09:37] - 374 share permissions were enumerated.
+             [*][03/01/2021 09:37] Getting directory listings from 33 SMB shares
+             [*][03/01/2021 09:37] - Targeting up to 3 nested directory levels
+             [*][03/01/2021 09:37] - 563 files and folders were enumerated.
              [*][03/01/2021 09:37] Identifying potentially excessive share permissions
-             [*][03/01/2021 09:37] - 33 potentially excessive privileges were found across 12 systems.
-             [*][03/01/2021 09:37] - 14 shares can be read across 12 systems.
-             [*][03/01/2021 09:37] - 1 shares can be written to across 1 systems.
-             [*][03/01/2021 09:37] - 46 that are considered non-default across 32 systems.
-             [*][03/01/2021 09:37] - 0 that are considered high risk across 0 systems.
+             [*][03/01/2021 09:37] - 33 potentially excessive privileges were found across 12 systems..
              [*][03/01/2021 09:37] Scan Complete
              ---------------------------------------------------------------
              SHARE ANALYSIS      
              ---------------------------------------------------------------
              [*][03/01/2021 09:37] Analysis Start
+             [*][03/01/2021 09:37] - 14 shares can be read across 12 systems.
+             [*][03/01/2021 09:37] - 1 shares can be written to across 1 systems.
+             [*][03/01/2021 09:37] - 46 shares are considered non-default across 32 systems.
+             [*][03/01/2021 09:37] - 0 shares are considered high risk across 0 systems
              [*][03/01/2021 09:37] - Identified top 5 owners of excessive shares.
              [*][03/01/2021 09:37] - Identified top 5 share groups.
              [*][03/01/2021 09:37] - Identified top 5 share names.
              [*][03/01/2021 09:37] - Identified shares created in last 90 days.
              [*][03/01/2021 09:37] - Identified shares accessed in last 90 days.
              [*][03/01/2021 09:37] - Identified shares modified in last 90 days.
-             [*][03/01/2021 09:37] - 9 of 14 (64.29%) shares are associated with the top 5 share names.
-             [*][03/01/2021 09:37] Getting directory listings from 33 SMB shares
-             [*][03/01/2021 09:37] - Targeting up to 3 nested directory levels
-             [*][03/01/2021 09:37] - 563 files and folders were enumerated.
              [*][03/01/2021 09:37] Analysis Complete
              ---------------------------------------------------------------
              SHARE REPORT SUMMARY      
@@ -93,7 +92,7 @@ function Invoke-HuntSMBShares
              [*][03/01/2021 09:37] End time: 03/01/2021 09:37:27
              [*][03/01/2021 09:37] Run time: 00:02:23.2759086
              [*][03/01/2021 09:37] 
-             [*][03/01/2021 09:37] Computer Summary
+             [*][03/01/2021 09:37] COMPUTER SUMMARY
              [*][03/01/2021 09:37] - 245 domain computers found.
              [*][03/01/2021 09:37] - 55 (22.45%) domain computers responded to ping.
              [*][03/01/2021 09:37] - 49 (20.00%) domain computers had TCP port 445 accessible.
@@ -103,7 +102,7 @@ function Invoke-HuntSMBShares
              [*][03/01/2021 09:37] - 1 (0.41%) domain computers had shares that allowed WRITE access.
              [*][03/01/2021 09:37] - 0 (0.00%) domain computers had shares that are HIGH RISK.
              [*][03/01/2021 09:37] 
-             [*][03/01/2021 09:37] Share Summary
+             [*][03/01/2021 09:37] SHARE SUMMARY
              [*][03/01/2021 09:37] - 217 shares were found. We expect a minimum of 98 shares
              [*][03/01/2021 09:37]   because 49 systems had open ports and there are typically two default shares.
              [*][03/01/2021 09:37] - 46 (21.20%) shares across 32 systems were non-default.
@@ -112,7 +111,7 @@ function Invoke-HuntSMBShares
              [*][03/01/2021 09:37] - 1 (0.46%) shares across 1 systems allowed WRITE access.
              [*][03/01/2021 09:37] - 0 (0.00%) shares across 0 systems are considered HIGH RISK.
              [*][03/01/2021 09:37] 
-             [*][03/01/2021 09:37] ACL Summary
+             [*][03/01/2021 09:37] SHARE ACL SUMMARY
              [*][03/01/2021 09:37] - 374 ACLs were found.
              [*][03/01/2021 09:37] - 374 (100.00%) ACLs were associated with non-default shares.
              [*][03/01/2021 09:37] - 33 (8.82%) ACLs were found to be potentially excessive.
@@ -618,6 +617,7 @@ function Invoke-HuntSMBShares
         $ShareACLsFile = "$TargetDomain-Shares-Inventory-All-ACL.csv"
         $ShareACLsFileH = "$TargetDomain-Shares-Inventory-All-ACL.html"
 
+
         # ----------------------------------------------------------------------
         # Get potentially excessive share permissions 
         # ----------------------------------------------------------------------
@@ -649,7 +649,7 @@ function Invoke-HuntSMBShares
         $ExcessiveSharePrivsCount = $ExcessiveSharePrivs.count
         $ComputerWithExcessive = $ExcessiveSharePrivs | Select-Object ComputerName -Unique | Measure-Object | select count -ExpandProperty count
         $Time =  Get-Date -UFormat "%m/%d/%Y %R"
-        Write-Output " [*][$Time] - $ExcessiveSharePrivsCount potentially excessive privileges were found across $ComputerWithExcessive systems."
+        Write-Output " [*][$Time] - $ExcessiveSharePrivsCount potentially excessive privileges were found on $ExcessiveSharesCount shares across $ComputerWithExcessive systems."
 
         # Save results
         if($ExcessiveSharesCount -ne 0){
@@ -665,6 +665,77 @@ function Invoke-HuntSMBShares
         }
 
         $ExcessiveSharePrivsFile = "$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
+
+
+        # ----------------------------------------------------------------------
+        # Get Recursive Directory Listings
+        # ----------------------------------------------------------------------
+        # Default depth is 3 by default
+
+        # Status user
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] Getting directory listings from $ExcessiveSharesCount SMB shares"
+        Write-Output " [*][$Time] - Targeting up to $DirLevel nested directory levels"
+
+        # Create script block to query for directory listing
+        $MyScriptBlock = {     
+
+            # Get share context            
+            $CurrentComputerName = $_.ComputerName
+            $CurrentIP = $_.IpAddress 
+            $ShareDescription = $_.ShareDesc
+            $CurrentShareName = $_.ShareName
+            $SharePath = $_.SharePath
+            
+            # Get file listing from non system directories
+            #$FullFileList = Get-ChildItem -Path $SharePath -Exclude "c:\windows" | Select FullName   
+            $FullFileList = Get-ChildItem -Depth $DirLevel -Path "$SharePath" | select fullname | where {$_.fullname -NotLike "$SharePath\Windows*" -and $_.fullname -notlike "$SharePath\WINNT"}                 
+            
+            $FullFileList | 
+            Foreach{
+                $aclObject = new-object psobject            
+                $aclObject | add-member  Noteproperty ComputerName         $CurrentComputerName
+                $aclObject | add-member  Noteproperty IpAddress            $CurrentIP
+                $aclObject | add-member  Noteproperty ShareName            $CurrentShareName
+                $aclObject | add-member  Noteproperty SharePath            $SharePath
+                $aclObject | add-member  Noteproperty ShareDescription     $ShareDescription
+                $aclObject | add-member  Noteproperty FilePath             $_.fullname
+                $aclObject  
+            }     
+        }            
+
+        # Get SMB directory listing threaded
+        $ShareDirListing = $ExcessiveSharePrivs | select computername,ipaddress,sharedesc,sharename,sharepath -Unique | Invoke-Parallel -ScriptBlock $MyScriptBlock -ImportSessionFunctions -ImportVariables -Throttle $GlobalThreadCount -RunspaceTimeout $RunSpaceTimeOut -ErrorAction SilentlyContinue  -WarningAction SilentlyContinue | where ShareName -notlike "" #| select * -Unique
+
+        # Status user
+        $ShareDirListingCount = $ShareDirListing | measure | select count -ExpandProperty count
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - $ShareDirListingCount files and folders were enumerated."
+        
+        # Write output
+        # Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-Shares-Directory-Listings-Depth-$DirLevel.csv" 
+        $ShareDirListing | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Directory-Listings-Depth-$DirLevel.csv"
+               
+        
+        # ----------------------------------------------------------------------
+        # Get File Listings from Shares
+        # ----------------------------------------------------------------------
+        #$FindFiles # hardcoded array
+        #$FindFilesList # file
+        # combine
+        # create where statement
+        #$ShareDirListing | Where
+        #count
+        #export
+
+        # End of scanning
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] Scan Complete"
+
+        Write-Output " ---------------------------------------------------------------"  
+        Write-Output " SHARE ANALYSIS      "
+        Write-Output " ---------------------------------------------------------------"
+        Write-Output " [*][$Time] Analysis Start"
 
         # ----------------------------------------------------------------------
         # Identify shares that provide read access
@@ -749,7 +820,7 @@ function Invoke-HuntSMBShares
         $SharesNonDefaultCount = $SharesNonDefault | Select-Object SharePath -Unique | Measure-Object | select count -ExpandProperty count
         $ComputerwithNonDefaultCount = $SharesNonDefault | Select-Object ComputerName -Unique | Measure-Object | select count -ExpandProperty count
         $Time =  Get-Date -UFormat "%m/%d/%Y %R"
-        Write-Output " [*][$Time] - $SharesNonDefaultCount that are considered non-default across $ComputerwithNonDefaultCount systems."
+        Write-Output " [*][$Time] - $SharesNonDefaultCount shares are considered non-default across $ComputerwithNonDefaultCount systems."
 
         # Save results
         if($SharesNonDefaultCount-ne 0){
@@ -781,7 +852,7 @@ function Invoke-HuntSMBShares
         $SharesHighRiskCount = $SharesHighRisk | Select-Object SharePath -Unique | Measure-Object | select count -ExpandProperty count
         $ComputerwithHighRisk = $SharesHighRisk | Select-Object ComputerName -Unique | Measure-Object | select count -ExpandProperty count
         $Time =  Get-Date -UFormat "%m/%d/%Y %R"
-        Write-Output " [*][$Time] - $SharesHighRiskCount that are considered high risk across $ComputerwithHighRisk systems."
+        Write-Output " [*][$Time] - $SharesHighRiskCount shares are considered high risk across $ComputerwithHighRisk systems."
 
         # Save results
         if($SharesHighRiskCount -ne 0){
@@ -792,15 +863,8 @@ function Invoke-HuntSMBShares
             $ShareACLsHRFileH = "$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.html"                     
         }
 
-        $SharesHighRiskFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"
-
-        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
-        Write-Output " [*][$Time] Scan Complete"
-
-        Write-Output " ---------------------------------------------------------------"  
-        Write-Output " SHARE ANALYSIS      "
-        Write-Output " ---------------------------------------------------------------"
-        Write-Output " [*][$Time] Analysis Start"
+        $SharesHighRiskFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"        
+       
         
         # ----------------------------------------------------------------------
         # Identify common excessive share owners
@@ -1219,69 +1283,10 @@ function Invoke-HuntSMBShares
         
         $Time =  Get-Date -UFormat "%m/%d/%Y %R"
         #Write-Output " [*][$Time] - Summary report data generated."                     
-        Write-Output " [*][$Time] - $Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names."
+        #Write-Output " [*][$Time] - $Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names."
 
 
-        # ----------------------------------------------------------------------
-        # Get Recursive Directory Listings
-        # ----------------------------------------------------------------------
-        # Default depth is 3 by default
-
-        # Status user
-        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
-        Write-Output " [*][$Time] Getting directory listings from $ExcessiveSharePrivsCount SMB shares"
-        Write-Output " [*][$Time] - Targeting up to $DirLevel nested directory levels"
-
-        # Create script block to query for directory listing
-        $MyScriptBlock = {     
-
-            # Get share context            
-            $CurrentComputerName = $_.ComputerName
-            $CurrentIP = $_.IpAddress 
-            $ShareDescription = $_.ShareDesc
-            $CurrentShareName = $_.ShareName
-            $SharePath = $_.SharePath
-            
-            # Get file listing from non system directories
-            #$FullFileList = Get-ChildItem -Path $SharePath -Exclude "c:\windows" | Select FullName   
-            $FullFileList = Get-ChildItem -Depth $DirLevel -Path "$SharePath" | select fullname | where {$_.fullname -NotLike "$SharePath\Windows*" -and $_.fullname -notlike "$SharePath\WINNT"}                 
-            
-            $FullFileList | 
-            Foreach{
-                $aclObject = new-object psobject            
-                $aclObject | add-member  Noteproperty ComputerName         $CurrentComputerName
-                $aclObject | add-member  Noteproperty IpAddress            $CurrentIP
-                $aclObject | add-member  Noteproperty ShareName            $CurrentShareName
-                $aclObject | add-member  Noteproperty SharePath            $SharePath
-                $aclObject | add-member  Noteproperty ShareDescription     $ShareDescription
-                $aclObject | add-member  Noteproperty FilePath             $_.fullname
-                $aclObject  
-            }     
-        }            
-
-        # Get SMB directory listing threaded
-        $ShareDirListing = $ExcessiveSharePrivs | Invoke-Parallel -ScriptBlock $MyScriptBlock -ImportSessionFunctions -ImportVariables -Throttle $GlobalThreadCount -RunspaceTimeout $RunSpaceTimeOut -ErrorAction SilentlyContinue  -WarningAction SilentlyContinue | where ShareName -notlike "" | select * -Unique
-
-        # Status user
-        $ShareDirListingCount = $ShareDirListing | measure | select count -ExpandProperty count
-        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
-        Write-Output " [*][$Time] - $ShareDirListingCount files and folders were enumerated."
         
-        # Write output
-        # Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-Shares-Directory-Listings-Depth-$DirLevel.csv" 
-        $ShareDirListing | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Directory-Listings-Depth-$DirLevel.csv"
-               
-        
-        # ----------------------------------------------------------------------
-        # Get File Listings from Shares
-        # ----------------------------------------------------------------------
-        #$FindFiles # hardcoded array
-        #$FindFilesList # file
-        # combine
-        # create where statement
-        #$ShareDirListing | Where
-        #count
-        #export
 
         # ----------------------------------------------------------------------
         # Create Timeline Reports
@@ -1340,7 +1345,7 @@ function Invoke-HuntSMBShares
         Write-Output " [*][$Time] End time: $EndTime"
         Write-Output " [*][$Time] Run time: $RunTime"
         Write-Output " [*][$Time] "
-        Write-Output " [*][$Time] Computer Summary"
+        Write-Output " [*][$Time] COMPUTER SUMMARY"
         Write-Output " [*][$Time] - $ComputerCount domain computers found."
         Write-Output " [*][$Time] - $ComputerPingableCount ($PercentComputerPingP) domain computers responded to ping."
         Write-Output " [*][$Time] - $Computers445OpenCount ($PercentComputerPortP) domain computers had TCP port 445 accessible."
@@ -1350,7 +1355,7 @@ function Invoke-HuntSMBShares
         Write-Output " [*][$Time] - $ComputerWithWriteCount ($PercentComputerWriteP) domain computers had shares that allowed WRITE access."  
         Write-Output " [*][$Time] - $ComputerwithHighRisk ($PercentComputerHighRiskP) domain computers had shares that are HIGH RISK."  
         Write-Output " [*][$Time] "
-        Write-Output " [*][$Time] Share Summary"      
+        Write-Output " [*][$Time] SHARE SUMMARY"      
         Write-Output " [*][$Time] - $AllSMBSharesCount shares were found. We expect a minimum of $MinExpectedShareCount shares"
         Write-Output " [*][$Time]   because $Computers445OpenCount systems had open ports and there are typically two default shares."
         Write-Output " [*][$Time] - $SharesNonDefaultCount ($PercentSharesNonDefaultP) shares across $ComputerwithNonDefaultCount systems were non-default."
@@ -1359,7 +1364,7 @@ function Invoke-HuntSMBShares
         Write-Output " [*][$Time] - $SharesWithWriteCount ($PercentSharesWriteP) shares across $ComputerWithWriteCount systems allowed WRITE access."
         Write-Output " [*][$Time] - $SharesHighRiskCount ($PercentSharesHighRiskP) shares across $ComputerwithHighRisk systems are considered HIGH RISK."
         Write-Output " [*][$Time] "
-        Write-Output " [*][$Time] ACL Summary"
+        Write-Output " [*][$Time] SHARE ACL SUMMARY"
         Write-Output " [*][$Time] - $ShareACLsCount ACLs were found."
         Write-Output " [*][$Time] - $AclNonDefaultCount ($PercentAclNonDefaultP) ACLs were associated with non-default shares." 
         Write-Output " [*][$Time] - $ExcessiveSharePrivsCount ($PercentAclExPrivP) ACLs were found to be potentially excessive."               
@@ -3946,7 +3951,7 @@ for (i = 0; i < coll.length; i++) {
 </body>
 </html>
 "@
-$NewHtmlReport | Out-File "$OutputDirectoryBase\Smb-Share-Summary-Report-$TargetDomain.html"
+$NewHtmlReport | Out-File "$OutputDirectoryBase\Summary-Report.html"
 # Write-Output " [*] Saving results to $OutputDirectory\_Report-$TargetDomain-Share-Inventory-Summary.html"     
                 
         # ----------------------------------------------------------------------
