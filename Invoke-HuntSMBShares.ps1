@@ -4,7 +4,7 @@
 #--------------------------------------
 # Author: Scott Sutherland, 2022 NetSPI
 # License: 3-clause BSD
-# Version: v1.8
+# Version: v1.10
 # dont use ping filter for 445, add custom user group option, and potentially identify groups that have large 20% of domain user members (make this configrable)
 # References: This script includes code taken and modified from the open source projects PowerView, Invoke-Ping, and Invoke-Parrell. 
 function Invoke-HuntSMBShares
@@ -25,82 +25,109 @@ function Invoke-HuntSMBShares
             PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -RunSpaceTimeOut 10 -OutputDirectory c:\folder\ -DomainController 10.1.1.1 -Username domain\user -Password password        
             .EXAMPLE
 			PS C:\temp\test> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\temp\test
-			  ---------------------------------------------------------------
-			| Invoke-HuntSMBShares                                          |
-			  ---------------------------------------------------------------
-			| This function automates the following tasks:                  |
-			|                                                               |
-			| o Determine current computer's domain                         |
-			| o Enumerate domain computers                                  |
-			| o Filter for computers that respond to ping reqeusts          |
-			| o Filter for computers that have TCP 445 open and accessible  |
-			| o Enumerate SMB shares                                        |
-			| o Enumerate SMB share permissions                             |
-			| o Identify shares with potentially excessive privielges       |
-			| o Identify shares that provide read and write access          |
-			| o Identify shares thare are high risk                         |
-			| o Identify common owners, share names, & directory listings   |
-			| o Generate last written & last accessed timelines             |
-			| o Generate html summary report and detailed csv files         |
-			|                                                               |
-			  ---------------------------------------------------------------
-			| Note: This can take hours to run in large environments.       |
-			  ---------------------------------------------------------------
-			[*] Start time: 08/18/2020 10:16:35
-			[*] All results will be written to the directory c:\temp\test
-			[*] Performing LDAP query for computers associated with the my.test.domain.com domain
-			[*] - 10358 computers found
-			[*] - Saving results to c:\temp\test\my.test.domain.com-Domain-Computers.csv
-			[*] Pinging 10358 computers
-			[*] - 5018 computers responded to ping requests.
-			[*] - Saving results to c:\temp\test\my.test.domain.com-Domain-Computers-Pingable.csv
-			[*] Checking if TCP Port 445 is open on 5018 computers
-			[*] - 4900 computers have TCP port 445 open.
-			[*] - Saving results to c:\temp\test\my.test.domain.com-Domain-Computers-Open445.csv
-			[*] Getting a list of SMB shares from 4900 computers
-			[*] - 10866 SMB shares were found.
-			[*] - Saving results to c:\temp\test\my.test.domain.com-Shares-Inventory-All.csv
-			[*] Getting share permissions from 10866 SMB shares
-			[*] - 13399 share permissions were enumerated.
-			[*] - Saving results to c:\temp\test\my.test.domain.com-Shares-Inventory-All-ACL.csv
-			[*] Identifying potentially excessive share permissions
-			[*] - 930 potentially excessive privileges were found across 170 systems.
-			[*] - Saving results to c:\temp\test\my.test.domain.com-Shares-Inventory-Excessive-Privileges.csv
-			[*] - 131 shares can be written to across 87 systems.
-			[*] - Saving results to c:\temp\test\my.test.domain.com-Shares-Inventory-Excessive-Privileges-Write.csv
-			[*] - 378 that are considered high risk across 75 systems.
-			[*] - Saving results to c:\temp\test\my.test.domain.com-Shares-Inventory-Excessive-Privileges-HighRisk.csv
-			[*] Generating summary data
-			[*] Saving results to c:\temp\test\my.test.domain.com-Shares-Inventory-Common-Names.csv
-			[*] - 274 of 325 ( %)shares are have more than 5 duplicates
-			[*] Results written to c:\temp\test
-			[*] 
-			[*] -----------------------------------------------
-			[*] Get-ShareInventory Summary Report
-			[*] -----------------------------------------------
-			[*] Domain: my.test.domain.com
-			[*] Start time: 08/18/2020 10:16:35
-			[*] End time: 08/18/2020 11:36:22
-			[*] Run time: 01:19:47.0152660
-			[*] 
-			[*] Computer Summary
-			[*] - 10358 domain computers found.
-			[*] - 5018 domain computers responded to ping.
-			[*] - 4900 domain computers had TCP port 445 accessible.
-			[*] 
-			[*] Share Summary
-			[*] - 10866 shares were found.
-			[*] - 930 potentially excessive privileges were found across 170 systems.
-			[*] - 131 shares can be written to across 87 systems.
-			[*] - 378 shares are considered high risk across 75 systems.
-			[*] - 41 sharenames were discovered with more than 5 instances
-			[*] - The 5 most common share names are:
-			[*]   - 75 Users
-			[*]   - 75 C$
-			[*]   - 75 ADMIN$
-			[*]   - 43 D$
-			[*]   - 6 SYSVOL
-			[*] -----------------------------------------------
+
+             ---------------------------------------------------------------
+             INVOKE-HUNTSMBSHARES                                        
+             ---------------------------------------------------------------
+              This function automates the following tasks:                  
+                                                                
+              o Determine current computer's domain                         
+              o Enumerate domain computers                                  
+              o Filter for computers that respond to ping reqeusts          
+              o Filter for computers that have TCP 445 open and accessible  
+              o Enumerate SMB shares                                        
+              o Enumerate SMB share permissions                             
+              o Identify shares with potentially excessive privielges       
+              o Identify shares that provide reads & write access           
+              o Identify shares thare are high risk                         
+              o Identify common share owners, names, & directory listings   
+              o Generate last written & last accessed timelines             
+              o Generate html summary report and detailed csv files         
+
+              Note: This can take hours to run in large environments.       
+             ---------------------------------------------------------------
+             |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+             ---------------------------------------------------------------
+             SHARE DISCOVERY      
+             ---------------------------------------------------------------
+             [*][03/01/2021 09:35] Scan Start
+             [*][03/01/2021 09:35] Output Directory: c:\temp\smbshares\SmbShareHunt-03012021093504
+             [*][03/01/2021 09:35] Successful connection to domain controller: dc1.demo.local
+             [*][03/01/2021 09:35] Performing LDAP query for computers associated with the demo.local domain
+             [*][03/01/2021 09:35] - 245 computers found
+             [*][03/01/2021 09:35] Pinging 245 computers
+             [*][03/01/2021 09:35] - 55 computers responded to ping requests.
+             [*][03/01/2021 09:35] Checking if TCP Port 445 is open on 55 computers
+             [*][03/01/2021 09:36] - 49 computers have TCP port 445 open.
+             [*][03/01/2021 09:36] Getting a list of SMB shares from 49 computers
+             [*][03/01/2021 09:36] - 217 SMB shares were found.
+             [*][03/01/2021 09:36] Getting share permissions from 217 SMB shares
+             [*][03/01/2021 09:37] - 374 share permissions were enumerated.
+             [*][03/01/2021 09:37] Identifying potentially excessive share permissions
+             [*][03/01/2021 09:37] - 33 potentially excessive privileges were found across 12 systems.
+             [*][03/01/2021 09:37] - 14 shares can be read across 12 systems.
+             [*][03/01/2021 09:37] - 1 shares can be written to across 1 systems.
+             [*][03/01/2021 09:37] - 46 that are considered non-default across 32 systems.
+             [*][03/01/2021 09:37] - 0 that are considered high risk across 0 systems.
+             [*][03/01/2021 09:37] Scan Complete
+             ---------------------------------------------------------------
+             SHARE ANALYSIS      
+             ---------------------------------------------------------------
+             [*][03/01/2021 09:37] Analysis Start
+             [*][03/01/2021 09:37] - Identified top 5 owners of excessive shares.
+             [*][03/01/2021 09:37] - Identified top 5 share groups.
+             [*][03/01/2021 09:37] - Identified top 5 share names.
+             [*][03/01/2021 09:37] - Identified shares created in last 90 days.
+             [*][03/01/2021 09:37] - Identified shares accessed in last 90 days.
+             [*][03/01/2021 09:37] - Identified shares modified in last 90 days.
+             [*][03/01/2021 09:37] - 9 of 14 (64.29%) shares are associated with the top 5 share names.
+             [*][03/01/2021 09:37] Getting directory listings from 33 SMB shares
+             [*][03/01/2021 09:37] - Targeting up to 3 nested directory levels
+             [*][03/01/2021 09:37] - 563 files and folders were enumerated.
+             [*][03/01/2021 09:37] Analysis Complete
+             ---------------------------------------------------------------
+             SHARE REPORT SUMMARY      
+             ---------------------------------------------------------------
+             [*][03/01/2021 09:37] Domain: demo.local
+             [*][03/01/2021 09:37] Start time: 03/01/2021 09:35:04
+             [*][03/01/2021 09:37] End time: 03/01/2021 09:37:27
+             [*][03/01/2021 09:37] Run time: 00:02:23.2759086
+             [*][03/01/2021 09:37] 
+             [*][03/01/2021 09:37] Computer Summary
+             [*][03/01/2021 09:37] - 245 domain computers found.
+             [*][03/01/2021 09:37] - 55 (22.45%) domain computers responded to ping.
+             [*][03/01/2021 09:37] - 49 (20.00%) domain computers had TCP port 445 accessible.
+             [*][03/01/2021 09:37] - 32 (13.06%) domain computers had shares that were non-default.
+             [*][03/01/2021 09:37] - 12 (4.90%) domain computers had shares with potentially excessive privileges.
+             [*][03/01/2021 09:37] - 12 (4.90%) domain computers had shares that allowed READ access.
+             [*][03/01/2021 09:37] - 1 (0.41%) domain computers had shares that allowed WRITE access.
+             [*][03/01/2021 09:37] - 0 (0.00%) domain computers had shares that are HIGH RISK.
+             [*][03/01/2021 09:37] 
+             [*][03/01/2021 09:37] Share Summary
+             [*][03/01/2021 09:37] - 217 shares were found. We expect a minimum of 98 shares
+             [*][03/01/2021 09:37]   because 49 systems had open ports and there are typically two default shares.
+             [*][03/01/2021 09:37] - 46 (21.20%) shares across 32 systems were non-default.
+             [*][03/01/2021 09:37] - 14 (6.45%) shares across 12 systems are configured with 33 potentially excessive ACLs.
+             [*][03/01/2021 09:37] - 14 (6.45%) shares across 12 systems allowed READ access.
+             [*][03/01/2021 09:37] - 1 (0.46%) shares across 1 systems allowed WRITE access.
+             [*][03/01/2021 09:37] - 0 (0.00%) shares across 0 systems are considered HIGH RISK.
+             [*][03/01/2021 09:37] 
+             [*][03/01/2021 09:37] ACL Summary
+             [*][03/01/2021 09:37] - 374 ACLs were found.
+             [*][03/01/2021 09:37] - 374 (100.00%) ACLs were associated with non-default shares.
+             [*][03/01/2021 09:37] - 33 (8.82%) ACLs were found to be potentially excessive.
+             [*][03/01/2021 09:37] - 32 (8.56%) ACLs were found that allowed READ access.
+             [*][03/01/2021 09:37] - 1 (0.27%) ACLs were found that allowed WRITE access.
+             [*][03/01/2021 09:37] - 0 (0.00%) ACLs were found that are associated with HIGH RISK share names.
+             [*][03/01/2021 09:37] 
+             [*][03/01/2021 09:37] - The 5 most common share names are:
+             [*][03/01/2021 09:37] - 9 of 14 (64.29%) discovered shares are associated with the top 5 share names.
+             [*][03/01/2021 09:37]   - 4 backup
+             [*][03/01/2021 09:37]   - 2 ssms
+             [*][03/01/2021 09:37]   - 1 test2
+             [*][03/01/2021 09:37]   - 1 test1
+             [*][03/01/2021 09:37]   - 1 users
+             [*] -----------------------------------------------
 
 	#>
     [CmdletBinding()]
@@ -133,6 +160,10 @@ function Invoke-HuntSMBShares
         [Parameter(Mandatory = $false,
         HelpMessage = 'Creat exported csv for import into other tools.')]
         [switch]$ExportFindings,
+
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'This is the path to a host list. One per line.')]
+        [string] $HostList,
 
         [Parameter(Mandatory = $false,
         HelpMessage = 'Number of items to sample for summary report.')]
@@ -179,97 +210,161 @@ function Invoke-HuntSMBShares
     
     Begin
     {
-        Write-Output "  ---------------------------------------------------------------" 
-        Write-Output " | Invoke-HuntSMBShares                                          |"
-        Write-Output "  ---------------------------------------------------------------"         
-        Write-Output " | This function automates the following tasks:                  |"
-        Write-Output " |                                                               |"
-        Write-Output " | o Determine current computer's domain                         |"
-        Write-Output " | o Enumerate domain computers                                  |"
-        Write-Output " | o Filter for computers that respond to ping reqeusts          |"
-        Write-Output " | o Filter for computers that have TCP 445 open and accessible  |"
-        Write-Output " | o Enumerate SMB shares                                        |"
-        Write-Output " | o Enumerate SMB share permissions                             |"
-        Write-Output " | o Identify shares with potentially excessive privielges       |"
-        Write-Output " | o Identify shares that provide reads & write access           |"                     
-        Write-Output " | o Identify shares thare are high risk                         |"
-        Write-Output " | o Identify common share owners, names, & directory listings   |"
-        Write-Output " | o Generate last written & last accessed timelines             |"
-        Write-Output " | o Generate html summary report and detailed csv files         |"
-        Write-Output " |                                                               |"
-        Write-Output "  ---------------------------------------------------------------"  
-        Write-Output " | Note: This can take hours to run in large environments.       |"
-        Write-Output "  ---------------------------------------------------------------"
+        Write-Output " ---------------------------------------------------------------" 
+        Write-Output " INVOKE-HUNTSMBSHARES                                        "
+        Write-Output " ---------------------------------------------------------------"         
+        Write-Output "  This function automates the following tasks:                  "
+        Write-Output "                                                                "
+        Write-Output "  o Determine current computer's domain                         "
+        Write-Output "  o Enumerate domain computers                                  "
+        Write-Output "  o Filter for computers that respond to ping reqeusts          "
+        Write-Output "  o Filter for computers that have TCP 445 open and accessible  "
+        Write-Output "  o Enumerate SMB shares                                        "
+        Write-Output "  o Enumerate SMB share permissions                             "
+        Write-Output "  o Identify shares with potentially excessive privielges       "
+        Write-Output "  o Identify shares that provide reads & write access           "                     
+        Write-Output "  o Identify shares thare are high risk                         "
+        Write-Output "  o Identify common share owners, names, & directory listings   "
+        Write-Output "  o Generate last written & last accessed timelines             "
+        Write-Output "  o Generate html summary report and detailed csv files         " 
+        Write-Output ""         
+        Write-Output "  Note: This can take hours to run in large environments.       "              
+        Write-Output " ---------------------------------------------------------------"  
+        Write-Output " |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+        Write-Output " ---------------------------------------------------------------"  
+        Write-Output " SHARE DISCOVERY      "
+        Write-Output " ---------------------------------------------------------------"
+
 
         # Get start time
         $StartTime = Get-Date
-        Write-Output " [*] Start time: $StartTime"
         $StopWatch =  [system.diagnostics.stopwatch]::StartNew()
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] Scan Start"
+        
+
+        # ----------------------------------------------------------------------
+        # Create output directory
+        # ----------------------------------------------------------------------
+        if(Test-Path $OutputDirectory){                                
+
+            # Create sub directory for output
+            try{
+
+                if(-not $AnalyzeOnly){
+
+                    # Verify output directory path
+                    $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+                    $FolderDateTime =  Get-Date -Format "MMddyyyyHHmmss"
+                    $OutputDirectoryBase = "$OutputDirectory\SmbShareHunt-$FolderDateTime"                                        
+
+                    # Create sub directories
+                    mkdir $OutputDirectoryBase | Out-Null
+                    mkdir "$OutputDirectoryBase\Results" | Out-Null
+                    $OutputDirectory = "$OutputDirectoryBase\Results"
+                    Write-Output " [*][$Time] Output Directory: $OutputDirectoryBase"
+                }
+            }catch{
+                Write-Output " [x][$Time] The $OutputDirectory was not writable."
+                Write-Output " [!][$Time] Aborting operation."
+                break
+            }
+        }
+
+        # ----------------------------------------------------------------------
+        # Import computers from file 
+        # ----------------------------------------------------------------------
+        if($HostList){
+            
+            if(test-path $HostList){
+                $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+                Write-Output " [*][$Time] Importing computer targets from $HostList"
+                $HostListContent = gc $HostList
+                $DomainComputers = $HostListContent |
+                foreach {
+                    $object = New-Object psobject
+                    $Object | Add-Member Noteproperty ComputerName $_
+                    $Object  
+                }
+                $TargetDomain = "SmbHunt"
+                $DomainComputersCount = $DomainComputers | measure | select count -ExpandProperty count            
+                $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+                Write-Output " [*][$Time] $DomainComputersCount systems will be targeted"
+            }else{
+                Write-Output " [!][$Time] The host list was not accessible: $HostList"
+                break
+            }
+        }
         
         # Set variables
         $GlobalThreadCount = $Threads
-
-        Write-Output " [*] All results will be written to the directory $OutputDirectory"
 
         # ----------------------------------------------------------------------
         # Enumerate domain computers 
         # ----------------------------------------------------------------------
 
-        # Create PS Credential object
-        if($Username -and $Password)
-        {
-            $secpass = ConvertTo-SecureString $Password -AsPlainText -Force
-            $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($Username, $secpass)
-        }
+        if(-not $HostList){
 
-        # Set target domain        
-        $DCRecord = Get-LdapQuery -LdapFilter "(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))" -DomainController $DomainController -Credential $Credential | select -first 1 | select properties -expand properties -ErrorAction SilentlyContinue
-        [string]$DCHostname = $DCRecord.dnshostname
-        [string]$DCCn = $DCRecord.cn
-        [string]$TargetDomain = $DCHostname -replace ("$DCCn\.","") 
-                
-        if($DCHostname)
-        {
-            Write-Output " [*] Successful connection to domain controller: $DCHostname"             
-        }else{
-            Write-Output " [*] There appears to have been an error connecting to the domain controller."
-            Write-Output " [*] Aborting."
-            break
-        }           
-
-        # Status user
-        Write-Output " [*] Performing LDAP query for computers associated with the $TargetDomain domain"
-
-        # Get domain computers        
-        $DomainComputersRecord = Get-LdapQuery -LdapFilter "(objectCategory=Computer)" -DomainController $DomainController -Credential $Credential
-        $DomainComputers = $DomainComputersRecord | 
-        foreach{
-                
-            $DnsHostName = [string]$_.Properties['dnshostname']
-            if($DnsHostName -notlike ""){
-                $object = New-Object psobject
-                $Object | Add-Member Noteproperty ComputerName $DnsHostName
-                $Object      
+            # Create PS Credential object
+            if($Username -and $Password)
+            {
+                $secpass = ConvertTo-SecureString $Password -AsPlainText -Force
+                $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($Username, $secpass)
             }
+
+            # Set target domain        
+            $DCRecord = Get-LdapQuery -LdapFilter "(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))" -DomainController $DomainController -Credential $Credential | select -first 1 | select properties -expand properties -ErrorAction SilentlyContinue
+            [string]$DCHostname = $DCRecord.dnshostname
+            [string]$DCCn = $DCRecord.cn
+            [string]$TargetDomain = $DCHostname -replace ("$DCCn\.","") 
+            
+            $Time =  Get-Date -UFormat "%m/%d/%Y %R"    
+            if($DCHostname)
+            {
+                Write-Output " [*][$Time] Successful connection to domain controller: $DCHostname"             
+            }else{
+                Write-Output " [*][$Time] There appears to have been an error connecting to the domain controller."
+                Write-Output " [*][$Time] Aborting."
+                break
+            }           
+
+            # Status user
+            Write-Output " [*][$Time] Performing LDAP query for computers associated with the $TargetDomain domain"
+
+            # Get domain computers        
+            $DomainComputersRecord = Get-LdapQuery -LdapFilter "(objectCategory=Computer)" -DomainController $DomainController -Credential $Credential
+            $DomainComputers = $DomainComputersRecord | 
+            foreach{
+                
+                $DnsHostName = [string]$_.Properties['dnshostname']
+                if($DnsHostName -notlike ""){
+                    $object = New-Object psobject
+                    $Object | Add-Member Noteproperty ComputerName $DnsHostName
+                    $Object      
+                }
+            }
+
+            # Status user
+            $ComputerCount = $DomainComputers.count
+            $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+            Write-Output " [*][$Time] - $ComputerCount computers found"
+
+            # Save results
+            # Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers.csv"
+            $DomainComputers | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Domain-Computers.csv"
+            $null = Convert-DataTableToHtmlTable -DataTable $DomainComputers -Outfile "$OutputDirectory\$TargetDomain-Domain-Computers.html" -Title "Domain Computers" -Description "This page shows the domain computers discovered for the $TargetDomain Active Directory domain."
+            $DomainComputersFile = "$TargetDomain-Domain-Computers.csv"
+            $DomainComputersFileH = "$TargetDomain-Domain-Computers.html"
+
         }
-
-        # Status user
-        $ComputerCount = $DomainComputers.count
-        Write-Output " [*] - $ComputerCount computers found"
-
-        # Save results
-        Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers.csv"
-        $DomainComputers | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Domain-Computers.csv"
-        $null = Convert-DataTableToHtmlTable -DataTable $DomainComputers -Outfile "$OutputDirectory\$TargetDomain-Domain-Computers.html" -Title "Domain Computers" -Description "This page shows the domain computers discovered for the $TargetDomain Active Directory domain."
-        $DomainComputersFile = "$TargetDomain-Domain-Computers.csv"
-        $DomainComputersFileH = "$TargetDomain-Domain-Computers.html"
 
         # ----------------------------------------------------------------------
         # Identify computers that respond to ping reqeusts
         # ----------------------------------------------------------------------
 
         # Status user
-        Write-Output " [*] Pinging $ComputerCount computers"
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] Pinging $ComputerCount computers"
 
         # Ping computerss
         $PingResults = $DomainComputers | Invoke-Ping -Throttle $GlobalThreadCount
@@ -290,17 +385,19 @@ function Invoke-HuntSMBShares
 
         # Status user
         $ComputerPingableCount = $ComputersPingable.count
-        Write-Output " [*] - $ComputerPingableCount computers responded to ping requests."
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - $ComputerPingableCount computers responded to ping requests."
         
         # Stop if no hosts are accessible
         If ($ComputerPingableCount -eq 0)
         {
-            Write-Output " [*] - Aborting."
+            $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+            Write-Output " [*][$Time] - Aborting."
             break
         }
 
         # Save results
-        Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers-Pingable.csv"
+        # Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers-Pingable.csv"
         $ComputersPingable | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Domain-Computers-Pingable.csv"
         $null = Convert-DataTableToHtmlTable -DataTable $ComputersPingable -Outfile "$OutputDirectory\$TargetDomain-Domain-Computers-Pingable.html" -Title "Domain Computers: Ping Response" -Description "This page shows the domain computers for the $TargetDomain Active Directory domain that responded to ping requests."
         $ComputersPingableFile = "$TargetDomain-Domain-Computers-Pingable.csv"
@@ -311,7 +408,8 @@ function Invoke-HuntSMBShares
         # ----------------------------------------------------------------------
 
         # Status user
-        Write-Output " [*] Checking if TCP Port 445 is open on $ComputerPingableCount computers"
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] Checking if TCP Port 445 is open on $ComputerPingableCount computers"
 
         # Get clean list of pingable computers
         $ComputersPingableClean = $ComputersPingable | Select-Object ComputerName
@@ -350,18 +448,20 @@ function Invoke-HuntSMBShares
 
         # Status user
         $Computers445OpenCount = $Computers445Open.count
-        Write-Output " [*] - $Computers445OpenCount computers have TCP port 445 open."
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - $Computers445OpenCount computers have TCP port 445 open."
         
          
         # Stop if no ports are accessible
         If ($Computers445OpenCount -eq 0)
         {
-            Write-Output " [*] - Aborting."
+            $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+            Write-Output " [*][$Time] - Aborting."
             break
         }
 
         # Save results
-        Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers-Open445.csv"        
+        # Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Domain-Computers-Open445.csv"        
         $Computers445Open | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Domain-Computers-Open445.csv"
         $null = Convert-DataTableToHtmlTable -DataTable $Computers445Open -Outfile "$OutputDirectory\$TargetDomain-Domain-Computers-Open445.html" -Title "Domain Computers: Port 445 Open" -Description "This page shows the domain computers for the $TargetDomain Active Directory domain with port 445 open."
         $Computers445OpenFile = "$TargetDomain-Domain-Computers-Open445.csv"
@@ -372,7 +472,8 @@ function Invoke-HuntSMBShares
         # ----------------------------------------------------------------------
 
         # Status user
-        Write-Output " [*] Getting a list of SMB shares from $Computers445OpenCount computers"
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] Getting a list of SMB shares from $Computers445OpenCount computers"
 
         # Create script block to query for SMB shares
         $MyScriptBlock = { 
@@ -388,17 +489,19 @@ function Invoke-HuntSMBShares
 
         # Status user
         $AllSMBSharesCount = $AllSMBShares.count
-        Write-Output " [*] - $AllSMBSharesCount SMB shares were found."
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - $AllSMBSharesCount SMB shares were found."
         
         # Stop if no shares
         If ($AllSMBSharesCount -eq 0)
         {
-            Write-Output " [*] - Aborting."
+            $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+            Write-Output " [*][$Time] - Aborting."
             break
         }
 
         # Save results
-        Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-All.csv"
+        # Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-All.csv"
         $AllSMBShares | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-All.csv"
         $null = Convert-DataTableToHtmlTable -DataTable $AllSMBShares -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-All.html" -Title "Domain Shares" -Description "This page shows the all enumerated shares for the $TargetDomain Active Directory domain."
         $AllSMBSharesFile = "$TargetDomain-Shares-Inventory-All.csv"
@@ -409,7 +512,8 @@ function Invoke-HuntSMBShares
         # ----------------------------------------------------------------------
 
         # Status user
-        Write-Output " [*] Getting share permissions from $AllSMBSharesCount SMB shares"
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] Getting share permissions from $AllSMBSharesCount SMB shares"
 
         # Create script block to query for SMB permissions
         $MyScriptBlock = {     
@@ -496,17 +600,19 @@ function Invoke-HuntSMBShares
 
         # Status user
         $ShareACLsCount = $ShareACLs | measure | select count -ExpandProperty count
-        Write-Output " [*] - $ShareACLsCount share permissions were enumerated."       
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - $ShareACLsCount share permissions were enumerated."       
         
         # Stop if no shares ACLs were enumerated
         If ($ShareACLsCount -eq 0)
         {
-            Write-Output " [*] - Aborting."
+            $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+            Write-Output " [*][$Time] - Aborting."
             break
         }
 
         # Save results
-        Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"
+        # Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"
         $ShareACLs | where ShareName -notlike "" | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.csv"                
         $null = Convert-DataTableToHtmlTable -DataTable $ShareACLs -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-All-ACL.html" -Title "Domain Shares: All ACL Entries" -Description "This page shows all share ACL entries discovered on computers associated with the $TargetDomain Active Directory domain."
         $ShareACLsFile = "$TargetDomain-Shares-Inventory-All-ACL.csv"
@@ -517,7 +623,8 @@ function Invoke-HuntSMBShares
         # ----------------------------------------------------------------------
 
         # Status user
-        Write-Output " [*] Identifying potentially excessive share permissions"
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] Identifying potentially excessive share permissions"
 
         # Check for share that provide read/write access to common user groups
         $ExcessiveSharePrivs = foreach ($line in $ShareACLs){
@@ -541,16 +648,19 @@ function Invoke-HuntSMBShares
         $ExcessiveSharesCount = $ExcessiveShares.count
         $ExcessiveSharePrivsCount = $ExcessiveSharePrivs.count
         $ComputerWithExcessive = $ExcessiveSharePrivs | Select-Object ComputerName -Unique | Measure-Object | select count -ExpandProperty count
-        Write-Output " [*] - $ExcessiveSharePrivsCount potentially excessive privileges were found across $ComputerWithExcessive systems."
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - $ExcessiveSharePrivsCount potentially excessive privileges were found across $ComputerWithExcessive systems."
 
         # Save results
         if($ExcessiveSharesCount -ne 0){
-            Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"            
+            # Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"            
             $ExcessiveSharePrivs | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
             $null = Convert-DataTableToHtmlTable -DataTable $ExcessiveSharePrivs -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges.html" -Title "Domain Shares: ACL Entries - Excessive Privileges" -Description "This page shows all share ACL entries discovered on computers associated with the $TargetDomain Active Directory domain that appear to be configured with excessive privileges."
             $ShareACLsExFile = "$TargetDomain-Shares-Inventory-Excessive-Privileges.csv"
             $ShareACLsExFileH = "$TargetDomain-Shares-Inventory-Excessive-Privileges.html"                          
         }else{
+            $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+            Write-Output " [!][$Time] 0 excessive privileges found."
             break
         }
 
@@ -574,11 +684,12 @@ function Invoke-HuntSMBShares
         $AclWithReadCount = $SharesWithread.count
         $SharesWithReadCount = $SharesWithread | Select-Object SharePath -Unique | Measure-Object | select count -ExpandProperty count
         $ComputerWithReadCount = $SharesWithread | Select-Object ComputerName -Unique | Measure-Object | select count -ExpandProperty count
-        Write-Output " [*] - $SharesWithReadCount shares can be read across $ComputerWithReadCount systems."
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - $SharesWithReadCount shares can be read across $ComputerWithReadCount systems."
 
         # Save results
         if($SharesWithReadCount -ne 0){
-            Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
+            #Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
             $SharesWithRead | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"               
             $null = Convert-DataTableToHtmlTable -DataTable $SharesWithRead -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.html" -Title "Domain Shares: ACL Allow Read Entries" -Description "This page shows all share ACL entries discovered on computers associated with the $TargetDomain Active Directory domain that are readable."
             $ShareACLsReadFile = "$TargetDomain-Shares-Inventory-Excessive-Privileges-Read.csv"
@@ -605,11 +716,12 @@ function Invoke-HuntSMBShares
         $AclWithWriteCount = $SharesWithWrite | Measure-Object | select count -ExpandProperty count
         $SharesWithWriteCount = $SharesWithWrite | Select-Object SharePath -Unique | Measure-Object | select count -ExpandProperty count
         $ComputerWithWriteCount = $SharesWithWrite | Select-Object ComputerName -Unique | Measure-Object | select count -ExpandProperty count
-        Write-Output " [*] - $SharesWithWriteCount shares can be written to across $ComputerWithWriteCount systems."          
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - $SharesWithWriteCount shares can be written to across $ComputerWithWriteCount systems."          
 
         # Save results
         if($SharesWithWriteCount -ne 0){
-            Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"
+            # Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"
             $SharesWithWrite | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"            
             $null = Convert-DataTableToHtmlTable -DataTable $SharesWithWrite -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.html" -Title "Domain Shares: ACL Allow Write Entries" -Description "This page shows all share ACL entries discovered on computers associated with the $TargetDomain Active Directory domain that are writable."
             $ShareACLsWriteFile = "$TargetDomain-Shares-Inventory-Excessive-Privileges-Write.csv"
@@ -636,11 +748,12 @@ function Invoke-HuntSMBShares
         $AclNonDefaultCount = $SharesNonDefault | measure | select count -ExpandProperty count
         $SharesNonDefaultCount = $SharesNonDefault | Select-Object SharePath -Unique | Measure-Object | select count -ExpandProperty count
         $ComputerwithNonDefaultCount = $SharesNonDefault | Select-Object ComputerName -Unique | Measure-Object | select count -ExpandProperty count
-        Write-Output " [*] - $SharesNonDefaultCount that are considered high risk across $ComputerwithNonDefaultCount systems."
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - $SharesNonDefaultCount that are considered non-default across $ComputerwithNonDefaultCount systems."
 
         # Save results
         if($SharesNonDefaultCount-ne 0){
-            Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
+            # Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
             $SharesNonDefault | where ShareName -notlike "" | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"   
             $null = Convert-DataTableToHtmlTable -DataTable $SharesNonDefault -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.html" -Title "Domain Shares: Non-Default" -Description "This page shows all share ACL entries discovered on computers associated with the $TargetDomain Active Directory domain that are non-default."
             $ShareACLsNonDefaultFile = "$TargetDomain-Shares-Inventory-Excessive-Privileges-NonDefault.csv"
@@ -667,11 +780,12 @@ function Invoke-HuntSMBShares
         $AclHighRiskCount = $SharesHighRisk.count
         $SharesHighRiskCount = $SharesHighRisk | Select-Object SharePath -Unique | Measure-Object | select count -ExpandProperty count
         $ComputerwithHighRisk = $SharesHighRisk | Select-Object ComputerName -Unique | Measure-Object | select count -ExpandProperty count
-        Write-Output " [*] - $SharesHighRiskCount that are considered high risk across $ComputerwithHighRisk systems."
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - $SharesHighRiskCount that are considered high risk across $ComputerwithHighRisk systems."
 
         # Save results
         if($SharesHighRiskCount -ne 0){
-            Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"
+            # Write-Output " [*] - Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"
             $SharesHighRisk | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"   
 			$null = Convert-DataTableToHtmlTable -DataTable $SharesHighRisk -Outfile "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.html" -Title "Domain Shares: ACL High Risk Entries" -Description "This page shows all share ACL entries discovered on computers associated with the $TargetDomain Active Directory domain that are considered to be high risk."
             $ShareACLsHRFile = "$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"
@@ -680,6 +794,14 @@ function Invoke-HuntSMBShares
 
         $SharesHighRiskFile = "$OutputDirectory\$TargetDomain-Shares-Inventory-Excessive-Privileges-HighRisk.csv"
 
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] Scan Complete"
+
+        Write-Output " ---------------------------------------------------------------"  
+        Write-Output " SHARE ANALYSIS      "
+        Write-Output " ---------------------------------------------------------------"
+        Write-Output " [*][$Time] Analysis Start"
+        
         # ----------------------------------------------------------------------
         # Identify common excessive share owners
         # ----------------------------------------------------------------------
@@ -704,6 +826,9 @@ function Invoke-HuntSMBShares
         # Get top  5
         $CommonShareOwnersTop5 = $CommonShareOwners | Select-Object count,name -First $SampleSum 
 
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - Identified top 5 owners of excessive shares."
+
         # ----------------------------------------------------------------------
         # Identify common excessive share groups (group by file list)
         # ----------------------------------------------------------------------
@@ -722,12 +847,13 @@ function Invoke-HuntSMBShares
         # Get top  5
         $CommonShareFileGroupTop5 = $CommonShareFileGroup | Select-Object count,name,filecount -First $SampleSum 
 
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - Identified top 5 share groups."
+
         # ----------------------------------------------------------------------
         # Identify common share names
         # ----------------------------------------------------------------------
-
-        # Status user
-        Write-Output " [*] Identifying common share names"              
+             
         $CommonShareNames = $ExcessiveSharePrivs | Select-Object ComputerName,ShareName -Unique | Group-Object ShareName |Sort Count -Descending | select count,name | 
         foreach{
             if( ($_.name -ne 'SYSVOL') -and ($_.name -ne 'NETLOGON'))
@@ -755,8 +881,11 @@ function Invoke-HuntSMBShares
         $AllAccessibleSharesCount = $ExcessiveSharePrivs | Select-Object ComputerName,ShareName -Unique | measure | select count -ExpandProperty count
 
         # Write output
-        Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Common-Names.csv" 
+        #Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-Shares-Inventory-Common-Names.csv" 
         $CommonShareNames | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Inventory-Common-Names.csv"
+
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - Identified top 5 share names."
 
         # ----------------------------------------------------------------------
         # Identify excessive share creation in last n 90 days
@@ -779,6 +908,8 @@ function Invoke-HuntSMBShares
         $ExPrivCreationLastShareB = $ExPrivCreationLastBars.ShareBar
         $ExPrivCreationLastShareAclB = $ExPrivCreationLastBars.AclBar
 
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - Identified shares created in last $ShareCreationDays days."
 
         # ----------------------------------------------------------------------
         # Identify excessive share access in last n 90 days
@@ -801,6 +932,9 @@ function Invoke-HuntSMBShares
         $ExPrivAccesLastShareB = $ExPrivAccesLastBars.ShareBar
         $ExPrivAccesLastShareAclB = $ExPrivAccesLastBars.AclBar
 
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - Identified shares accessed in last $LastAccessDays days."
+
         # ----------------------------------------------------------------------
         # Identify excessive modification in last n 90 days
         # ----------------------------------------------------------------------
@@ -822,9 +956,15 @@ function Invoke-HuntSMBShares
         $ExPrivModifiedLastShareB = $ExPrivModifiedLastBars.ShareBar
         $ExPrivModifiedLastShareAclB = $ExPrivModifiedLastBars.AclBar
 
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - Identified shares modified in last $LastModDays days."
+
         # ----------------------------------------------------------------------
         # Calculate percentages
         # ----------------------------------------------------------------------
+
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        #Write-Output " [*][$Time] Generating Report:"
         
         # Set good/bad images
         $CheckBad  = '<img style="padding-top:5px;padding-left:20px;" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAGPAAABjwEeLVWuAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAAkVJREFUOI2FlLtLW3EUx78akiiCLuIgKBh1NzjEIQ4SRRShxRofiLOga/8FoakVxEUnFx91Egpurg6Kf0DS1lbULb6CV40PyKfD797eXO9Ne+As53fO597zlAIEKYI0gbSNlEO6tzVn28aRIkGxQbAPSL+QIBSCeBxGRox2dRmbBNIJ0ui/QCGkL0jQ1ATLy3B5iU/yeVhagsZGB7yIVB0ENLDBQbi99YPeytUVpFIONBOUJgwNwevr/2GOvLxAf78DfV/egBOam6FQcJ1PT2F11QsolSCT8WZwc2NKJP1GisjuJqytuU5nZ9DWZr68sODC5uaMLR6H62vXf2XF+cu0kL4SjcLdnXl8foaODsfBaCYDs7NeWyrlAgsFiERA2hTSD3p7vant7UE06gWUa0MDHB56Y3p6QMoJyWJ62l/wStAgGMD4OEiWmZ+qKv9gDg9LAwN++9SUlEj47aGQJJWE9J2+Pn835+crp+w0qlySSZCyQtqmthYeHirD6uogHK4MtSyoqQFpQ/aiw8aGeczn3ZFxanZ0BLu7XmgiYSYCYH3dsY8JKYz0k1gMikXjcH4O7e3+BjiN6u525/D+HlpbsQ9KxNmWUSRIp03KYIb7+Nhfq/19d6NKJZiYcP7u3dt9XkSCyUl4fPSD3kqxCDMzDuxT0LWpRvqMBJ2dsLPj1qhcnp5gawtisb+Xpvx8+QbQvhqLkjpUXy8lk1JLiwm9uJAODiTLkqQTSR+rpG/+ofRDw0hppE2kLJJla9a2jSGFg2L/AOl+fNdFEbGxAAAAAElFTkSuQmCC" />'
@@ -1075,9 +1215,11 @@ function Invoke-HuntSMBShares
     
         $AceDomainComputersComputerCountP = Get-PercentDisplay -TargetCount $AceDomainComputersAclCount -FullCount $ShareACLsCount
         $AceDomainComputersComputerCountPS = $AceDomainComputersComputerCountP.PercentString
-        $AceDomainComputersComputerCountPB = $AceDomainComputersComputerCountP.PercentBarVal          
+        $AceDomainComputersComputerCountPB = $AceDomainComputersComputerCountP.PercentBarVal     
         
-        Write-Output " [*] - $Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names."
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        #Write-Output " [*][$Time] - Summary report data generated."                     
+        Write-Output " [*][$Time] - $Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) shares are associated with the top 5 share names."
 
 
         # ----------------------------------------------------------------------
@@ -1086,8 +1228,9 @@ function Invoke-HuntSMBShares
         # Default depth is 3 by default
 
         # Status user
-        Write-Output " [*] Getting directory listings from $ExcessiveSharePrivsCount SMB shares"
-        Write-Output " [*] - Targeting up to $DirLevel nested directory levels"
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] Getting directory listings from $ExcessiveSharePrivsCount SMB shares"
+        Write-Output " [*][$Time] - Targeting up to $DirLevel nested directory levels"
 
         # Create script block to query for directory listing
         $MyScriptBlock = {     
@@ -1121,10 +1264,11 @@ function Invoke-HuntSMBShares
 
         # Status user
         $ShareDirListingCount = $ShareDirListing | measure | select count -ExpandProperty count
-        Write-Output " [*] - $ShareDirListingCount files and folders were enumerated."
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        Write-Output " [*][$Time] - $ShareDirListingCount files and folders were enumerated."
         
         # Write output
-        Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-Shares-Directory-Listings-Depth-$DirLevel.csv" 
+        # Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-Shares-Directory-Listings-Depth-$DirLevel.csv" 
         $ShareDirListing | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Shares-Directory-Listings-Depth-$DirLevel.csv"
                
         
@@ -1145,7 +1289,8 @@ function Invoke-HuntSMBShares
         
         # Generate last modified card 
         If($SupressTimelineRpt){
-            Write-Output " [*] Creation timeline reports have been disabled."
+            $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+            Write-Output " [*][$Time] Creation timeline reports have been disabled."            
             $CardLastModifiedTimeLine = "Share creation Timeline reports have been disabled."            
         }else{
             $CardCreationTimeLine = Get-CardCreationTime -MyDataTable $ExcessiveSharePrivs -OutFilePath "$OutputDirectory\$TargetDomain-Shares-Creation-Monthly-Summary.csv"            
@@ -1153,7 +1298,8 @@ function Invoke-HuntSMBShares
         
         # Generate last modified card 
         If($SupressTimelineRpt){
-            Write-Output " [*] Last modified timeline reports have been disabled."
+            $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+            Write-Output " [*][$Time] Last modified timeline reports have been disabled."            
             $CardLastModifiedTimeLine = "Last modified timeline reports have been disabled."            
         }else{
             $CardLastModifiedTimeLine = Get-CardLastModified -MyDataTable $ExcessiveSharePrivs -OutFilePath "$OutputDirectory\$TargetDomain-Shares-Last-Modified-Monthly-Summary.csv"            
@@ -1161,63 +1307,73 @@ function Invoke-HuntSMBShares
 
         # Generate last access card
         If($SupressTimelineRpt){
-            Write-Output " [*] Last access timeline reports have been disabled."
+            $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+            Write-Output " [*][$Time] Last access timeline reports have been disabled."
             $CardLastAccessTimeLine = "Last access timeline reports have been disabled."            
         }else{
             $CardLastAccessTimeLine = Get-CardLastAccess -MyDataTable $ExcessiveSharePrivs -OutFilePath "$OutputDirectory\$TargetDomain-Shares-Last-Accessed-Monthly-Summary.csv"            
         }  
 
+        Write-Output " [*][$Time] Analysis Complete"
+
         # ----------------------------------------------------------------------
         # Display final summary
         # ----------------------------------------------------------------------
-        Write-Output " [*] Results written to $OutputDirectory"
-        Write-Output " [*] "
+        
+        Write-Output " ---------------------------------------------------------------"
+        Write-Output " SHARE REPORT SUMMARY      "
+        Write-Output " ---------------------------------------------------------------"
+        
+        $Time =  Get-Date -UFormat "%m/%d/%Y %R"
+        #Write-Output " [*][$Time] Results written to $OutputDirectory"
+        #Write-Output " [*][$Time] "
 
         $EndTime = Get-Date
         $StopWatch.Stop()
         $RunTime = $StopWatch | Select-Object Elapsed -ExpandProperty Elapsed
 
-        Write-Output " [*] -----------------------------------------------"
-        Write-Output " [*] Get-ShareInventory Summary Report"
-        Write-Output " [*] -----------------------------------------------"
-        Write-Output " [*] Domain: $TargetDomain"
-        Write-Output " [*] Start time: $StartTime"
-        Write-Output " [*] End time: $EndTime"
-        Write-Output " [*] Run time: $RunTime"
-        Write-Output " [*] "
-        Write-Output " [*] Computer Summary"
-        Write-Output " [*] - $ComputerCount domain computers found."
-        Write-Output " [*] - $ComputerPingableCount ($PercentComputerPingP) domain computers responded to ping."
-        Write-Output " [*] - $Computers445OpenCount ($PercentComputerPortP) domain computers had TCP port 445 accessible."
-        Write-Output " [*] - $ComputerwithNonDefaultCount ($PercentComputerNonDefaultP) domain computers had shares that were non-default."  
-        Write-Output " [*] - $ComputerWithExcessive ($PercentComputerExPrivP) domain computers had shares with potentially excessive privileges."      
-        Write-Output " [*] - $ComputerWithReadCount ($PercentComputerReadP) domain computers had shares that allowed READ access."  
-        Write-Output " [*] - $ComputerWithWriteCount ($PercentComputerWriteP) domain computers had shares that allowed WRITE access."  
-        Write-Output " [*] - $ComputerwithHighRisk ($PercentComputerHighRiskP) domain computers had shares that are HIGH RISK."  
-        Write-Output " [*] "
-        Write-Output " [*] Share Summary"      
-        Write-Output " [*] - $AllSMBSharesCount shares were found. We expect a minimum of $MinExpectedShareCount shares, because $Computers445OpenCount systems had open ports and there are typically two default shares."
-        Write-Output " [*] - $SharesNonDefaultCount ($PercentSharesNonDefaultP) shares across $ComputerwithNonDefaultCount systems were non-default."
-        Write-Output " [*] - $ExcessiveSharesCount ($PercentSharesExPrivP) shares across $ComputerWithExcessive systems are configured with $ExcessiveSharePrivsCount potentially excessive ACLs."
-        Write-Output " [*] - $SharesWithReadCount ($PercentSharesReadP) shares across $ComputerWithReadCount systems allowed READ access."
-        Write-Output " [*] - $SharesWithWriteCount ($PercentSharesWriteP) shares across $ComputerWithWriteCount systems allowed WRITE access."
-        Write-Output " [*] - $SharesHighRiskCount ($PercentSharesHighRiskP) shares across $ComputerwithHighRisk systems are considered HIGH RISK."
-        Write-Output " [*] "
-        Write-Output " [*] ACL Summary"
-        Write-Output " [*] - $ShareACLsCount ACLs were found."
-        Write-Output " [*] - $AclNonDefaultCount ($PercentAclNonDefaultP) ACLs were associated with non-default shares." 
-        Write-Output " [*] - $ExcessiveSharePrivsCount ($PercentAclExPrivP) ACLs were found to be potentially excessive."               
-        Write-Output " [*] - $AclWithReadCount ($PercentAclReadP) ACLs were found that allowed READ access."  
-        Write-Output " [*] - $AclWithWriteCount ($PercentAclWriteP) ACLs were found that allowed WRITE access."                               
-        Write-Output " [*] - $AclHighRiskCount ($PercentAclHighRiskP) ACLs were found that are associated with HIGH RISK share names."
-        Write-Output " [*] "
-        Write-Output " [*] - The 5 most common share names are:"
-        Write-Output " [*] - $Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) discovered shares are associated with the top 5 share names."
+        #Write-Output " [*][$Time] -----------------------------------------------"
+        #Write-Output " [*][$Time] Get-ShareInventory Summary Report"
+        #Write-Output " [*][$Time] -----------------------------------------------"
+        Write-Output " [*][$Time] Domain: $TargetDomain"
+        Write-Output " [*][$Time] Start time: $StartTime"
+        Write-Output " [*][$Time] End time: $EndTime"
+        Write-Output " [*][$Time] Run time: $RunTime"
+        Write-Output " [*][$Time] "
+        Write-Output " [*][$Time] Computer Summary"
+        Write-Output " [*][$Time] - $ComputerCount domain computers found."
+        Write-Output " [*][$Time] - $ComputerPingableCount ($PercentComputerPingP) domain computers responded to ping."
+        Write-Output " [*][$Time] - $Computers445OpenCount ($PercentComputerPortP) domain computers had TCP port 445 accessible."
+        Write-Output " [*][$Time] - $ComputerwithNonDefaultCount ($PercentComputerNonDefaultP) domain computers had shares that were non-default."  
+        Write-Output " [*][$Time] - $ComputerWithExcessive ($PercentComputerExPrivP) domain computers had shares with potentially excessive privileges."      
+        Write-Output " [*][$Time] - $ComputerWithReadCount ($PercentComputerReadP) domain computers had shares that allowed READ access."  
+        Write-Output " [*][$Time] - $ComputerWithWriteCount ($PercentComputerWriteP) domain computers had shares that allowed WRITE access."  
+        Write-Output " [*][$Time] - $ComputerwithHighRisk ($PercentComputerHighRiskP) domain computers had shares that are HIGH RISK."  
+        Write-Output " [*][$Time] "
+        Write-Output " [*][$Time] Share Summary"      
+        Write-Output " [*][$Time] - $AllSMBSharesCount shares were found. We expect a minimum of $MinExpectedShareCount shares"
+        Write-Output " [*][$Time]   because $Computers445OpenCount systems had open ports and there are typically two default shares."
+        Write-Output " [*][$Time] - $SharesNonDefaultCount ($PercentSharesNonDefaultP) shares across $ComputerwithNonDefaultCount systems were non-default."
+        Write-Output " [*][$Time] - $ExcessiveSharesCount ($PercentSharesExPrivP) shares across $ComputerWithExcessive systems are configured with $ExcessiveSharePrivsCount potentially excessive ACLs."
+        Write-Output " [*][$Time] - $SharesWithReadCount ($PercentSharesReadP) shares across $ComputerWithReadCount systems allowed READ access."
+        Write-Output " [*][$Time] - $SharesWithWriteCount ($PercentSharesWriteP) shares across $ComputerWithWriteCount systems allowed WRITE access."
+        Write-Output " [*][$Time] - $SharesHighRiskCount ($PercentSharesHighRiskP) shares across $ComputerwithHighRisk systems are considered HIGH RISK."
+        Write-Output " [*][$Time] "
+        Write-Output " [*][$Time] ACL Summary"
+        Write-Output " [*][$Time] - $ShareACLsCount ACLs were found."
+        Write-Output " [*][$Time] - $AclNonDefaultCount ($PercentAclNonDefaultP) ACLs were associated with non-default shares." 
+        Write-Output " [*][$Time] - $ExcessiveSharePrivsCount ($PercentAclExPrivP) ACLs were found to be potentially excessive."               
+        Write-Output " [*][$Time] - $AclWithReadCount ($PercentAclReadP) ACLs were found that allowed READ access."  
+        Write-Output " [*][$Time] - $AclWithWriteCount ($PercentAclWriteP) ACLs were found that allowed WRITE access."                               
+        Write-Output " [*][$Time] - $AclHighRiskCount ($PercentAclHighRiskP) ACLs were found that are associated with HIGH RISK share names."
+        Write-Output " [*][$Time] "
+        Write-Output " [*][$Time] - The 5 most common share names are:"
+        Write-Output " [*][$Time] - $Top5ShareCountTotal of $AllAccessibleSharesCount ($DupPercent) discovered shares are associated with the top 5 share names."
         $CommonShareNamesTop5 |
         foreach {
             $ShareCount = $_.count
             $ShareName = $_.name
-            Write-Output " [*]   - $ShareCount $ShareName"   
+            Write-Output " [*][$Time]   - $ShareCount $ShareName"   
         }
         Write-Output " [*] -----------------------------------------------"
         
@@ -3790,9 +3946,8 @@ for (i = 0; i < coll.length; i++) {
 </body>
 </html>
 "@
-$NewHtmlReport | Out-File "$OutputDirectory\_Report-$TargetDomain-Share-Inventory-Summary.html"
-$NewHtmlReport | Out-File "$OutputDirectory\index.html"
-Write-Output " [*] Saving results to $OutputDirectory\_Report-$TargetDomain-Share-Inventory-Summary.html"     
+$NewHtmlReport | Out-File "$OutputDirectoryBase\Smb-Share-Summary-Report-$TargetDomain.html"
+# Write-Output " [*] Saving results to $OutputDirectory\_Report-$TargetDomain-Share-Inventory-Summary.html"     
                 
         # ----------------------------------------------------------------------
         # Generate Excessive Privilege Findings
@@ -4046,7 +4201,7 @@ The 5 most common share names are:
             $object | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-Excessive-Privileges-EXPORT.csv" -Append
         }       
         
-        Write-Output " [*] Results exported to $OutputDirectory\$TargetDomain-Excessive-Privileges-EXPORT.csv"               
+        #Write-Output " [*] Results exported to $OutputDirectory\$TargetDomain-Excessive-Privileges-EXPORT.csv"               
     }
 }
 
@@ -4922,9 +5077,11 @@ function Get-PercentDisplay
         $FullCount
     )
 
-    $Percent = [math]::Round($TargetCount/$FullCount,4)
-    $PercentString = $Percent.tostring("P") -replace(" ","")
-    $PercentBarVal = ($Percent *2).tostring("P") -replace(" %","px")
+    if($FullCount -ne 0){
+        $Percent = [math]::Round($TargetCount/$FullCount,4)
+        $PercentString = $Percent.tostring("P") -replace(" ","")
+        $PercentBarVal = ($Percent *2).tostring("P") -replace(" %","px")
+    }
 
     # Return object with all counts
     $TheCounts = new-object psobject            
@@ -5102,8 +5259,10 @@ function Get-GroupFileBar
 
     # Get computer counts
     $UserComputer = $UserAcls | Select-Object ComputerName -Unique
-    $UserComputerCount = $UserComputer | measure | select count -ExpandProperty count   
-    $UserComputerPercent = [math]::Round($UserComputerCount/$AllComputerCount,4)
+    $UserComputerCount = $UserComputer | measure | select count -ExpandProperty count
+    if($AllComputerCount -ne 0){   
+        $UserComputerPercent = [math]::Round($UserComputerCount/$AllComputerCount,4)
+    }
     $UserComputerPercentString = $UserComputerPercent.tostring("P") -replace(" ","")
     $UserComputerPercentBarVal = ($UserComputerPercent *2).tostring("P") -replace(" %","px")
     $UserComputerPercentBarCode = "<span class=`"dashboardsub2`">$UserComputerPercentString ($UserComputerCount of $AllComputerCount)</span><br><div class=`"divbarDomain`"><div class=`"divbarDomainInside`" style=`"width: $UserComputerPercentString;`"></div></div>"
