@@ -326,7 +326,8 @@ Function Get-PublicAwsS3BucketListFromDomains
 
         # Process domain names provided as a parameter or pipeline item
         if($S3Bucket){
-            $CleanBucket = $S3Bucket.Replace("mail.", "").Replace("www.", "").split('.')[0] 
+            #$CleanBucket = $S3Bucket.Replace("mail.", "").Replace("www.", "").split('.')[0] 
+            $CleanBucket = $S3Bucket
             $List_PrePerm.Add("$CleanBucket") | Out-Null
             
             # Standalone word
