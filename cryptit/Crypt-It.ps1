@@ -191,15 +191,15 @@ Function Crypt-It
                         throw new ArgumentNullException("sharedSecret");
 
                     string outStr = null;                       // Encrypted string to return
-                    RijndaelManaged aesAlg = null;              // RijndaelManaged object used to encrypt the data.
+                    Aes aesAlg = null;              // Aes object used to encrypt the data.
 
                     try
                     {
                         // generate the key from the shared secret and the salt
                         Rfc2898DeriveBytes key = new Rfc2898DeriveBytes(sharedSecret, _salt);
 
-                        // Create a RijndaelManaged object
-                        aesAlg = new RijndaelManaged();
+                        // Create a Aes object
+                        aesAlg = Aes.Create();
                         aesAlg.Key = key.GetBytes(aesAlg.KeySize / 8);
                         aesAlg.Mode = CipherMode.ECB;
 
@@ -225,7 +225,7 @@ Function Crypt-It
                     }
                     finally
                     {
-                        // Clear the RijndaelManaged object.
+                        // Clear the Aes object.
                         if (aesAlg != null)
                             aesAlg.Clear();
                     }
@@ -244,9 +244,9 @@ Function Crypt-It
                     if (string.IsNullOrEmpty(sharedSecret))
                         throw new ArgumentNullException("sharedSecret");
 
-                    // Declare the RijndaelManaged object
+                    // Declare the Aes object
                     // used to decrypt the data.
-                    RijndaelManaged aesAlg = null;
+                    Aes aesAlg = null;
 
                     // Declare the string used to hold
                     // the decrypted text.
@@ -261,9 +261,9 @@ Function Crypt-It
                         byte[] bytes = Convert.FromBase64String(cipherText);
                         using (MemoryStream msDecrypt = new MemoryStream(bytes))
                         {
-                            // Create a RijndaelManaged object
+                            // Create a Aes object
                             // with the specified key and IV.
-                            aesAlg = new RijndaelManaged();
+                            aesAlg = Aes.Create();
                             aesAlg.Key = key.GetBytes(aesAlg.KeySize / 8);
                             aesAlg.Mode = CipherMode.ECB;
                     
@@ -283,7 +283,7 @@ Function Crypt-It
                     }
                     finally
                     {
-                        // Clear the RijndaelManaged object.
+                        // Clear the Aes object.
                         if (aesAlg != null)
                             aesAlg.Clear();
                     }
@@ -605,7 +605,7 @@ Function Crypt-It
                 byte[] passwordBytes = System.Text.Encoding.UTF8.GetBytes(password);
 
                 //Set Rijndael symmetric encryption algorithm
-                RijndaelManaged AES = new RijndaelManaged();
+                Aes AES = Aes.Create();
                 AES.KeySize = 256;
                 AES.BlockSize = 128;
                 AES.Padding = PaddingMode.PKCS7;
@@ -665,7 +665,7 @@ Function Crypt-It
                 FileStream fsCrypt = new FileStream(inputFile, FileMode.Open);
                 fsCrypt.Read(salt, 0, salt.Length);
 
-                RijndaelManaged AES = new RijndaelManaged();
+                Aes AES = Aes.Create();
                 AES.KeySize = 256;
                 AES.BlockSize = 128;
                 var key = new Rfc2898DeriveBytes(passwordBytes, salt, 50000);
@@ -753,7 +753,7 @@ Function Crypt-It
             byte[] passwordBytes = System.Text.Encoding.UTF8.GetBytes(aesPassword);
 
             //Set Rijndael symmetric encryption algorithm
-            RijndaelManaged AES = new RijndaelManaged();
+            Aes AES = Aes.Create();
             AES.KeySize = 256;
             AES.BlockSize = 128;
             AES.Padding = PaddingMode.PKCS7;
