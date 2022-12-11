@@ -3,8 +3,15 @@
 # ------------------------------------------
 # Author: Scott Sutherland, NetSPI
 # License: 3-clause BSD
-# Version 1.2.4
+# Version 1.3.11
 # Requires PowerUpSQL
+<#
+Change data tables to psobjects and write to file using append
+Fix console and html report summaries
+Add findings for sp and agent passwords
+Add new test for linked servers
+Add new test for dangerious xp
+#>
 function Invoke-HuntSQLServers
 {
     <#
@@ -40,14 +47,19 @@ function Invoke-HuntSQLServers
             Run as current domain user on domain joined system.  Target all instances found during SPN discovery.
             Also, check for management servers that commonly have unregistered instances via additional UDP scan.
             PS C:\> Invoke-HuntSQLServers -CheckAll -CheckMgmt -OutputDirectory C:\temp\
+            .EXAMPLE
+            Run as current domain user on domain joined system.  Target all instances found during SPN discovery.
+            Also, check for management servers that commonly have unregistered instances via additional UDP scan.
+			Also, export to a Resolve importable format.
+            PS C:\> Invoke-HuntSQLServers -CheckAll -CheckMgmt -OutputDirectory C:\temp\ 		
              .EXAMPLE
             Run as alernative domain user against alertative domain:
             PS C:\> runas /netonly /user domain\user powershell_ise.exe
             PS C:\> import-module PowerUpSQL 
             PS C:\> Invoke-HuntSQLServers -CheckAll -OutputDirectory C:\temp\ -DomainController 192.168.1.1 -Username domain\user -Password MyPassword
             .EXAMPLE
-            Full output example.
-            PS C:\> Invoke-HuntSQLServers -OutputDirectory C:\temp\
+            Full output example with export format.
+            PS C:\> Invoke-HuntSQLServers -OutputDirectory C:\temp\ 
 
               ----------------------------------------------------------------
              | Invoke-HuntSQLServers                                          |
@@ -213,7 +225,7 @@ function Invoke-HuntSQLServers
               o 0 stored procedures potentially contain passwords. *requires sysadmin
   
               ----------------------------------------------------------------
-             [*] Saving results to C:\temp\demo.com-Share-Inventory-Summary-Report.html
+             [*] Saving results to C:\temp\demo.com-Share-Inventory-Summary-Report.html			
     #>    
     [CmdletBinding()]
     Param(
@@ -334,7 +346,16 @@ function Invoke-HuntSQLServers
           Write-Output " [*] - There appears to have been an error connecting to the domain controller."
           Write-Output " [*] - Aborting."
           break
-        }  
+        }   
+        
+        # Create finding object
+        $AllFindings = New-Object System.Data.DataTable
+        $null = $AllFindings.Columns.Add("MasterFindingSourceIdentifier")  
+        $null = $AllFindings.Columns.Add("InstanceName")
+        $null = $AllFindings.Columns.Add("AssetName") 
+        $null = $AllFindings.Columns.Add("IssueFirstFoundDate")
+        $null = $AllFindings.Columns.Add("VerificationCaption01") 
+        $null = $AllFindings.Columns.Add("VerificationText01")       
    }
 
    Process
@@ -418,7 +439,7 @@ function Invoke-HuntSQLServers
             # Attempt to log into instances that found via SPNs
             Write-Output " [*] Attempting to log into $AllInstancesCount instances found via SPN query."
             $LoginAccess = $AllInstances | Get-SQLServerInfoThreaded -Threads 100
-            $LoginAccessCount = $LoginAccess.count 
+            $LoginAccessCount = $LoginAccess| measure-object | select count -ExpandProperty count 
             Write-Output " [*] - $LoginAccessCount could be logged into."
             $LoginAccess | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-LoginAccess.csv"    
 
@@ -427,23 +448,148 @@ function Invoke-HuntSQLServers
             # Attempt to log into instances that responded to UDP
             Write-Output " [*] Attempting to log into $UDPInstancesCount instances that responded to UDP scan."
             $LoginAccess = $UDPInstances | Get-SQLServerInfoThreaded -Threads 100
-            $LoginAccessCount = $LoginAccess.count 
+            $LoginAccessCount = $LoginAccess | measure-object | select count -ExpandProperty count 
             Write-Output " [*] - $LoginAccessCount could be logged into."
             $LoginAccess | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-LoginAccess.csv"
+        } 
+        
+        # Add to findings
+        If ($LoginAccessCount -gt 0){
+
+            # Add finding for each accessible isntance
+            $LoginAccess | 
+            foreach{
+
+            # Defined data for finding
+            $aComputerName = $_.ComputerName
+            $aInstance = $_.Instance
+            $DomainName = $_.DomainName
+            $ServiceName = $_.ServiceName
+            $ServiceAccount = $_.ServiceAccount
+            $AuthenticationMode = $_.AuthenticationMode
+            $Clustered = $_.Clustered
+            $SQLServerVersionNumber = $_.SQLServerVersionNumber
+            $SQLServerMajorVersion = $_.SQLServerMajorVersion
+            $SQLServerEdition = $_.SQLServerEdition
+            $SQLServerServicePack = $_.SQLServerServicePack
+            $OSArchitecture = $_.OSArchitecture
+            $OsMachineType = $_.OsMachineType
+            $OSVersionName = $_.OSVersionName
+            $OsVersionNumber = $_.OsVersionNumber
+            $Currentlogin = $_.Currentlogin
+            $IsSysadmin = $_.IsSysadmin
+            $ActiveSessions = $_.ActiveSessions                                
+
+            # Define verification data object
+            $ShareDetails = @"
+ComputerName: $aComputerName
+Instance: $aInstance
+DomainName: $DomainName
+ServiceName: $ServiceName
+ServiceAccount: $ServiceAccount
+AuthenticationMode: $AuthenticationMode
+Clustered: $Clustered
+SQLServerVersionNumber: $SQLServerVersionNumber
+SQLServerMajorVersion: $SQLServerMajorVersion
+SQLServerEdition: $SQLServerEdition
+SQLServerServicePack: $SQLServerServicePack
+OSArchitecture: $OSArchitecture
+OsMachineType: $OsMachineType
+OSVersionName: $OSVersionName
+OsVersionNumber: $OsVersionNumber
+Currentlogin: $Currentlogin
+IsSysadmin: $IsSysadmin
+ActiveSessions: $ActiveSessions
+"@
+
+            # Define date/time
+            $CurrentDate = Date
+
+            # Add findings to the list
+            $null = $AllFindings.Rows.Add("MAN:M:8c7437f9-080f-4ae3-95dc-08b86504a7b3",
+                                         "Excessive Privileges - SQL Server Login",
+                                         $aComputerName,         
+                                         $StartTime,
+                                         "The $Currentlogin user was able to log into the $aInstance SQL Server instance.",
+                                         $ShareDetails)                
+              }
+        }else{
+            Write-Output " [*] No SQL Server instances could be logged into"
+            break
         }
+        
 
         # Filter for instances with sysadmin privileges
         Write-Output " [*] Listing sysadmin access."
         $LoginAccessSysadmin = $LoginAccess | Where-Object IsSysadmin -like "Yes"
-        $LoginAccessSysadminCount = $LoginAccessSysadmin.count 
+        $LoginAccessSysadminCount = $LoginAccessSysadmin | Measure-Object | select count -ExpandProperty count
         Write-Output " [*] - $LoginAccessSysadminCount SQL Server instances provided sysadmin privileges."
         $LoginAccessSysadmin | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-LoginAccess-Sysadmin.csv"
+
+        # Add to findings
+        if($LoginAccessSysadminCount -gt 0){
+                $LoginAccessSysadmin | 
+                foreach{
+                    $aComputerName = $_.ComputerName
+                    $aInstance = $_.Instance
+                    $DomainName = $_.DomainName
+                    $ServiceName = $_.ServiceName
+                    $ServiceAccount = $_.ServiceAccount
+                    $AuthenticationMode = $_.AuthenticationMode
+                    $Clustered = $_.Clustered
+                    $SQLServerVersionNumber = $_.SQLServerVersionNumber
+                    $SQLServerMajorVersion = $_.SQLServerMajorVersion
+                    $SQLServerEdition = $_.SQLServerEdition
+                    $SQLServerServicePack = $_.SQLServerServicePack
+                    $OSArchitecture = $_.OSArchitecture
+                    $OsMachineType = $_.OsMachineType
+                    $OSVersionName = $_.OSVersionName
+                    $OsVersionNumber = $_.OsVersionNumber
+                    $Currentlogin = $_.Currentlogin
+                    $IsSysadmin = $_.IsSysadmin
+                    $ActiveSessions = $_.ActiveSessions                                
+
+                # Define verification data
+                $ShareDetails = @"
+ComputerName: $aComputerName
+Instance: $aInstance
+DomainName: $DomainName
+ServiceName: $ServiceName
+ServiceAccount: $ServiceAccount
+AuthenticationMode: $AuthenticationMode
+Clustered: $Clustered
+SQLServerVersionNumber: $SQLServerVersionNumber
+SQLServerMajorVersion: $SQLServerMajorVersion
+SQLServerEdition: $SQLServerEdition
+SQLServerServicePack: $SQLServerServicePack
+OSArchitecture: $OSArchitecture
+OsMachineType: $OsMachineType
+OSVersionName: $OSVersionName
+OsVersionNumber: $OsVersionNumber
+Currentlogin: $Currentlogin
+IsSysadmin: $IsSysadmin
+ActiveSessions: $ActiveSessions
+"@
+
+                # Define date/time
+                $CurrentDate = Date
+
+                # Add findings to the list
+                $null = $AllFindings.Rows.Add("MAN:M:e9b862c0-2729-450e-9d16-2a02074f9327",
+                                     "Excessive Privileges - SQL Server Login - Sysadmin Role",
+                                     $aComputerName,         
+                                     $StartTime,
+                                     "The $Currentlogin user was able to log into the $aInstance SQL Server instance.",
+                                     $ShareDetails)
+            }
+
+        }
 
         # Attempt to obtain a list of role members from SQL Server instance (requrie sysadmin)
         Write-Output " [*] Attempting to grab role members from $LoginAccessCount instances."
         Write-Output " [*] - This usually requires special privileges"
         $RoleMembers = $LoginAccess | Get-SQLServerRoleMember
-        $RoleMembersCount = $RoleMembers.count 
+        $RoleMembersCount = $RoleMembers | measure-object | select count -ExpandProperty count
         Write-Output " [*] - $RoleMembersCount role members were found."
         $RoleMembers | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-RoleMembers.csv"
 
@@ -458,9 +604,91 @@ function Invoke-HuntSQLServers
                 $_
             }            
         }
-        $ExcessiveRoleMembershipsCount = $ExcessiveRoleMemberships.count
+        $ExcessiveRoleMembershipsCount = $ExcessiveRoleMemberships | Measure-Object | select count -ExpandProperty count
         Write-Output " [*] - $ExcessiveRoleMembershipsCount were found."
         $ExcessiveRoleMemberships | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-RoleMembers-Excessive.csv"
+        
+        # Add finding
+        If($ExcessiveRoleMembershipsCount -gt 0){
+
+            $ExcessiveRoleMemberships |
+            Foreach {
+                # Verification data
+                $aComputerName = $_.ComputerName
+                $aInstance = $_.Instance 
+                $RolePrincipalId = $_.RolePrincipalId 
+                $RolePrincipalName = $_.RolePrincipalName
+                $PrincipalId = $_.PrincipalId
+                $PrincipalName = $_.PrincipalName
+
+                # Get date/time
+                $CurrentDate = Date
+
+                # Define Verification details
+                $ShareDetails = @"
+ComputerName: $aComputerName
+Instance: $aInstance 
+RolePrincipalId: $RolePrincipalId 
+RolePrincipalName: $RolePrincipalName
+PrincipalId: $PrincipalId
+PrincipalName: $PrincipalName
+"@
+
+                # Add finding to list
+                $null = $AllFindings.Rows.Add("MAN:M:afbd6d8b-36cb-4c99-bfc1-d3668b165c8b",
+                                         "Excessive Privileges - SQL Server Login - Privileged Role",
+                                         $aComputerName,         
+                                         $StartTime,
+                                         "On the $aInstance SQL Server instance, the $PrincipalName login was provided the $RolePrincipalName role. This should be reviewed to ensure it's not providing excessive privileges.",
+                                         $ShareDetails)
+           }
+        }
+
+        Write-Output " [*] Attempting to grab permission from $LoginAccessCount instances."
+        Write-Output " [*] - This usually requires special privileges"
+        $Permissions = $LoginAccess | Get-SQLServerPriv | where permissionname -NotLike "*connect*" | where granteename -notlike "*#*" | where granteename -notlike "*NT SERVICE*" | where granteename -notlike "*NT AUTHORITY\SYSTEM*" 
+        $PermissionsCount = $Permissions | measure-object | select count -ExpandProperty count
+        Write-Output " [*] - $PermissionsCount permissions were found."
+        $Permissions | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-Permissions.csv"
+        
+        # Add finding
+        if($PermissionsCount -gt 0){
+            $Permissions | 
+            Foreach {
+            
+                # Add fields
+                $aComputerName = $_.ComputerName
+                $GranteeName = $_.GranteeName
+                $GrantorName = $_.GrantorName 
+                $aInstance = $_.Instance
+                $ObjectName = $_.ObjectName
+                $ObjectType = $_.ObjectType 
+                $PermissionClass = $_.PermissionClass
+                $PermissionName = $_.PermissionName
+                $PermissionState = $_.PermissionState
+
+                # Create verification item
+                $ShareDetails = @"
+ComputerName: $aComputerName
+Instance: $aInstance
+GranteeName: $GranteeName
+GrantorName: $GrantorName 
+ObjectName: $ObjectName
+ObjectType: $ObjectType 
+PermissionClass: $PermissionClass
+PermissionName: $PermissionName
+PermissionState: $PermissionState
+"@
+
+                # Add finding
+                $null = $AllFindings.Rows.Add("MAN:M:4a9f4fbf-477e-430d-9ae1-a13f46ea591e",
+                                         "Excessive Privileges - SQL Server Login - Permissions",
+                                         $aComputerName,         
+                                         $StartTime,
+                                         "On the $aInstance SQL Server instance, the $PrincipalName login was provided the $PermissionName permission. This should be reviewed to ensure it's not providing excessive privileges.",
+                                         $ShareDetails)
+            }
+        }
 
         # Create a list of share service accounts from the instance information
         if($TargetsFile)
@@ -468,11 +696,66 @@ function Invoke-HuntSQLServers
             Write-Output " [*] Shared service accounts will not be identified, because SPN informatin is required."            
         }else{
             Write-Output " [*] Identifying shared SQL Server service accounts."
-            $SharedAccounts = $AllInstances |  Group-Object DomainAccount | Sort-Object Count -Descending  | Where Count -GT 4 |  Select Count, Name
-            $SharedAccountsCount = $SharedAccounts.count
+            $SharedAccounts = $AllInstances | Group-Object DomainAccount | Sort-Object Count -Descending  | Where Count -GT 2 |  Select Count, Name
+            $SharedAccountsCount = $SharedAccounts |  Measure-Object | Select count -ExpandProperty count
             Write-Output " [*] - $SharedAccountsCount shared accounts were found."
             $SharedAccounts | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-SharedAccounts.csv"
         }
+
+        # Add finding
+        If($SharedAccountsCount -gt 0){
+
+            # Foreach share account
+            $SharedAccounts | 
+            Foreach{
+                
+                $ShareAccountName = $_.Name
+                $ShareAccountNameCount = $_.Count
+
+                # Get a list of affected instances
+                $AffectedInstances = $AllInstances | Where DomainAccount -like "$ShareAccountName"
+
+                # Foreach affected instance add record
+                $AffectedInstances| 
+                Foreach{
+
+                    # Get Data
+                    $aComputerName = $_.ComputerName
+                    $aInstance = $_.Instance
+                    $Description = $_.Description
+                    $DomainAccount = $_.DomainAccount 
+                    $DomainAccountCn = $_.DomainAccountCn
+                    $DomainAccountSid = $_.DomainAccountSid                    
+                    $LastLogon = $_.LastLogon
+                    $Service = $_.Service
+                    $Spn = $_.Spn
+
+                    # Make verification item
+                    $ShareDetails = @"
+ComputerName: $aComputerName
+Instance: $aInstance
+Description: $Description
+DomainAccount: $DomainAccount 
+DomainAccountCn: $DomainAccountCn
+DomainAccountSid: $DomainAccountSid
+LastLogon: $LastLogon
+Service: $Service
+Spn: $Spn
+"@
+
+                    # Add Findings
+                    $null = $AllFindings.Rows.Add("MAN:M:691129",
+                                         "Account Management - Shared SQL Server Service Account",
+                                         $aComputerName,         
+                                         $StartTime,
+                                         "The $aInstance instance's service is run using the account $DomainAccount. That account is used to run $ShareAccountNameCount other instances. ",
+                                         $ShareDetails)                                   
+                    
+                }
+            }
+           
+        }
+        
 
         # Create a summary of the affected SQL Server versions
         Write-Output " [*] Creating a list of accessible SQL Server instance versions."
@@ -482,7 +765,7 @@ function Invoke-HuntSQLServers
         $SQLServerVersions | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-VersionSummary.csv"
                   
         # ------------------------------------------
-        # Data Discovery: Databse Targets
+        # Data Discovery: Database Targets
         # ------------------------------------------
 
         Write-Output " [*] -------------------------------------------------------------"
@@ -492,53 +775,136 @@ function Invoke-HuntSQLServers
         # Get a list of all accessible non-default databases from SQL Server instances
         Write-Output " [*] Querying for all non-default accessible databases."
         $Databases = $LoginAccess | Get-SQLDatabaseThreaded -NoDefaults -HasAccess
-        $DatabasesCount = $Databases.count
+        $DatabasesCount = $Databases | Measure-Object | Select count -ExpandProperty count
         Write-Output " [*] - $DatabasesCount accessible non-default databases were found."
         $Databases | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases.csv"
+        
+        # Add finding
+            $Databases | 
+            Foreach {
+            
+                $aComputerName = $_.ComputerName
+                $aInstance = $_.Instance
+                $aDatabaseId = $_.DatabaseId
+                $aDatabaseName = $_.DatabaseName
+                $aDatabaseOwner = $_.DatabaseOwner
+                $aOwnerIsSysadmin = $_.OwnerIsSysadmin
+                $ais_trustworthy_on = $_.is_trustworthy_on
+                $ais_db_chaining_on = $_.is_db_chaining_on
+                $ais_broker_enabled = $_.is_broker_enabled
+                $ais_encrypted = $_.is_encrypted
+                $ais_read_only = $_.is_read_only
+                $acreate_date = $_.create_date
+                $arecovery_model_desc = $_.recovery_model_desc
+                $aFileName = $_.FileName
+                $aDbSizeMb = $_.DbSizeMb
+                $ahas_dbaccess = $_.has_dbaccess
+
+$ShareDetails =  @"
+ComputerName: = $aComputerName
+Instance: $aInstance
+DatabaseId: $aDatabaseId
+DatabaseName: $aDatabaseName
+DatabaseOwner: $aDatabaseOwner
+OwnerIsSysadmin: $aOwnerIsSysadmin
+is_trustworthy_on: $ais_trustworthy_on
+is_db_chaining_on: $ais_db_chaining_on
+is_broker_enabled: $ais_broker_enabled
+is_encrypted: $ais_encrypted
+is_read_only: $a.is_read_only
+create_date: $acreate_date
+recovery_model_desc: $arecovery_model_desc
+FileName: $aFileName
+DbSizeMb: $aDbSizeMb
+has_dbaccess: $ahas_dbaccess
+"@
+                # Get date/time
+                $CurrentDate = Date
+
+                # Add finding to list
+                $null = $AllFindings.Rows.Add("MAN:M:40ffca5b-d8c9-4f36-9fff-6b56a4aaa2cb",
+                                     "Excessive Privileges - SQL Server Login - Non Default Database",
+                                     $aComputerName,         
+                                     $StartTime,
+                                     "On the $aInstance SQL Server instance, the $aDatabaseName database was found accessible.",
+                                     $ShareDetails)                
+            }
 
         # Filter for potential high value databases if transparent encryption is used
         Write-Output " [*] Filtering for databases using transparent encryption."
         $DatabasesEnc = $Databases | Where-Object {$_.is_encrypted -eq "TRUE"} 
-        $DatabasesEncCount =  $DatabasesEnc.count
+        $DatabasesEncCount =  $DatabasesEnc| Measure-Object | Select count -ExpandProperty count
         Write-Output " [*] - $DatabasesEncCount databases were found using encryption."
         $DatabasesEnc | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases-Encrypted.csv"
 
-        # Filter for potential high value databases based on keywords       
-        Write-Output " [*] Filtering for databases with names that contain ACH."
-        $DatabasesACH = $Databases | Where-Object {$_.DatabaseName -like "*ACH*"} 
-        $DatabasesACHCount = $DatabasesACH.count
-        Write-Output " [*] - $DatabasesACHCount database names contain ACH."
-        $DatabasesACH | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases-ach.csv"
+        # Define database name keywords to look for
+        $DbNameKeyWords = @(    'ACH',
+                                'finance',
+                                'pci',
+                                'card',
+                                'chd',
+                                'pos',
+                                'enclave')
+             
+        # Filter for potential high value databases based on keywords        
+        $DbNameKeyWords | 
+        Foreach{      
+            $DbKeyword = $_
+            Write-Output " [*] Filtering for databases with names that contain $DbKeyword "
+            $DatabasesFound = $Databases | Where-Object {$_.DatabaseName -like "*$DbKeyword*"} 
+            $DatabasesFoundCount = $DatabasesFound | Measure-Object | Select count -ExpandProperty count
+            Write-Output " [*] - $DatabasesFoundCount database names contain $DbKeyword"
+            $DatabasesFound | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases-$DbKeyword.csv"
+            $DatabasesFound | 
+            Foreach {
+            
+                $aComputerName = $_.ComputerName
+                $aInstance = $_.Instance
+                $aDatabaseId = $_.DatabaseId
+                $aDatabaseName = $_.DatabaseName
+                $aDatabaseOwner = $_.DatabaseOwner
+                $aOwnerIsSysadmin = $_.OwnerIsSysadmin
+                $ais_trustworthy_on = $_.is_trustworthy_on
+                $ais_db_chaining_on = $_.is_db_chaining_on
+                $ais_broker_enabled = $_.is_broker_enabled
+                $ais_encrypted = $_.is_encrypted
+                $ais_read_only = $_.is_read_only
+                $acreate_date = $_.create_date
+                $arecovery_model_desc = $_.recovery_model_desc
+                $aFileName = $_.FileName
+                $aDbSizeMb = $_.DbSizeMb
+                $ahas_dbaccess = $_.has_dbaccess
 
-        Write-Output " [*] Filtering for databases with names that contain finance."
-        $DatabasesFinance  = $Databases | Where-Object {$_.DatabaseName -like "*finance*"} 
-        $DatabasesFinanceCount = $DatabasesFinance.count
-        Write-Output " [*] - $DatabasesFinanceCount database names contain finance."
-        $DatabasesFinance | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases-finance.csv"
+$ShareDetails =  @"
+ComputerName: = $aComputerName
+Instance: $aInstance
+DatabaseId: $aDatabaseId
+DatabaseName: $aDatabaseName
+DatabaseOwner: $aDatabaseOwner
+OwnerIsSysadmin: $aOwnerIsSysadmin
+is_trustworthy_on: $ais_trustworthy_on
+is_db_chaining_on: $ais_db_chaining_on
+is_broker_enabled: $ais_broker_enabled
+is_encrypted: $ais_encrypted
+is_read_only: $a.is_read_only
+create_date: $acreate_date
+recovery_model_desc: $arecovery_model_desc
+FileName: $aFileName
+DbSizeMb: $aDbSizeMb
+has_dbaccess: $ahas_dbaccess
+"@
+                # Get date/time
+                $CurrentDate = Date
 
-        Write-Output " [*] Filtering for databases with names that contain pci."
-        $DatabasesPCI = $Databases | Where-Object {$_.DatabaseName -like "*pci*"}
-        $DatabasesPCICount = $DatabasesPCI.count
-        Write-Output " [*] - $DatabasesPCICount database names contain pci."
-        $DatabasesPCI | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases-pci.csv" 
-
-        Write-Output " [*] Filtering for databases with names that contain chd."
-        $DatabasesCHD = $Databases | Where-Object {$_.DatabaseName -like "*chd*"} 
-        $DatabasesCHDCount = $DatabasesCHD.count
-        Write-Output " [*] - $DatabasesCHDCount database names contain chd."
-        $DatabasesCHD | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases-chd.csv"
-
-        Write-Output " [*] Filtering for databases with names that contain enclave."
-        $DatabasesEnclave = $Databases | Where-Object {$_.DatabaseName -like "*enclave*"}
-        $DatabasesEnclaveCount = $DatabasesEnclave.count
-        Write-Output " [*] - $DatabasesEnclaveCount database names contain enclave."
-        $DatabasesEnclave | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases-enclave.csv"
-
-        Write-Output " [*] Filtering for databases with names that contain pos."
-        $DatabasesPOS = $Databases | Where-Object {$_.DatabaseName -like "*pos*"} 
-        $DatabasesPOSCount = $DatabasesPOS.count
-        Write-Output " [*] - $DatabasesPOSCount database names contain pos."
-        $DatabasesPOS | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases-pos.csv"
+                # Add finding to list
+                $null = $AllFindings.Rows.Add("MAN:M:abf35a11-a2da-401c-a23e-ab5584909633",
+                                     "Excessive Privileges - SQL Server Login - Sensitive Database Name",
+                                     $aComputerName,         
+                                     $StartTime,
+                                     "On the $aInstance SQL Server instance, the $aDatabaseName database was found accessible and it's name contains `"$DbKeyword`", which could indicate sensitive data exposure.",
+                                     $ShareDetails)                
+            }
+        }
 
         # ------------------------------------------
         # Data Discovery: Sensitive Data Targets
@@ -548,25 +914,63 @@ function Invoke-HuntSQLServers
         Write-Output " [*] SENSITIVE DATA TARGET DISCOVERY"
         Write-Output " [*] -------------------------------------------------------------"
 
-        # Target Social security numbers via column name
-        Write-Output " [*] Search accessible non-default databases for table names containing SSN."
-        $SSNNumbers = $LoginAccess | Get-SQLColumnSampleDataThreaded -SampleSize 2 -NoDefaults -Threads 20 -Keywords "ssn"
-        $SSNNumbersCount = $SSNNumbers.count
-        Write-Output " [*] - $SSNNumbersCount table columns found containing SSN."
-        $SSNNumbers | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Data-ssn.csv"
+        # Define table column name keywords to look for
+        $ColumnNameKeyWords = @('ssn',
+                                'card',
+                                'credit',
+                                'card')
 
-        # Target credit numbers via column name
-        Write-Output " [*] Search accessible non-default databases for table names containing CARD."
-        $ccCards = $LoginAccess | Get-SQLColumnSampleDataThreaded -SampleSize 2 -NoDefaults -ValidateCC -Threads 20 -Keywords "card"
-        $ccCardsCount = $ccCards.count
-        Write-Output " [*] - $ccCardsCount table columns found containing CARD."
-        $ccCards | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Data-card.csv"
+        # Search for the keyword in the table column names
+        $ColumnNameKeyWords | 
+        Foreach {
 
-        Write-Output " [*] Search accessible non-default databases for table names containing CREDIT."
-        $ccCredit = $LoginAccess | Get-SQLColumnSampleDataThreaded -SampleSize 2 -NoDefaults -ValidateCC -Threads 20 -Keywords "credit"
-        $ccCreditCount = $ccCredit.count
-        Write-Output " [*] - $ccCreditCount table columns found containing CREDIT."
-        $ccCredit | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Data-credit.csv"
+            $ColumnNameKeyWord = $_
+            # Target keyword via column name
+            Write-Output " [*] Search accessible non-default databases for table column names containing $ColumnNameKeyWord."
+            $TblColumnKeywordMatches = $LoginAccess | Get-SQLColumnSampleDataThreaded -SampleSize 2 -NoDefaults -Threads 20 -Keywords "$ColumnNameKeyWord"
+            $TblColumnKeywordMatchesCount = $TblColumnKeywordMatches | Measure-Object | select count -ExpandProperty count
+            Write-Output " [*] - $TblColumnKeywordMatchesCount table columns found containing $ColumnNameKeyWord."
+            $TblColumnKeywordMatches | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Data-$ColumnNameKeyWord.csv"
+        }
+
+        if($TblColumnKeywordMatchesCount -gt 0){
+
+            $TblColumnKeywordMatches |
+            foreach{
+
+                # Get data
+                $aComputerName = $_.ComputerName
+                $aInstance = $_.Instance
+                $Database = $_.Database 
+                $Schema = $_.Schema
+                $Table = $_.Table
+                $Column = $_.Column
+                $Sample = $_.Sample
+                $RowCount = $_.RowCount
+                $ColumnPath = "$Database.$Schema.$Table.$Column"
+
+                # Create verification item
+                $ShareDetails = @"
+ComputerName: $aComputerName
+Instance: $aInstance
+Database: $Database 
+Schema: $Schema
+Table: $Table
+Column: $Column
+Sample: $Sample
+RowCount: $RowCount
+"@
+
+                # Add record
+                $null = $AllFindings.Rows.Add("MAN:M:abf35a11-a2da-401c-a23e-ab5584909633",
+                                     "Excessive Privileges - SQL Server Login - Sensitive Data Column",
+                                     $aComputerName,         
+                                     $StartTime,
+                                     "On the $aInstance SQL Server instance, the $ColumnPath column was found that may store sensitive data containing $RowCount rows.",
+                                     $ShareDetails)  
+
+            }
+        }
 
         # ------------------------------------------
         # Data Discovery: Password Targets
@@ -576,12 +980,60 @@ function Invoke-HuntSQLServers
         Write-Output " [*] PASSWORD TARGET DISCOVERY"
         Write-Output " [*] -------------------------------------------------------------"
 
-        # Target passwords based on column names
-        Write-Output " [*] Search accessible non-default databases for table names containing PASSWORD."
-        $ColumnPasswords = $LoginAccess | Get-SQLColumnSampleDataThreaded  -SampleSize 2 -NoDefaults -Threads 20 -Keywords "password"
-        $ColumnPasswordsCount = $ColumnPasswords.count
-        Write-Output " [*] - $ColumnPasswordsCount table columns found containing PASSWORD."
-        $ColumnPasswords | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Passswords-ColumnName.csv"
+        # Define table column name keywords to look for
+        $ColumnNameKeyWords = @('password')
+
+        # Search for the keyword in the table column names
+        $ColumnNameKeyWords | 
+        Foreach {
+
+            $ColumnNameKeyWord = $_
+            # Target keyword via column name
+            Write-Output " [*] Search accessible non-default databases for table column names containing $ColumnNameKeyWord."
+            $TblColumnKeywordMatches = $LoginAccess | Get-SQLColumnSampleDataThreaded -SampleSize 2 -NoDefaults -Threads 20 -Keywords "$ColumnNameKeyWord"
+            $TblColumnKeywordMatchesCount = $TblColumnKeywordMatches | Measure-Object | select count -ExpandProperty count
+            Write-Output " [*] - $TblColumnKeywordMatchesCount table columns found containing $ColumnNameKeyWord."
+            $TblColumnKeywordMatches | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Data-$ColumnNameKeyWord.csv"
+        }
+
+        if($TblColumnKeywordMatchesCount -gt 0){
+
+            $TblColumnKeywordMatches |
+            foreach{
+
+                # Get data
+                $aComputerName = $_.ComputerName
+                $aInstance = $_.Instance
+                $Database = $_.Database 
+                $Schema = $_.Schema
+                $Table = $_.Table
+                $Column = $_.Column
+                $Sample = $_.Sample
+                $RowCount = $_.RowCount
+                $ColumnPath = "$Database.$Schema.$Table.$Column"
+
+                # Create verification item
+                $ShareDetails = @"
+ComputerName: $aComputerName
+Instance: $aInstance
+Database: $Database 
+Schema: $Schema
+Table: $Table
+Column: $Column
+Sample: $Sample
+RowCount: $RowCount
+"@
+
+                # Add record
+                $null = $AllFindings.Rows.Add("MAN:M:77aca876-214f-4ad7-bac0-c340ee071517",
+                                     "Excessive Privileges - SQL Server Login - Cleartext Password",
+                                     $aComputerName,         
+                                     $StartTime,
+                                     "On the $aInstance SQL Server instance, the $ColumnPath column was found that may store cleartext passwords. It contains $RowCount rows.",
+                                     $ShareDetails)  
+
+            }
+        }
 
         # Target passwords in agent jobs (requires privileges)
         Write-Output " [*] Search accessible non-default databases for agent source code containing PASSWORD."
@@ -786,12 +1238,13 @@ function Invoke-HuntSQLServers
              <li>$ColumnPasswordsCount sample rows were found for columns containing PASSWORD.</li>
              <li>$AgentPasswordsCount agent jobs potentially contain passwords. *Privileges required</li>
              <li>$SpPasswordsCount stored procedures potentially contain passwords. *Privileges requried</li>             
-            </ul>        
+            </ul>           
          </BODY>
         </HTML>   
 "@
         $HTMLReport = $HTMLReport1 + $HTMLReport2 + $HTMLReport3 + $HTMLReport4 + $HTMLReport5
         Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-Share-Inventory-Summary-Report.html"        
         $HTMLReport | Out-File "$OutputDirectory\$TargetDomain-SQLServer-Summary-Report.html"
+   $AllFindings | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Findings-Export.csv" 
    }
 }	
