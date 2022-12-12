@@ -3,7 +3,7 @@
 # ------------------------------------------
 # Author: Scott Sutherland, NetSPI
 # License: 3-clause BSD
-# Version 1.3.12
+# Version 1.3.13
 # Requires PowerUpSQL
 <#
 Change data tables to psobjects and write to file using append
@@ -754,7 +754,7 @@ Spn: $Spn
                                          $aInstance,
                                          $aComputerName,         
                                          $StartTime,
-                                         "The $aInstance instance's service is run using the account $DomainAccount. That account is used to run $ShareAccountNameCount other instances. ",
+                                         "The $aInstance instance's service is run using the account $DomainAccount. That account is used to run $ShareAccountNameCount instances.",
                                          $ShareDetails)                                   
                     
                 }
