@@ -3,7 +3,7 @@
 # ------------------------------------------
 # Author: Scott Sutherland, NetSPI
 # License: 3-clause BSD
-# Version 1.3.11
+# Version 1.3.12
 # Requires PowerUpSQL
 <#
 Change data tables to psobjects and write to file using append
@@ -352,6 +352,7 @@ function Invoke-HuntSQLServers
         $AllFindings = New-Object System.Data.DataTable
         $null = $AllFindings.Columns.Add("MasterFindingSourceIdentifier")  
         $null = $AllFindings.Columns.Add("InstanceName")
+        $null = $AllFindings.Columns.Add("Instance")
         $null = $AllFindings.Columns.Add("AssetName") 
         $null = $AllFindings.Columns.Add("IssueFirstFoundDate")
         $null = $AllFindings.Columns.Add("VerificationCaption01") 
@@ -508,6 +509,7 @@ ActiveSessions: $ActiveSessions
             # Add findings to the list
             $null = $AllFindings.Rows.Add("MAN:M:8c7437f9-080f-4ae3-95dc-08b86504a7b3",
                                          "Excessive Privileges - SQL Server Login",
+                                         $aInstance,
                                          $aComputerName,         
                                          $StartTime,
                                          "The $Currentlogin user was able to log into the $aInstance SQL Server instance.",
@@ -577,6 +579,7 @@ ActiveSessions: $ActiveSessions
                 # Add findings to the list
                 $null = $AllFindings.Rows.Add("MAN:M:e9b862c0-2729-450e-9d16-2a02074f9327",
                                      "Excessive Privileges - SQL Server Login - Sysadmin Role",
+                                     $aInstance,
                                      $aComputerName,         
                                      $StartTime,
                                      "The $Currentlogin user was able to log into the $aInstance SQL Server instance.",
@@ -637,6 +640,7 @@ PrincipalName: $PrincipalName
                 # Add finding to list
                 $null = $AllFindings.Rows.Add("MAN:M:afbd6d8b-36cb-4c99-bfc1-d3668b165c8b",
                                          "Excessive Privileges - SQL Server Login - Privileged Role",
+                                         $aInstance,
                                          $aComputerName,         
                                          $StartTime,
                                          "On the $aInstance SQL Server instance, the $PrincipalName login was provided the $RolePrincipalName role. This should be reviewed to ensure it's not providing excessive privileges.",
@@ -683,6 +687,7 @@ PermissionState: $PermissionState
                 # Add finding
                 $null = $AllFindings.Rows.Add("MAN:M:4a9f4fbf-477e-430d-9ae1-a13f46ea591e",
                                          "Excessive Privileges - SQL Server Login - Permissions",
+                                         $aInstance,
                                          $aComputerName,         
                                          $StartTime,
                                          "On the $aInstance SQL Server instance, the $PrincipalName login was provided the $PermissionName permission. This should be reviewed to ensure it's not providing excessive privileges.",
@@ -746,6 +751,7 @@ Spn: $Spn
                     # Add Findings
                     $null = $AllFindings.Rows.Add("MAN:M:691129",
                                          "Account Management - Shared SQL Server Service Account",
+                                         $aInstance,
                                          $aComputerName,         
                                          $StartTime,
                                          "The $aInstance instance's service is run using the account $DomainAccount. That account is used to run $ShareAccountNameCount other instances. ",
@@ -824,6 +830,7 @@ has_dbaccess: $ahas_dbaccess
                 # Add finding to list
                 $null = $AllFindings.Rows.Add("MAN:M:40ffca5b-d8c9-4f36-9fff-6b56a4aaa2cb",
                                      "Excessive Privileges - SQL Server Login - Non Default Database",
+                                     $aInstance,
                                      $aComputerName,         
                                      $StartTime,
                                      "On the $aInstance SQL Server instance, the $aDatabaseName database was found accessible.",
@@ -899,6 +906,7 @@ has_dbaccess: $ahas_dbaccess
                 # Add finding to list
                 $null = $AllFindings.Rows.Add("MAN:M:abf35a11-a2da-401c-a23e-ab5584909633",
                                      "Excessive Privileges - SQL Server Login - Sensitive Database Name",
+                                     $aInstance,
                                      $aComputerName,         
                                      $StartTime,
                                      "On the $aInstance SQL Server instance, the $aDatabaseName database was found accessible and it's name contains `"$DbKeyword`", which could indicate sensitive data exposure.",
@@ -964,6 +972,7 @@ RowCount: $RowCount
                 # Add record
                 $null = $AllFindings.Rows.Add("MAN:M:abf35a11-a2da-401c-a23e-ab5584909633",
                                      "Excessive Privileges - SQL Server Login - Sensitive Data Column",
+                                     $aInstance,
                                      $aComputerName,         
                                      $StartTime,
                                      "On the $aInstance SQL Server instance, the $ColumnPath column was found that may store sensitive data containing $RowCount rows.",
@@ -1027,6 +1036,7 @@ RowCount: $RowCount
                 # Add record
                 $null = $AllFindings.Rows.Add("MAN:M:77aca876-214f-4ad7-bac0-c340ee071517",
                                      "Excessive Privileges - SQL Server Login - Cleartext Password",
+                                     $aInstance,
                                      $aComputerName,         
                                      $StartTime,
                                      "On the $aInstance SQL Server instance, the $ColumnPath column was found that may store cleartext passwords. It contains $RowCount rows.",
@@ -1245,6 +1255,110 @@ RowCount: $RowCount
         $HTMLReport = $HTMLReport1 + $HTMLReport2 + $HTMLReport3 + $HTMLReport4 + $HTMLReport5
         Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-Share-Inventory-Summary-Report.html"        
         $HTMLReport | Out-File "$OutputDirectory\$TargetDomain-SQLServer-Summary-Report.html"
-   $AllFindings | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Findings-Export.csv" 
+
+        # ----------------------------------------------------
+        # Correlate FQDN and hostnames for export
+        # Get a list of all hostnames that are not fqdn
+        # ----------------------------------------------------
+
+        # Get unique non fqdn host names
+        $HostnamesUnique = $AllFindings | where AssetName -notlike "*.*"  | Select -Unique 
+
+        # Check each name for FQDN match
+        $HostnameMatches = $HostnamesUnique |
+        Foreach{
+
+	        # Get hostname      
+	        $AssetName = $_.AssetName
+
+            # Check if a FQDN exists for the hostname
+            # If match, add to the list
+	        $AllFindings | where AssetName -like "*.*" |
+	        Foreach {
+
+		        $FQDN = $_.AssetName
+
+		        # Compare hostname to fqdn
+		        If($FQDN -like "$AssetName.*.*"){
+			
+                    $object = new-object psobject
+                    $object | Add-Member -MemberType NoteProperty -Name 'Hostname' -Value $AssetName
+                    $object | Add-Member -MemberType NoteProperty -Name 'FQDN' -Value $FQDN				
+                    $object
+		        }
+	        }	    
+        }
+
+        # Unique matches
+        $HostnameMatchesUnique = $HostnameMatches | select -Unique
+
+        # Update records
+        $AllFindingsClean = $AllFindings | Select MasterFindingSourceIdentifier,InstanceName,AssetName,IssueFirstFoundDate,VerificationCaption01,VerificationText01 | 
+        Foreach{
+
+            # Get fields
+	        $nMasterFindingSourceIdentifier = $_.MasterFindingSourceIdentifier
+	        $nInstanceName = $_.InstanceName
+	        $nAssetName = $_.AssetName	
+	        $nnIssueFirstFoundDate = $_.IssueFirstFoundDate
+	        $nVerificationCaption01 = $_.VerificationCaption01
+	        $nVerificationText01 = $_.VerificationText01
+
+            # Check if the hostname needs to be updated
+            if($nAssetName -notlike "*.*"){
+            
+                # check for match
+                $ConfirmedMatch = $HostnameMatchesUnique | where hostname -eq "$assetname" 
+                $ConfirmedMatchCount =  $ConfirmedMatch | measure-object | select count -ExpandProperty count
+
+                if($ConfirmedMatchCount -gt 0){
+
+                    # Updated hostname
+                    $NewFQDN = $ConfirmedMatch | select fqdn -ExpandProperty fqdn -first 1
+
+                    # Updated instance in verification
+                    $VercapUpdate = $nVerificationCaption01 -replace("$nAssetName","$NewFQDN")
+                    $VertxtUpdate = $nVerificationText01 -replace("$nAssetName","$NewFQDN")
+
+                    # return record with updated assetname and instance
+                    $object = new-object psobject
+                    $object | Add-Member -MemberType NoteProperty -Name 'MasterFindingSourceIdentifier' -Value $nMasterFindingSourceIdentifier
+                    $object | Add-Member -MemberType NoteProperty -Name 'InstanceName' -Value $nInstanceName	
+                    $object | Add-Member -MemberType NoteProperty -Name 'AssetName' -Value $NewFQDN
+                    $object | Add-Member -MemberType NoteProperty -Name 'IssueFirstFoundDate' -Value $nIssueFirstFoundDate		
+                    $object | Add-Member -MemberType NoteProperty -Name 'VerificationCaption01' -Value $nVerificationCaption01	
+                    $object | Add-Member -MemberType NoteProperty -Name 'VerificationText01' -Value $nVerificationText01	
+                    $object
+
+                }else{
+                    
+                    # return hostname record with no update
+                    $object = new-object psobject
+                    $object | Add-Member -MemberType NoteProperty -Name 'MasterFindingSourceIdentifier' -Value $nMasterFindingSourceIdentifier
+                    $object | Add-Member -MemberType NoteProperty -Name 'InstanceName' -Value $nInstanceName	
+                    $object | Add-Member -MemberType NoteProperty -Name 'AssetName' -Value $nAssetName
+                    $object | Add-Member -MemberType NoteProperty -Name 'IssueFirstFoundDate' -Value $nIssueFirstFoundDate		
+                    $object | Add-Member -MemberType NoteProperty -Name 'VerificationCaption01' -Value $nVerificationCaption01	
+                    $object | Add-Member -MemberType NoteProperty -Name 'VerificationText01' -Value $nVerificationText01	
+                    $object
+                }
+
+            }else{
+
+                # return fqdn record with no update
+                $object = new-object psobject
+                $object | Add-Member -MemberType NoteProperty -Name 'MasterFindingSourceIdentifier' -Value $nMasterFindingSourceIdentifier
+                $object | Add-Member -MemberType NoteProperty -Name 'InstanceName' -Value $nInstanceName	
+                $object | Add-Member -MemberType NoteProperty -Name 'AssetName' -Value $nAssetName
+                $object | Add-Member -MemberType NoteProperty -Name 'IssueFirstFoundDate' -Value $nIssueFirstFoundDate		
+                $object | Add-Member -MemberType NoteProperty -Name 'VerificationCaption01' -Value $nVerificationCaption01	
+                $object | Add-Member -MemberType NoteProperty -Name 'VerificationText01' -Value $nVerificationText01	
+                $object
+
+            }
+        }
+
+    # Save export file
+    $AllFindingsClean | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Findings-Export.csv" 
    }
 }	
