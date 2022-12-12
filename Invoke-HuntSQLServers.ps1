@@ -3,11 +3,10 @@
 # ------------------------------------------
 # Author: Scott Sutherland, NetSPI
 # License: 3-clause BSD
-# Version 1.3.13
+# Version 1.3.14
 # Requires PowerUpSQL
 <#
 Change data tables to psobjects and write to file using append
-Fix console and html report summaries
 Add findings for sp and agent passwords
 Add new test for linked servers
 Add new test for dangerious xp
@@ -852,6 +851,11 @@ has_dbaccess: $ahas_dbaccess
                                 'chd',
                                 'pos',
                                 'enclave')
+
+        # datatable to store stats
+        $StatsDbName = new-object System.Data.DataTable 
+        $StatsDbName.Columns.Add("keyword") | Out-Null
+        $StatsDbName.Columns.Add("Count")   | Out-Null
              
         # Filter for potential high value databases based on keywords        
         $DbNameKeyWords | 
@@ -861,6 +865,7 @@ has_dbaccess: $ahas_dbaccess
             $DatabasesFound = $Databases | Where-Object {$_.DatabaseName -like "*$DbKeyword*"} 
             $DatabasesFoundCount = $DatabasesFound | Measure-Object | Select count -ExpandProperty count
             Write-Output " [*] - $DatabasesFoundCount database names contain $DbKeyword"
+            $StatsDbName.Rows.Add("$DbKeyword","$DatabasesFoundCount") | Out-Null
             $DatabasesFound | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Databases-$DbKeyword.csv"
             $DatabasesFound | 
             Foreach {
@@ -928,6 +933,11 @@ has_dbaccess: $ahas_dbaccess
                                 'credit',
                                 'card')
 
+        # datatable to store stats
+        $StatsData = new-object System.Data.DataTable 
+        $StatsData.Columns.Add("keyword") | Out-Null
+        $StatsData.Columns.Add("Count")   | Out-Null
+
         # Search for the keyword in the table column names
         $ColumnNameKeyWords | 
         Foreach {
@@ -938,6 +948,7 @@ has_dbaccess: $ahas_dbaccess
             $TblColumnKeywordMatches = $LoginAccess | Get-SQLColumnSampleDataThreaded -SampleSize 2 -NoDefaults -Threads 20 -Keywords "$ColumnNameKeyWord"
             $TblColumnKeywordMatchesCount = $TblColumnKeywordMatches | Measure-Object | select count -ExpandProperty count
             Write-Output " [*] - $TblColumnKeywordMatchesCount table columns found containing $ColumnNameKeyWord."
+            $StatsData.Rows.Add("$ColumnNameKeyWord","$TblColumnKeywordMatchesCount") | out-null
             $TblColumnKeywordMatches | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Data-$ColumnNameKeyWord.csv"
         }
 
@@ -992,6 +1003,11 @@ RowCount: $RowCount
         # Define table column name keywords to look for
         $ColumnNameKeyWords = @('password')
 
+        # datatable to store stats
+        $StatsPw = new-object System.Data.DataTable 
+        $StatsPw.Columns.Add("keyword") | Out-Null
+        $StatsPw.Columns.Add("Count")   | Out-Null
+
         # Search for the keyword in the table column names
         $ColumnNameKeyWords | 
         Foreach {
@@ -1002,6 +1018,7 @@ RowCount: $RowCount
             $TblColumnKeywordMatches = $LoginAccess | Get-SQLColumnSampleDataThreaded -SampleSize 2 -NoDefaults -Threads 20 -Keywords "$ColumnNameKeyWord"
             $TblColumnKeywordMatchesCount = $TblColumnKeywordMatches | Measure-Object | select count -ExpandProperty count
             Write-Output " [*] - $TblColumnKeywordMatchesCount table columns found containing $ColumnNameKeyWord."
+            $StatsPw.Rows.Add("$ColumnNameKeyWord","$TblColumnKeywordMatchesCount") | out-null
             $TblColumnKeywordMatches | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Data-$ColumnNameKeyWord.csv"
         }
 
@@ -1129,24 +1146,33 @@ RowCount: $RowCount
         Write-Output "  Database Summary                        "
         Write-Output "  ----------------------------------------------------------------"
         Write-Output "  o $DatabasesCount accessible non-default databases were found."        
-        Write-Output "  o $DatabasesEncCount databases were found configured with transparent encryption."
-        Write-Output "  o $DatabasesACHCount database names contain ACH."        
-        Write-Output "  o $DatabasesFinanceCount database names contain finance."
-        Write-Output "  o $DatabasesCHDCount database names contain chd."       
-        Write-Output "  o $DatabasesEnclaveCount database names contain enclave."
-        Write-Output "  o $DatabasesPOSCount database names contain pos."
+        Write-Output "  o $DatabasesEncCount databases were found configured with transparent encryption."       
+        $StatsDbName | 
+        foreach {
+            $Keyword = $_.keyword
+            $count = $_.count
+            Write-Output "  o $count database names contain $Keyword."
+        }
         Write-Output "  "
         Write-Output "  ----------------------------------------------------------------"
         Write-Output "  Sensitive Data Access Summary                     "
-        Write-Output "  ----------------------------------------------------------------"
-        Write-Output "  o $SSNNumbersCount sample rows were found for columns containing SSN."
-        Write-Output "  o $ccCreditCount sample rows were found for columns containing CREDIT."
-        Write-Output "  o $ccCardsCount sample rows were found for columns containing CARD."
+        Write-Output "  ----------------------------------------------------------------"        
+        $StatsData | 
+        foreach {
+            $Keyword = $_.keyword
+            $count = $_.count
+            Write-Output "  o $count sample rows were found for columns containing $Keyword."
+        }
         Write-Output "  "
         Write-Output "  ----------------------------------------------------------------"
         Write-Output "  Password Access Summary                               "
-        Write-Output "  ----------------------------------------------------------------"
-        Write-Output "  o $ColumnPasswordsCount sample rows were found for columns containing PASSWRORD."
+        Write-Output "  ----------------------------------------------------------------"        
+        $StatsPw | 
+        foreach {
+            $Keyword = $_.keyword
+            $count = $_.count
+            Write-Output "  o $count sample rows were found for columns containing $Keyword."
+        }
         Write-Output "  o $AgentPasswordsCount agent jobs potentially contain passwords. *requires sysadmin"
         Write-Output "  o $SpPasswordsCount stored procedures potentially contain passwords. *requires sysadmin"
         Write-Output "  "
@@ -1217,6 +1243,39 @@ RowCount: $RowCount
                     Write-Output "<li>$CurrentCount $CurrentName</li>"                                      
                 }             
 
+        # Generate stats html
+	    $StatsDataHTML = ""
+	    $StatsData | 
+            foreach {
+                $Keyword = $_.keyword
+                $count = $_.count
+                $StatsDataHTML = $StatsDataHTML + "<li>$count sample rows were found for columns containing $Keyword.</li>"
+           
+            }
+
+            # Display pw status
+	    $StatsPwHTML = ""
+	    $StatsPw | 
+            foreach {
+                $Keyword = $_.keyword
+                $count = $_.count
+                $StatsPwHTML = $StatsPwHTML + "<li>$count sample rows were found for columns containing $Keyword.</li>"
+           
+            }
+
+            # Display database status
+	    $StatsDbNameHTML = ""
+	    $StatsDbName | 
+            foreach {
+                $Keyword = $_.keyword
+                $count = $_.count
+                $StatsDbNameHTML = $StatsDbNameHTML + "<li>$count database names contain $Keyword.</li>"
+           
+            }
+
+
+
+        # Add to html
         $HTMLReport5 = @" 
                 </ul>
               </li>
@@ -1226,26 +1285,20 @@ RowCount: $RowCount
             
             <ul>
              <li>$DatabasesCount accessible non-default databases were found.</li>
-             <li>$DatabasesEncCount databases were found configured with transparent encryption.</li>
-             <li>$DatabasesACHCount database names contain ACH.</li>             
-             <li>$DatabasesFinanceCount database names contain FINANCE</li>
-             <li>$DatabasesCHDCount database names contain CHD.</li>
-             <li>$DatabasesEnclaveCount database names contain ENCLAVE.</li>
-             <li>$DatabasesPOSCount database names contain POS</li>
+             <li>$DatabasesEncCount databases were found configured with transparent encryption.</li>             
+             $StatsDbNameHTML
             </ul>           
 
             <H3>Sensitive Data Access Summary</H3>
             
             <ul>
-             <li>$SSNNumbersCount sample rows were found for columns containing SSN.</li>
-             <li>$ccCreditCount sample rows were found for columns containing CREDIT.</li>  
-             <li>$ccCardsCount sample rows were found for columns containing CARD.</li>           
+             $StatsDataHTML         
             </ul>
 
             <H3>Password Access Summary</H3>
             
             <ul>
-             <li>$ColumnPasswordsCount sample rows were found for columns containing PASSWORD.</li>
+             $StatsPwHTML
              <li>$AgentPasswordsCount agent jobs potentially contain passwords. *Privileges required</li>
              <li>$SpPasswordsCount stored procedures potentially contain passwords. *Privileges requried</li>             
             </ul>           
