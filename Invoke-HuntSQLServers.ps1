@@ -706,7 +706,7 @@ PermissionState: $PermissionState
             Write-Output " [*] Shared service accounts will not be identified, because SPN informatin is required."            
         }else{
             Write-Output " [*] Identifying shared SQL Server service accounts."
-            $SharedAccounts = $AllInstances | Group-Object DomainAccount | Sort-Object Count -Descending  | Where Count -GT 2 |  Select Count, Name
+            $SharedAccounts = $AllInstances | Group-Object DomainAccount | Sort-Object Count -Descending | Where Count -GT 2 |  Select Count, Name | Where-Object {($_.name -notlike "*$")
             $SharedAccountsCount = $SharedAccounts |  Measure-Object | Select count -ExpandProperty count
             Write-Output " [*] - $SharedAccountsCount shared accounts were found."
             $SharedAccounts | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-SharedAccounts.csv"
