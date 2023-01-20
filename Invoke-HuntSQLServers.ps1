@@ -24,7 +24,9 @@ function Invoke-HuntSQLServers
             .PARAMETER DomainController
             Domain controller to authenticated to. Requires username/password or credential.
             .PARAMETER Threads
-            Number of concurrent tasks to run at once.
+            Number of concurrent tasks to run at once. Default 20.
+            .PARAMETER SampleThreads
+            Number of concurrent tasks to run on each database during sampling. Default 20.
             .PARAMETER CheckMgmt
             Perform SPN discovery of MSServerClusterMgmtAPI SPN as well.  This is much slower.
             .PARAMETER CheckAll
@@ -242,7 +244,11 @@ function Invoke-HuntSQLServers
         
         [Parameter(Mandatory = $false,
         HelpMessage = 'Number of threads to process at once.')]
-        [int]$Threads = 100,
+        [int]$Threads = 20,
+	
+        [Parameter(Mandatory = $false,
+        HelpMessage = 'Number of database sample threads to process at once.')]
+        [int]$SampleThreads = 20,
 
         [Parameter(Mandatory = $false,
         HelpMessage = 'Perform SPN discovery of MSServerClusterMgmtAPI SPN as well.  This is much slower.')]
@@ -420,7 +426,7 @@ function Invoke-HuntSQLServers
 
         # Perform UDP scanning of identified SQL Server instances on udp port 1434
         write-output " [*] Performing UDP scanning $AllComputersCount computers."
-        $UDPInstances = $AllComputers | Where-Object ComputerName -notlike "" | Get-SQLInstanceScanUDPThreaded -Threads 100
+        $UDPInstances = $AllComputers | Where-Object ComputerName -notlike "" | Get-SQLInstanceScanUDPThreaded -Threads $Threads
         $UDPInstancesCount = $UDPInstances.count
         Write-Output " [*] - $UDPInstancesCount instances responded."
         $UDPInstances | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-UDPResponse.csv"
@@ -438,7 +444,7 @@ function Invoke-HuntSQLServers
 
             # Attempt to log into instances that found via SPNs
             Write-Output " [*] Attempting to log into $AllInstancesCount instances found via SPN query."
-            $LoginAccess = $AllInstances | Get-SQLServerInfoThreaded -Threads 100
+            $LoginAccess = $AllInstances | Get-SQLServerInfoThreaded -Threads $Threads
             $LoginAccessCount = $LoginAccess| measure-object | select count -ExpandProperty count 
             Write-Output " [*] - $LoginAccessCount could be logged into."
             $LoginAccess | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-LoginAccess.csv"    
@@ -447,7 +453,7 @@ function Invoke-HuntSQLServers
 
             # Attempt to log into instances that responded to UDP
             Write-Output " [*] Attempting to log into $UDPInstancesCount instances that responded to UDP scan."
-            $LoginAccess = $UDPInstances | Get-SQLServerInfoThreaded -Threads 100
+            $LoginAccess = $UDPInstances | Get-SQLServerInfoThreaded -Threads $Threads
             $LoginAccessCount = $LoginAccess | measure-object | select count -ExpandProperty count 
             Write-Output " [*] - $LoginAccessCount could be logged into."
             $LoginAccess | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-LoginAccess.csv"
@@ -945,7 +951,7 @@ has_dbaccess: $ahas_dbaccess
             $ColumnNameKeyWord = $_
             # Target keyword via column name
             Write-Output " [*] Search accessible non-default databases for table column names containing $ColumnNameKeyWord."
-            $TblColumnKeywordMatches = $LoginAccess | Get-SQLColumnSampleDataThreaded -SampleSize 2 -NoDefaults -Threads 20 -Keywords "$ColumnNameKeyWord"
+            $TblColumnKeywordMatches = $LoginAccess | Get-SQLColumnSampleDataThreaded -SampleSize 2 -NoDefaults -Threads $SampleThreads -Keywords "$ColumnNameKeyWord"
             $TblColumnKeywordMatchesCount = $TblColumnKeywordMatches | Measure-Object | select count -ExpandProperty count
             Write-Output " [*] - $TblColumnKeywordMatchesCount table columns found containing $ColumnNameKeyWord."
             $StatsData.Rows.Add("$ColumnNameKeyWord","$TblColumnKeywordMatchesCount") | out-null
@@ -1015,7 +1021,7 @@ RowCount: $RowCount
             $ColumnNameKeyWord = $_
             # Target keyword via column name
             Write-Output " [*] Search accessible non-default databases for table column names containing $ColumnNameKeyWord."
-            $TblColumnKeywordMatches = $LoginAccess | Get-SQLColumnSampleDataThreaded -SampleSize 2 -NoDefaults -Threads 20 -Keywords "$ColumnNameKeyWord"
+            $TblColumnKeywordMatches = $LoginAccess | Get-SQLColumnSampleDataThreaded -SampleSize 2 -NoDefaults -Threads $SampleThreads -Keywords "$ColumnNameKeyWord"
             $TblColumnKeywordMatchesCount = $TblColumnKeywordMatches | Measure-Object | select count -ExpandProperty count
             Write-Output " [*] - $TblColumnKeywordMatchesCount table columns found containing $ColumnNameKeyWord."
             $StatsPw.Rows.Add("$ColumnNameKeyWord","$TblColumnKeywordMatchesCount") | out-null
