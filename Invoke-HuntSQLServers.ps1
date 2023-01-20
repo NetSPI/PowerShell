@@ -3,7 +3,7 @@
 # ------------------------------------------
 # Author: Scott Sutherland, NetSPI
 # License: 3-clause BSD
-# Version 1.3.14
+# Version 1.3.15
 # Requires PowerUpSQL
 <#
 Change data tables to psobjects and write to file using append
