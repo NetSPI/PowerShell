@@ -307,6 +307,7 @@ function Remove-NetspiAgent {
             Write-Output " - File not found: $RootPathFull"
         }
 
+	Write-Output ""
         Write-Output "PLEASE NOTE:"
         Write-Output "YOU MAY HAVE TO SHUTDOWN THE IN MEMORY AGENT THROUGH THE AGENTS DASHBOARD."
     }
