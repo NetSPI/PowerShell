@@ -226,7 +226,7 @@ function Invoke-HuntSQLServers
               o 0 stored procedures potentially contain passwords. *requires sysadmin
   
               ----------------------------------------------------------------
-             [*] Saving results to C:\temp\demo.com-Share-Inventory-Summary-Report.html			
+             [*] Saving results to C:\temp\demo.com-SQLServer-Summary-Report.html			
     #>    
     [CmdletBinding()]
     Param(
@@ -264,7 +264,10 @@ function Invoke-HuntSQLServers
 
         [Parameter(Mandatory = $false,
         HelpMessage = 'Path to file containing a list of target computers.  One per line. If this is chosen SPN discovery will not be conducted.')]
-        [string]$TargetsFile
+        [string]$TargetsFile,
+
+        [Parameter(Mandatory = $false,HelpMessage = 'Nova format switch.')]
+        [switch]$Nova
     )
 
    Begin
@@ -304,6 +307,18 @@ function Invoke-HuntSQLServers
         Write-Output " | Note: This can take hours to run in large environments.        |"
         Write-Output "  ----------------------------------------------------------------"
         Write-Output " [*] Results will be written to $OutputDirectory"        
+
+        # Nova format
+        If ($Nova) {
+            Write-Verbose "Output will be in Nova format"
+            $rMasterFindingId = "FindingTemplateSourceIdentifier"
+            $rFindingName = "FindingName"
+            $rAssetName = "AssetName" # This could eventually be updated to reflect a different Nova asset, e.g. 'AD Domain'.
+        }else{
+            $rMasterFindingId = "MasterFindingSourceIdentifier"
+            $rFindingName = "InstanceName"
+            $rAssetName = "AssetName" # R7 only has one option. 
+        }
 
         # Verify PowerUpSQL was loaded
         $CheckForPowerUpSQL = Test-Path Function:\Get-SQLAuditDatabaseSpec
@@ -1312,7 +1327,7 @@ RowCount: $RowCount
         </HTML>   
 "@
         $HTMLReport = $HTMLReport1 + $HTMLReport2 + $HTMLReport3 + $HTMLReport4 + $HTMLReport5
-        Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-Share-Inventory-Summary-Report.html"        
+        Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-SQLServer-Summary-Report.html"        
         $HTMLReport | Out-File "$OutputDirectory\$TargetDomain-SQLServer-Summary-Report.html"
 
         # ----------------------------------------------------
@@ -1381,24 +1396,24 @@ RowCount: $RowCount
 
                     # return record with updated assetname and instance
                     $object = new-object psobject
-                    $object | Add-Member -MemberType NoteProperty -Name 'MasterFindingSourceIdentifier' -Value $nMasterFindingSourceIdentifier
-                    $object | Add-Member -MemberType NoteProperty -Name 'InstanceName' -Value $nInstanceName	
-                    $object | Add-Member -MemberType NoteProperty -Name 'AssetName' -Value $NewFQDN
-                    $object | Add-Member -MemberType NoteProperty -Name 'IssueFirstFoundDate' -Value $nIssueFirstFoundDate		
+                    $object | Add-Member -MemberType NoteProperty -Name $rMasterFindingId -Value $nMasterFindingSourceIdentifier
+                    $object | Add-Member -MemberType NoteProperty -Name $rFindingName -Value $nInstanceName	
+                    $object | Add-Member -MemberType NoteProperty -Name $rAssetName -Value $NewFQDN
+                    if(-not $Nova){$object | Add-Member -MemberType NoteProperty -Name 'IssueFirstFoundDate' -Value $nIssueFirstFoundDate}		
                     $object | Add-Member -MemberType NoteProperty -Name 'VerificationCaption01' -Value $nVerificationCaption01	
-                    $object | Add-Member -MemberType NoteProperty -Name 'VerificationText01' -Value $nVerificationText01	
+                    $object | Add-Member -MemberType NoteProperty -Name 'VerificationText01' -Value "<pre><code>$nVerificationText01</code></pre>"	
                     $object
 
                 }else{
                     
                     # return hostname record with no update
                     $object = new-object psobject
-                    $object | Add-Member -MemberType NoteProperty -Name 'MasterFindingSourceIdentifier' -Value $nMasterFindingSourceIdentifier
-                    $object | Add-Member -MemberType NoteProperty -Name 'InstanceName' -Value $nInstanceName	
-                    $object | Add-Member -MemberType NoteProperty -Name 'AssetName' -Value $nAssetName
-                    $object | Add-Member -MemberType NoteProperty -Name 'IssueFirstFoundDate' -Value $nIssueFirstFoundDate		
+                    $object | Add-Member -MemberType NoteProperty -Name $rMasterFindingId -Value $nMasterFindingSourceIdentifier
+                    $object | Add-Member -MemberType NoteProperty -Name $rFindingName -Value $nInstanceName	
+                    $object | Add-Member -MemberType NoteProperty -Name $rAssetName -Value $nAssetName
+                    if(-not $Nova){$object | Add-Member -MemberType NoteProperty -Name 'IssueFirstFoundDate' -Value $nIssueFirstFoundDate}		
                     $object | Add-Member -MemberType NoteProperty -Name 'VerificationCaption01' -Value $nVerificationCaption01	
-                    $object | Add-Member -MemberType NoteProperty -Name 'VerificationText01' -Value $nVerificationText01	
+                    $object | Add-Member -MemberType NoteProperty -Name 'VerificationText01' -Value "<pre><code>$nVerificationText01</code></pre>"	
                     $object
                 }
 
@@ -1406,12 +1421,12 @@ RowCount: $RowCount
 
                 # return fqdn record with no update
                 $object = new-object psobject
-                $object | Add-Member -MemberType NoteProperty -Name 'MasterFindingSourceIdentifier' -Value $nMasterFindingSourceIdentifier
-                $object | Add-Member -MemberType NoteProperty -Name 'InstanceName' -Value $nInstanceName	
-                $object | Add-Member -MemberType NoteProperty -Name 'AssetName' -Value $nAssetName
-                $object | Add-Member -MemberType NoteProperty -Name 'IssueFirstFoundDate' -Value $nIssueFirstFoundDate		
+                $object | Add-Member -MemberType NoteProperty -Name $rMasterFindingId -Value $nMasterFindingSourceIdentifier
+                $object | Add-Member -MemberType NoteProperty -Name $rFindingName -Value $nInstanceName	
+                $object | Add-Member -MemberType NoteProperty -Name $rAssetName -Value $nAssetName
+                if(-not $Nova){$object | Add-Member -MemberType NoteProperty -Name 'IssueFirstFoundDate' -Value $nIssueFirstFoundDate}		
                 $object | Add-Member -MemberType NoteProperty -Name 'VerificationCaption01' -Value $nVerificationCaption01	
-                $object | Add-Member -MemberType NoteProperty -Name 'VerificationText01' -Value $nVerificationText01	
+                $object | Add-Member -MemberType NoteProperty -Name 'VerificationText01' -Value "<pre><code>$nVerificationText01</code></pre>"	
                 $object
 
             }
