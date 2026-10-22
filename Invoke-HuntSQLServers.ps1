@@ -9,7 +9,7 @@
 Change data tables to psobjects and write to file using append
 Add findings for sp and agent passwords
 Add new test for linked servers
-Add new test for dangerious xp
+Add new test for dangerous xp
 #>
 function Invoke-HuntSQLServers
 {
@@ -106,7 +106,7 @@ function Invoke-HuntSQLServers
              [*] -------------------------------------------------------------
              [*] Querying LDAP for SQL Server SPNs (mssql*).
              [*] - 100 SQL Server SPNs were found across 50 computers.
-             [*] - Writing list of SQL Server SPNs to C:\temp\domain.com-SQL-Server-Instance-SPNs.csv
+             [*] - Writing list of SQL Server SPNs to C:\temp\domain.com-SQL-Server-Instances-SPNs.csv
              [*] Performing UDP scanning 50 computers.
              [*] - 50 instances responded.
              [*] -------------------------------------------------------------
@@ -410,8 +410,8 @@ function Invoke-HuntSQLServers
             Write-Output " [*] - $AllInstancesCount SQL Server SPNs were found across $AllComputersCount computers."
 
             # Save list of SQL Server instances to a file
-            write-output " [*] - Writing list of SQL Server SPNs to $OutputDirectory\$TargetDomain-SQL-Server-Instance-SPNs.csv"
-            $AllInstances | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-All.csv"
+            write-output " [*] - Writing list of SQL Server SPNs to $OutputDirectory\$TargetDomain-SQL-Server-Instances-SPNs.csv"
+            $AllInstances | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-SPNs.csv"
         }else{
             
             # Status user
@@ -445,6 +445,73 @@ function Invoke-HuntSQLServers
         $UDPInstancesCount = $UDPInstances.count
         Write-Output " [*] - $UDPInstancesCount instances responded."
         $UDPInstances | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-UDPResponse.csv"
+
+        # Create a list of shared service accounts from the instance information
+        if($TargetsFile)
+        {
+            Write-Output " [*] Shared service accounts will not be identified, because SPN information is required."            
+        }else{
+            Write-Output " [*] Identifying shared SQL Server service accounts."
+            $SharedAccounts = $AllInstances | Sort-Object ComputerName,DomainAccount -Unique | Group-Object DomainAccount | Sort-Object Count -Descending | Where Count -GT 1 | Select Count,Name
+            $SharedAccountsCount = $SharedAccounts |  Measure-Object | Select count -ExpandProperty count
+            Write-Output " [*] - $SharedAccountsCount shared accounts were found."
+            $SharedAccounts | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-SharedAccounts.csv"
+        }
+
+        # Add Shared Accounts finding
+        If($SharedAccountsCount -gt 0){
+
+            # Foreach share account
+            $SharedAccounts | 
+            Foreach{
+                
+                $ShareAccountName = $_.Name
+                $ShareAccountNameCount = $_.Count
+
+                # Get a list of affected instances
+                $AffectedInstances = $AllInstances | Where DomainAccount -like "$ShareAccountName"
+
+                # Foreach affected instance add record
+                $AffectedInstances| 
+                Foreach{
+
+                    # Get Data
+                    $aComputerName = $_.ComputerName
+                    $aInstance = $_.Instance
+                    $Description = $_.Description
+                    $DomainAccount = $_.DomainAccount 
+                    $DomainAccountCn = $_.DomainAccountCn
+                    $DomainAccountSid = $_.DomainAccountSid                    
+                    $LastLogon = $_.LastLogon
+                    $Service = $_.Service
+                    $Spn = $_.Spn
+
+                    # Make verification item
+                    $ShareDetails = @"
+ComputerName: $aComputerName
+Instance: $aInstance
+Description: $Description
+DomainAccount: $DomainAccount 
+DomainAccountCn: $DomainAccountCn
+DomainAccountSid: $DomainAccountSid
+LastLogon: $LastLogon
+Service: $Service
+Spn: $Spn
+"@
+
+                    # Add Findings
+                    $null = $AllFindings.Rows.Add("MAN:M:691129",
+                                         "Account Management - Shared SQL Server Service Account",
+                                         $aInstance,
+                                         $aComputerName,         
+                                         $StartTime,
+                                         "The $aInstance instance's service is run using the account $DomainAccount. That account is used to run $ShareAccountNameCount instances.",
+                                         $ShareDetails)                                   
+                    
+                }
+            }
+           
+        }
 
         # ------------------------------------------
         # Access Discovery
@@ -537,7 +604,7 @@ ActiveSessions: $ActiveSessions
               }
         }else{
             Write-Output " [*] No SQL Server instances could be logged into"
-            break
+            return
         }
         
 
@@ -713,75 +780,7 @@ PermissionState: $PermissionState
                                          "On the $aInstance SQL Server instance, the $PrincipalName login was provided the $PermissionName permission. This should be reviewed to ensure it's not providing excessive privileges.",
                                          $ShareDetails)
             }
-        }
-
-        # Create a list of share service accounts from the instance information
-        if($TargetsFile)
-        {
-            Write-Output " [*] Shared service accounts will not be identified, because SPN informatin is required."            
-        }else{
-            Write-Output " [*] Identifying shared SQL Server service accounts."
-            $SharedAccounts = $AllInstances | Group-Object DomainAccount | Sort-Object Count -Descending | Where Count -GT 2 |  Select Count, Name | Where-Object {($_.name -notlike "*$")}
-            $SharedAccountsCount = $SharedAccounts |  Measure-Object | Select count -ExpandProperty count
-            Write-Output " [*] - $SharedAccountsCount shared accounts were found."
-            $SharedAccounts | Export-Csv -NoTypeInformation "$OutputDirectory\$TargetDomain-SQLServer-Instances-SharedAccounts.csv"
-        }
-
-        # Add finding
-        If($SharedAccountsCount -gt 0){
-
-            # Foreach share account
-            $SharedAccounts | 
-            Foreach{
-                
-                $ShareAccountName = $_.Name
-                $ShareAccountNameCount = $_.Count
-
-                # Get a list of affected instances
-                $AffectedInstances = $AllInstances | Where DomainAccount -like "$ShareAccountName"
-
-                # Foreach affected instance add record
-                $AffectedInstances| 
-                Foreach{
-
-                    # Get Data
-                    $aComputerName = $_.ComputerName
-                    $aInstance = $_.Instance
-                    $Description = $_.Description
-                    $DomainAccount = $_.DomainAccount 
-                    $DomainAccountCn = $_.DomainAccountCn
-                    $DomainAccountSid = $_.DomainAccountSid                    
-                    $LastLogon = $_.LastLogon
-                    $Service = $_.Service
-                    $Spn = $_.Spn
-
-                    # Make verification item
-                    $ShareDetails = @"
-ComputerName: $aComputerName
-Instance: $aInstance
-Description: $Description
-DomainAccount: $DomainAccount 
-DomainAccountCn: $DomainAccountCn
-DomainAccountSid: $DomainAccountSid
-LastLogon: $LastLogon
-Service: $Service
-Spn: $Spn
-"@
-
-                    # Add Findings
-                    $null = $AllFindings.Rows.Add("MAN:M:691129",
-                                         "Account Management - Shared SQL Server Service Account",
-                                         $aInstance,
-                                         $aComputerName,         
-                                         $StartTime,
-                                         "The $aInstance instance's service is run using the account $DomainAccount. That account is used to run $ShareAccountNameCount instances.",
-                                         $ShareDetails)                                   
-                    
-                }
-            }
-           
-        }
-        
+        }        
 
         # Create a summary of the affected SQL Server versions
         Write-Output " [*] Creating a list of accessible SQL Server instance versions."
@@ -1125,17 +1124,7 @@ RowCount: $RowCount
         Write-Output "  Instance Summary                                               "
         Write-Output "  ----------------------------------------------------------------"
         Write-Output "  o $AllInstancesCount SQL Server instances found via SPN LDAP query."
-        Write-Output "  o $UDPInstancesCount SQL Server instances responded to port 1434 UDP requests."    
-        Write-Output "  "   
-        Write-Output "  ----------------------------------------------------------------"
-        Write-Output "  Access Summary                                                 "
-        Write-Output "  ----------------------------------------------------------------"
-        Write-Output "  "
-        Write-Output "  Access:"
-        Write-Output "  o $LoginAccessCount SQL Server instances could be logged into."
-        Write-Output "  o $LoginAccessSysadminCount SQL Server instances provided sysadmin access."        
-        Write-Output "  o $RoleMembersCount SQL Server role members were enumerated. *requires privileges"
-        Write-Output "  o $ExcessiveRoleMembershipsCount excessive role assignments were identified."
+        Write-Output "  o $UDPInstancesCount SQL Server instances responded to port 1434 UDP requests." 
         Write-Output "  o $SharedAccountsCount Shared SQL Server service accounts found."
         Write-Output "  "
         Write-Output "  Below are the top 5:"
@@ -1149,53 +1138,65 @@ RowCount: $RowCount
             $CurrentName = $_.name
             Write-Output "  o $CurrentCount $CurrentName"                                          
         } 
+        Write-Output "  "   
+        Write-Output "  ----------------------------------------------------------------"
+        Write-Output "  Access Summary                                                 "
+        Write-Output "  ----------------------------------------------------------------"
+        Write-Output "  "
+        Write-Output "  Access:"
+        Write-Output "  o $LoginAccessCount SQL Server instances could be logged into."
+        If ($LoginAccessCount -gt 0){
+            Write-Output "  o $LoginAccessSysadminCount SQL Server instances provided sysadmin access."        
+            Write-Output "  o $RoleMembersCount SQL Server role members were enumerated. *requires privileges"
+            Write-Output "  o $ExcessiveRoleMembershipsCount excessive role assignments were identified."
         
-        Write-Output "  "
-        Write-Output "  Below is a summary of the versions for the accessible instances:"
+            Write-Output "  "
+            Write-Output "  Below is a summary of the versions for the accessible instances:"
 
-        # Display all SQL Server instance version counts
-        $LoginAccess | Group-Object SQLServerEdition | Sort-Object count -Descending | Select-Object count,name |
-        Foreach{
+            # Display all SQL Server instance version counts
+            $LoginAccess | Group-Object SQLServerEdition | Sort-Object count -Descending | Select-Object count,name |
+            Foreach{
             
-            $CurrentCount = $_.count
-            $CurrentName = $_.name
-            Write-Output "  o $CurrentCount $CurrentName"                                       
-        } 
+                $CurrentCount = $_.count
+                $CurrentName = $_.name
+                Write-Output "  o $CurrentCount $CurrentName"                                       
+            } 
 
-        Write-Output "  "
-        Write-Output "  ----------------------------------------------------------------"
-        Write-Output "  Database Summary                        "
-        Write-Output "  ----------------------------------------------------------------"
-        Write-Output "  o $DatabasesCount accessible non-default databases were found."        
-        Write-Output "  o $DatabasesEncCount databases were found configured with transparent encryption."       
-        $StatsDbName | 
-        foreach {
-            $Keyword = $_.keyword
-            $count = $_.count
-            Write-Output "  o $count database names contain $Keyword."
+            Write-Output "  "
+            Write-Output "  ----------------------------------------------------------------"
+            Write-Output "  Database Summary                        "
+            Write-Output "  ----------------------------------------------------------------"
+            Write-Output "  o $DatabasesCount accessible non-default databases were found."        
+            Write-Output "  o $DatabasesEncCount databases were found configured with transparent encryption."       
+            $StatsDbName | 
+            foreach {
+                $Keyword = $_.keyword
+                $count = $_.count
+                Write-Output "  o $count database names contain $Keyword."
+            }
+            Write-Output "  "
+            Write-Output "  ----------------------------------------------------------------"
+            Write-Output "  Sensitive Data Access Summary                     "
+            Write-Output "  ----------------------------------------------------------------"        
+            $StatsData | 
+            foreach {
+                $Keyword = $_.keyword
+                $count = $_.count
+                Write-Output "  o $count sample rows were found for columns containing $Keyword."
+            }
+            Write-Output "  "
+            Write-Output "  ----------------------------------------------------------------"
+            Write-Output "  Password Access Summary                               "
+            Write-Output "  ----------------------------------------------------------------"        
+            $StatsPw | 
+            foreach {
+                $Keyword = $_.keyword
+                $count = $_.count
+                Write-Output "  o $count sample rows were found for columns containing $Keyword."
+            }
+            Write-Output "  o $AgentPasswordsCount agent jobs potentially contain passwords. *requires sysadmin"
+            Write-Output "  o $SpPasswordsCount stored procedures potentially contain passwords. *requires sysadmin"
         }
-        Write-Output "  "
-        Write-Output "  ----------------------------------------------------------------"
-        Write-Output "  Sensitive Data Access Summary                     "
-        Write-Output "  ----------------------------------------------------------------"        
-        $StatsData | 
-        foreach {
-            $Keyword = $_.keyword
-            $count = $_.count
-            Write-Output "  o $count sample rows were found for columns containing $Keyword."
-        }
-        Write-Output "  "
-        Write-Output "  ----------------------------------------------------------------"
-        Write-Output "  Password Access Summary                               "
-        Write-Output "  ----------------------------------------------------------------"        
-        $StatsPw | 
-        foreach {
-            $Keyword = $_.keyword
-            $count = $_.count
-            Write-Output "  o $count sample rows were found for columns containing $Keyword."
-        }
-        Write-Output "  o $AgentPasswordsCount agent jobs potentially contain passwords. *requires sysadmin"
-        Write-Output "  o $SpPasswordsCount stored procedures potentially contain passwords. *requires sysadmin"
         Write-Output "  "
         Write-Output "  ----------------------------------------------------------------"  
 
@@ -1222,33 +1223,39 @@ RowCount: $RowCount
             
             <ul>
              <li>$AllInstancesCount SQL Server instances found via SPN LDAP query.</li>
-             <li>$UDPInstancesCount SQL Server instances responded to port 1434 UDP requests.</li>        
+             <li>$UDPInstancesCount SQL Server instances responded to port 1434 UDP requests.</li>
+             <li>
+                 $SharedAccountsCount Shared SQL Server service accounts found.<br>
+                 Below are the top 5:
+                 <ul>        
             </ul>
+"@
+                                                 
+            # Display top 5 most common service accounts
+            $SqlServiceAccountTop5 = $SharedAccounts | Select-Object count,name -First 5
+            $HTMLReport2 = $SqlServiceAccountTop5 |
+            Foreach{
             
+                $CurrentCount = $_.count
+                $CurrentName = $_.name
+                Write-Output "<li>$CurrentCount $CurrentName</li>"                                                         
+            } 
+        
+        $HTMLReport3 = @"    
             <H3>Access Summary</H3>
             
             <ul>
              <li>$LoginAccessCount SQL Server instances could be logged into.</li>
+"@
+        # Skip sections if no instances were accessible
+        If ($LoginAccessCount -gt 0){
+        $HTMLReport4 = @"             
              <li>$LoginAccessSysadminCount SQL Server instances provided sysadmin access.</li>
              <li>$RoleMembersCount SQL Server role members were enumerated. *Requires privileges</li>             
              <li>$ExcessiveRoleMembershipsCount excessive role assignments were identified.</li>             
-             <li>
-                 $SharedAccountsCount Shared SQL Server service accounts found.<br>
-                 Below are the top 5:
-                 <ul>
 "@
-                                     
-                # Display top 5 most common service accounts
-                $SqlServiceAccountTop5 = $SharedAccounts | Select-Object count,name -First 5
-                $HTMLReport2 = $SqlServiceAccountTop5 |
-                Foreach{
-            
-                    $CurrentCount = $_.count
-                    $CurrentName = $_.name
-                    Write-Output "<li>$CurrentCount $CurrentName</li>"                                                         
-                } 
 
-        $HTMLReport3 = @"   
+        $HTMLReport5 = @"   
                 </ul>
               </li>                       
               <li>
@@ -1256,7 +1263,7 @@ RowCount: $RowCount
                 <ul>
 "@
                 # Display all SQL Server instance version counts
-                $HTMLReport4 = $LoginAccess | Group-Object SQLServerEdition | Sort-Object count -Descending | Select-Object count,name |
+                $HTMLReport6 = $LoginAccess | Group-Object SQLServerEdition | Sort-Object count -Descending | Select-Object count,name |
                 Foreach{
             
                     $CurrentCount = $_.count
@@ -1297,7 +1304,7 @@ RowCount: $RowCount
 
 
         # Add to html
-        $HTMLReport5 = @" 
+        $HTMLReport7 = @" 
                 </ul>
               </li>
             </ul>
@@ -1321,12 +1328,21 @@ RowCount: $RowCount
             <ul>
              $StatsPwHTML
              <li>$AgentPasswordsCount agent jobs potentially contain passwords. *Privileges required</li>
-             <li>$SpPasswordsCount stored procedures potentially contain passwords. *Privileges requried</li>             
+             <li>$SpPasswordsCount stored procedures potentially contain passwords. *Privileges required</li>             
             </ul>           
          </BODY>
         </HTML>   
 "@
-        $HTMLReport = $HTMLReport1 + $HTMLReport2 + $HTMLReport3 + $HTMLReport4 + $HTMLReport5
+        }else{
+        # End report if no instances were accessible
+        $HTMLReport8 = @"
+            </ul>
+         </BODY>
+        </HTML>   
+"@
+        }
+
+        $HTMLReport = $HTMLReport1 + $HTMLReport2 + $HTMLReport3 + $HTMLReport4 + $HTMLReport5 + $HTMLReport6 + $HTMLReport7 + $HTMLReport8
         Write-Output " [*] Saving results to $OutputDirectory\$TargetDomain-SQLServer-Summary-Report.html"        
         $HTMLReport | Out-File "$OutputDirectory\$TargetDomain-SQLServer-Summary-Report.html"
 
